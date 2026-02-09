@@ -275,9 +275,6 @@ export default function TeacherDashboard() {
                     <FilePlus /> New Assessment
                 </Button>
                 <Button asChild variant="secondary" className="justify-start">
-                    <Link href="/teacher/rubrics"><BookCopy /> Manage Rubrics</Link>
-                </Button>
-                <Button asChild variant="secondary" className="justify-start">
                     <Link href="/teacher/students/import"><Users /> Import Students</Link>
                 </Button>
             </CardContent>

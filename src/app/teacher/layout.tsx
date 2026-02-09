@@ -21,7 +21,6 @@ const navLinks = [
   { href: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/teacher/students', icon: Users, label: 'Students' },
   { href: '/teacher/assessments', icon: FileText, label: 'Assessments' },
-  { href: '/teacher/rubrics', icon: BookCopy, label: 'Rubrics' },
   { href: '/teacher/reports', icon: BarChart, label: 'Reports' },
   { href: '/teacher/settings', icon: Settings, label: 'Settings' },
 ];

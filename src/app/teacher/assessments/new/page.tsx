@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useWebhook } from "@/lib/hooks";
-import type { StudentListItem } from "@/lib/events";
+import type { StudentListItem, RubricListItem } from "@/lib/events";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,9 +22,12 @@ export default function NewAssessmentPage() {
 
     const studentIdFromQuery = searchParams.get('studentId');
 
-    // In a real app, you would likely fetch students and rubrics to populate the form
-    const { data: studentData, isLoading: studentsLoading } = useWebhook<{ }, { students: StudentListItem[] }>({
+    const { data: studentData, isLoading: studentsLoading } = useWebhook<{}, { students: StudentListItem[] }>({
         eventName: 'STUDENT_LIST',
+    });
+
+    const { data: rubricsData, isLoading: rubricsLoading } = useWebhook<{}, { rubrics: RubricListItem[] }>({
+        eventName: 'RUBRIC_LIST',
     });
 
     const preselectedStudent = useMemo(() => {
@@ -39,7 +42,7 @@ export default function NewAssessmentPage() {
     }, [router, toast]);
 
     // We use the `manual` option here, so the webhook is only called on form submission.
-    const { trigger: createAssessment, isLoading: isCreating } = useWebhook<{ title: string, studentId: string }, { assessmentId: string }>({
+    const { trigger: createAssessment, isLoading: isCreating } = useWebhook<{ title: string, studentId: string, rubricId: string }, { assessmentId: string }>({
         eventName: 'ASSESSMENT_CREATE_DRAFT',
         manual: true,
         onSuccess: handleSuccess,
@@ -50,13 +53,14 @@ export default function NewAssessmentPage() {
         const formData = new FormData(event.currentTarget);
         const title = formData.get('title') as string;
         const studentId = studentIdFromQuery || formData.get('studentId') as string;
+        const rubricId = formData.get('rubricId') as string;
 
-        if (!title || !studentId) {
-            toast({ variant: 'destructive', title: "Missing fields", description: "Please provide a title and select a student." });
+        if (!title || !studentId || !rubricId) {
+            toast({ variant: 'destructive', title: "Missing fields", description: "Please provide a title, select a student, and select a rubric." });
             return;
         }
 
-        await createAssessment({ title, studentId });
+        await createAssessment({ title, studentId, rubricId });
     };
 
   return (
@@ -75,7 +79,7 @@ export default function NewAssessmentPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Assessment Details</CardTitle>
-                    <CardDescription>Fill in the initial details. You can add more criteria later.</CardDescription>
+                    <CardDescription>Fill in the initial details. You must select a rubric to continue.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -103,13 +107,28 @@ export default function NewAssessmentPage() {
                             </Select>
                         )}
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="rubricId">Rubric</Label>
+                         <Select name="rubricId" required>
+                            <SelectTrigger id="rubricId" disabled={rubricsLoading}>
+                                <SelectValue placeholder={rubricsLoading ? "Loading rubrics..." : "Select a rubric"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {rubricsData?.rubrics.map(rubric => (
+                                    <SelectItem key={rubric.id} value={rubric.id}>
+                                        {rubric.name} <span className="text-muted-foreground ml-2">(v{rubric.version})</span>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                      <div className="space-y-2">
                         <Label htmlFor="notes">Initial Notes (Optional)</Label>
                         <Textarea id="notes" name="notes" placeholder="Any initial thoughts or instructions..."/>
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit" disabled={isCreating || (studentsLoading && !!studentIdFromQuery)}>
+                    <Button type="submit" disabled={isCreating || (studentsLoading && !preselectedStudent) || rubricsLoading}>
                         {isCreating ? 'Saving Draft...' : 'Save as Draft'}
                     </Button>
                 </CardFooter>

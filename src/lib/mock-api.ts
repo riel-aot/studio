@@ -136,19 +136,7 @@ const listAssessments = (payload: AssessmentListPayload) => {
 const getAssessment = (payload: { assessmentId: string }) => {
     // If the ID is 'new', reset to the draft state.
     if (payload.assessmentId === 'asm_new_id_123' && currentAssessmentState.id !== 'asm_new_id_123') {
-        currentAssessmentState = {
-            id: "asm_new_id_123",
-            title: "Unit 5 Reading Comprehension",
-            status: "draft",
-            student: { id: "stu_01", name: "Amelia Johnson" },
-            rubricId: null,
-            source: null,
-            currentText: null,
-            uploads: [],
-            aiReview: null,
-            teacherFeedback: null,
-            teacherOverrides: null,
-        };
+        // This state is now set by ASSESSMENT_CREATE_DRAFT
     } else if (payload.assessmentId === assessmentWorkspaceData.id && !currentAssessmentState.currentText) {
          currentAssessmentState = { ...assessmentWorkspaceData };
     }
@@ -249,7 +237,23 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'REVIEW_OPEN': () => ({}),
     'DRAFT_OPEN': () => ({}),
     'NEW_ASSESSMENT_START': () => ({}),
-    'ASSESSMENT_CREATE_DRAFT': ({ title, studentId }: {title: string, studentId: string}) => ({ assessmentId: `asm_new_id_123` }),
+    'ASSESSMENT_CREATE_DRAFT': ({ title, studentId, rubricId }: {title: string, studentId: string, rubricId: string}) => {
+        const student = getStudentById(studentId);
+        currentAssessmentState = {
+            id: "asm_new_id_123",
+            title: title,
+            status: "draft",
+            student: { id: studentId, name: student?.name || 'Unknown Student' },
+            rubricId: rubricId,
+            source: null,
+            currentText: null,
+            uploads: [],
+            aiReview: null,
+            teacherFeedback: null,
+            teacherOverrides: null,
+        };
+        return { assessmentId: `asm_new_id_123` };
+    },
 };
 
 
