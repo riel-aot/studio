@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { StudentAssessmentsTab } from "@/components/student-assessments-tab";
 import { StudentReportsTab } from "@/components/student-reports-tab";
-import { useCallback } from "react";
+import { useCallback, use } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -80,17 +80,18 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 
 export default function StudentDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const pageParams = use(params);
 
   const { data: studentData, isLoading, error, trigger: refetchStudent } = useWebhook<{ studentId: string }, { student: StudentProfileData }>({ 
       eventName: 'STUDENT_GET', 
-      payload: { studentId: params.id } 
+      payload: { studentId: pageParams.id } 
   });
   
   const student = studentData?.student;
 
   const handleNewAssessmentSuccess = useCallback(() => {
-    router.push(`/teacher/assessments/new?studentId=${params.id}`);
-  }, [router, params.id]);
+    router.push(`/teacher/assessments/new?studentId=${pageParams.id}`);
+  }, [router, pageParams.id]);
 
   const { trigger: startNewAssessment, isLoading: isCreatingAssessment } = useWebhook<{ studentId: string }, {}>({
     eventName: 'NEW_ASSESSMENT_START',

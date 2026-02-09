@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, use } from 'react';
 import { useWebhook } from '@/lib/hooks';
 import type { AssessmentWorkspaceData, AISuggestion, RubricCriterion } from '@/lib/events';
 import { Button } from '@/components/ui/button';
@@ -317,6 +317,7 @@ function ReviewPanel({ assessment, onApplySuggestion, onSaveFeedback }: { assess
 
 export default function AssessmentWorkspacePage({ params }: { params: { id: string } }) {
   const [assessmentData, setAssessmentData] = useState<AssessmentWorkspaceData | null>(null);
+  const pageParams = use(params);
 
   const handleDataSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
     setAssessmentData(data.assessment);
@@ -324,7 +325,7 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
 
   const { isLoading: isPageLoading, error, trigger: refetch } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({ 
     eventName: 'ASSESSMENT_GET', 
-    payload: { assessmentId: params.id },
+    payload: { assessmentId: pageParams.id },
     onSuccess: handleDataSuccess
   });
 
