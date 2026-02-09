@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -241,7 +242,7 @@ export default function AssessmentsPage() {
                             <Badge variant={statusPillVariants[item.status]}>{statusMap[item.status]}</Badge>
                         </TableCell>
                         <TableCell className="text-right text-muted-foreground text-xs">
-                            {formatDistanceToNow(parseISO(item.updatedAt), { addSuffix: true })}
+                            {formatDistanceToNow(parseISO(item.updatedAt), { addSuffix: true }).replace('about ', '')}
                         </TableCell>
                         <TableCell>
                             <ChevronRight className="h-4 w-4 text-muted-foreground" />

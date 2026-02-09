@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useCallback } from 'react';
@@ -220,7 +221,7 @@ export default function TeacherDashboard() {
                                         {item.status === 'ai_draft_ready' ? 'AI Draft Ready' : 'Needs Review'}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</TableCell>
+                                <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true }).replace('about ', '')}</TableCell>
                                 <TableCell className="text-right">
                                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                 </TableCell>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -57,7 +58,7 @@ export default function DevLogsPage() {
                                                 <span className="font-semibold">{log.eventName}</span>
                                             </div>
                                             <span className="text-sm text-muted-foreground">
-                                                {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                                                {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true }).replace('about ', '')}
                                             </span>
                                         </div>
                                     </AccordionTrigger>
