@@ -1,81 +1,17 @@
+
 'use client';
 
-import React from 'react';
-import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useWebhook } from "@/lib/hooks";
-import type { HealthCheckData } from "@/lib/events";
-import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-function StatusIndicator({ status, text }: { status: boolean; text: string }) {
-    return (
-        <div className="flex items-center justify-between rounded-lg border p-3">
-            <span className="font-medium">{text}</span>
-            <div className={cn(
-                "flex items-center gap-2 text-sm",
-                status ? "text-green-600" : "text-destructive"
-            )}>
-                {status ? <CheckCircle2 className="h-4 w-4"/> : <AlertCircle className="h-4 w-4"/>}
-                {status ? "Connected" : "Error"}
-            </div>
-        </div>
-    )
-}
+// This page's content has been merged into the main /teacher/settings page.
+// This component now just redirects to the new settings page.
+export default function OldIntegrationsPage() {
+    const router = useRouter();
 
-function StatusSkeleton() {
-    return <Skeleton className="h-[58px] w-full" />
-}
-
-export default function SettingsPage() {
-    const { data, isLoading, error, trigger } = useWebhook<{}, HealthCheckData>({ 
-        eventName: 'HEALTH_CHECK',
-    });
-
-    return (
-        <div>
-        <PageHeader
-            title="Settings & Integrations"
-            description="Health check for connected services (for developer use)."
-            actions={
-                <Button variant="outline" onClick={() => trigger()} disabled={isLoading}>
-                    <RefreshCw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
-                    Refresh
-                </Button>
-            }
-        />
-        <Card>
-            <CardHeader>
-            <CardTitle>System Health</CardTitle>
-            <CardDescription>
-                This page is for developers to debug the connection status of backend services.
-            </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-                {isLoading && (
-                    <>
-                        <StatusSkeleton />
-                        <StatusSkeleton />
-                        <StatusSkeleton />
-                    </>
-                )}
-                {error && <p className="text-destructive">Failed to fetch health status: {error.message}</p>}
-                {data && (
-                    <>
-                        <StatusIndicator status={data.authConfigured} text="Authentication Provider" />
-                        <StatusIndicator status={data.webhookConfigured} text="Webhook Gateway (n8n)" />
-                        <StatusIndicator status={data.databaseConnected} text="Database Connection" />
-                        {data.lastSuccessfulCall && (
-                            <div className="text-sm text-muted-foreground pt-2">
-                                Last successful webhook call: {new Date(data.lastSuccessfulCall).toLocaleString()}
-                            </div>
-                        )}
-                    </>
-                )}
-            </CardContent>
-        </Card>
-        </div>
-    );
+    useEffect(() => {
+        router.replace('/teacher/settings?tab=integrations');
+    }, [router]);
+    
+  return null;
 }
