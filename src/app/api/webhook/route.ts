@@ -3,25 +3,11 @@ import type { WebhookRequest, WebhookResponse } from '@/lib/events';
 import { getMockResponse } from '@/lib/mock-api';
 
 export async function POST(req: NextRequest) {
-  const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
-
-  if (!n8nWebhookUrl) {
-    console.error('N8N_WEBHOOK_URL is not configured.');
-    return NextResponse.json<WebhookResponse>({
-      success: false,
-      error: {
-        message: 'Backend connection is not configured.',
-        code: 'CONFIG_ERROR',
-      },
-      correlationId: 'local-config-error',
-    }, { status: 500 });
-  }
-
   try {
     const body: WebhookRequest = await req.json();
 
     // --- START MOCK RESPONSE ---
-    // For development, we intercept the call and return mock data.
+    // For development, we intercept the call and return mock data if a handler exists.
     if (process.env.NODE_ENV === 'development') {
       const mockResponse = getMockResponse(body);
       if (mockResponse) {
@@ -31,6 +17,21 @@ export async function POST(req: NextRequest) {
       }
     }
     // --- END MOCK RESPONSE ---
+
+    // If we're not in dev or no mock was found, proceed to the real webhook.
+    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
+
+    if (!n8nWebhookUrl) {
+      console.error('N8N_WEBHOOK_URL is not configured and no mock response was available.');
+      return NextResponse.json<WebhookResponse>({
+        success: false,
+        error: {
+          message: 'Backend connection is not configured.',
+          code: 'CONFIG_ERROR',
+        },
+        correlationId: 'local-config-error',
+      }, { status: 500 });
+    }
 
     const authToken = req.headers.get('Authorization');
 

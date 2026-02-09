@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { MainLayout } from '@/components/main-layout';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import {
   BarChart,
   BookCopy,
@@ -16,6 +15,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/loading-spinner';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 const navLinks = [
   { href: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -46,22 +46,22 @@ export default function TeacherLayout({
   }
 
   const navItems = (
-    <nav className="grid items-start gap-1 px-2 text-sm font-medium">
+    <SidebarMenu>
       {navLinks.map(({ href, icon: Icon, label }) => (
-        <Link
-          key={href}
-          href={href}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary',
-            // Simple startsWith for active state. For a route like /teacher/assessments/new, it will match /teacher/assessments
-            pathname.startsWith(href) ? "bg-accent text-primary" : ""
-          )}
-        >
-          <Icon className="h-4 w-4" />
-          {label}
-        </Link>
+        <SidebarMenuItem key={href}>
+          <SidebarMenuButton
+            asChild
+            isActive={pathname.startsWith(href)}
+            tooltip={label}
+          >
+            <Link href={href}>
+              <Icon />
+              <span>{label}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       ))}
-    </nav>
+    </SidebarMenu>
   );
 
   return <MainLayout navItems={navItems}>{children}</MainLayout>;

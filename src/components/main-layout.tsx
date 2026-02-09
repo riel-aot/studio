@@ -28,7 +28,7 @@ export function MainLayout({
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen">
+      <div className="flex min-h-screen">
         <Sidebar>
           <SidebarHeader>
             <Logo />
