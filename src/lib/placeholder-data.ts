@@ -1,4 +1,4 @@
-import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData } from './events';
+import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricCriterion } from './events';
 
 export const studentListData: StudentListItem[] = [
     { 
@@ -58,32 +58,7 @@ export const getStudentById = (id: string): (StudentListItem & { studentEmail: s
     };
 };
 
-export const singleStudentData = (id: string): (StudentProfileData & { details: any, recentAssessments: any[], recentReports: any[] }) | null => {
-    const student = getStudentById(id);
-    if (!student) return null;
-
-    return {
-        id: student.id,
-        name: student.name,
-        class: student.class,
-        studentIdNumber: student.studentIdNumber,
-        studentEmail: student.studentEmail,
-        parentEmail: student.parentEmail,
-        details: {
-            gradeLevel: '5th Grade',
-            homeroom: 'Mrs. Gable',
-            lastLogin: '2023-10-26T08:00:00Z',
-        },
-        recentAssessments: [
-            { id: 'asm_01', name: 'Unit 3: Fractions', status: 'pending_review', date: '2023-10-26' },
-            { id: 'asm_11', name: 'Book Report: The Giver', status: 'finalized', date: '2023-10-15' },
-            { id: 'asm_12', name: 'Spelling Test #5', status: 'finalized', date: '2023-10-10' },
-        ],
-        recentReports: []
-    }
-};
-
-export const studentAssessments: StudentAssessmentListItem[] = [
+const studentAssessments: StudentAssessmentListItem[] = [
     { id: 'asm_01', name: 'Unit 3: Fractions', type: 'Math', status: 'Needs Review', updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
     { id: 'asm_11', name: 'Book Report: The Giver', type: 'Reading', status: 'Finalized', updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
     { id: 'asm_12', name: 'Spelling Test #5', type: 'Writing', status: 'Finalized', updatedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
@@ -91,26 +66,45 @@ export const studentAssessments: StudentAssessmentListItem[] = [
     { id: 'asm_ai_01', name: 'EAL Vocabulary Quiz', type: 'EAL', status: 'AI Draft Ready', updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
 ];
 
-export const studentReports: StudentReportListItem[] = [
+const studentReports: StudentReportListItem[] = [
     { id: 'rep_01', name: 'Q3 Progress Report', generatedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), status: 'Final' },
     { id: 'rep_02', name: 'Mid-Term Summary', generatedDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), status: 'Final' },
 ];
 
-export const assessmentData = (id: string) => ({
-    id,
-    title: "Unit 3: Fractions",
-    student: getStudentById('stu_01'),
-    status: 'pending_review',
-    createdAt: '2023-10-20T10:00:00Z',
-    updatedAt: '2023-10-26T10:00:00Z',
-    rubric: {
-        id: 'rub_01',
-        name: 'Standard Math Quiz Rubric',
-        criteria: [
-            { id: 'crit_01', name: 'Correctness', description: 'Accuracy of the final answers.', score: 4, maxScore: 5, comments: 'Good work on most problems, but check your calculations for question #3.' },
-            { id: 'crit_02', name: 'Methodology', description: 'Shows the steps taken to reach the answer.', score: 5, maxScore: 5, comments: 'Excellent and clear work shown.' },
-            { id: 'crit_03', name: 'Clarity', description: 'The work is neat and easy to follow.', score: 3, maxScore: 5, comments: 'Some parts were hard to read. Try to be neater next time.' },
-        ]
+export const fullAssessment = {
+    studentAssessments,
+    studentReports,
+}
+
+// --- MOCK DATA FOR ASSESSMENT WORKSPACE ---
+const sampleText = "The book 'The Giver' by Lois Lowry explores a society that has eliminated pain and strife by converting to 'Sameness'—a tightly controlled social order. The story folows a boy named Jonas who is chosen to be the next 'Receiver of Memory', the only person who holds the memories of the past, including pain and pleasure. This role isolates him from his friends and family. One of the central themes is the importance of individuality and freedom of choice. Lowry uses a simple writing style, but the concepts are deep. The ending is ambiguous, leaving the reader to wonder about Jonas's fate.";
+
+export const aiSuggestions: AISuggestion[] = [
+    { id: 'sug_01', start: 161, end: 167, category: 'Grammar', note: 'Spelling error.', replacement: 'follows' },
+    { id: 'sug_02', start: 350, end: 382, category: 'Clarity', note: 'This could be phrased more clearly to emphasize the trade-off.', replacement: 'This role isolates him, highlighting the conflict between a painless society and deep human connection.' },
+    { id: 'sug_03', start: 22, end: 34, category: 'Rubric Evidence', note: 'Identifies the author of the text.', replacement: undefined },
+    { id: 'sug_04', start: 407, end: 446, category: 'Rubric Evidence', note: 'Correctly identifies a major theme of the book.', replacement: undefined },
+];
+
+export const rubricDraft: RubricCriterion[] = [
+    { id: 'crit_01', name: 'Identifies Central Idea', description: 'Student accurately identifies the main theme or central idea of the text.', draftScore: 4, maxScore: 5, evidence: 'Correctly identifies a major theme of the book.' },
+    { id: 'crit_02', name: 'Supporting Details', description: 'Uses specific details from the text to support their analysis.', draftScore: 3, maxScore: 5, evidence: 'References the main character and his role.' },
+    { id: 'crit_03', name: 'Clarity and Mechanics', description: 'Writing is clear, with few grammatical or spelling errors.', draftScore: 3, maxScore: 5, evidence: 'Contains a few spelling and clarity issues.' },
+];
+
+export const assessmentWorkspaceData: AssessmentWorkspaceData = {
+    id: "asm_01",
+    title: "Book Report: The Giver",
+    status: 'draft',
+    student: {
+        id: "stu_01",
+        name: "Amelia Johnson",
     },
-    overallComments: 'A solid effort on this quiz, Amelia. Your understanding of fraction multiplication is strong. Pay closer attention to simplifying your final answers.'
-})
+    currentText: sampleText,
+    uploads: [{ id: 'up_01', fileName: 'The Giver Report.docx', type: 'typed' }],
+    aiReview: null,
+    teacherFeedback: {
+        notes: 'Amelia seems to grasp the main concepts but needs to work on proofreading her work before submission.',
+        finalFeedback: 'Good analysis of the central theme, Amelia. Be sure to proofread for minor spelling errors next time. Your insights are strong!'
+    }
+};

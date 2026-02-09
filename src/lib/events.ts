@@ -13,6 +13,12 @@ export type EventName =
   | 'ASSESSMENT_CREATE_DRAFT'
   | 'ASSESSMENT_GET'
   | 'ASSESSMENT_FINALIZE'
+  | 'ASSESSMENT_TEXT_SAVE'
+  | 'ASSESSMENT_TYPED_UPLOAD'
+  | 'ASSESSMENT_EXTRACT_TEXT'
+  | 'ASSESSMENT_RUN_AI_REVIEW'
+  | 'ASSESSMENT_APPLY_SUGGESTION'
+  | 'ASSESSMENT_SAVE_TEACHER_FEEDBACK'
   
   // Students
   | 'STUDENT_LIST'
@@ -130,6 +136,46 @@ export type StudentCreatePayload = {
 };
 export type StudentCreateResponse = {
     studentId: string;
+};
+
+// ASSESSMENT_GET
+export type AISuggestion = {
+    id: string;
+    start: number;
+    end: number;
+    category: 'Grammar' | 'Clarity' | 'Structure' | 'Rubric Evidence';
+    note: string;
+    replacement?: string;
+};
+
+export type RubricCriterion = {
+    id: string;
+    name: string;
+    description: string;
+    draftScore: number;
+    maxScore: number;
+    evidence: string;
+}
+
+export type AssessmentWorkspaceData = {
+    id: string;
+    title: string;
+    status: 'draft' | 'ai_draft_ready' | 'needs_review' | 'finalized';
+    student: {
+        id: string;
+        name: string;
+    };
+    currentText: string | null;
+    uploads: { id: string, fileName: string, type: 'typed' | 'handwritten' }[];
+    aiReview: {
+        status: 'idle' | 'running' | 'ready' | 'error';
+        suggestions: AISuggestion[];
+        rubricDraft: RubricCriterion[];
+    } | null;
+    teacherFeedback: {
+        notes: string;
+        finalFeedback: string;
+    } | null;
 };
 
 

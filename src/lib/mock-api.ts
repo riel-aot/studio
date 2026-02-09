@@ -1,7 +1,8 @@
-import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload } from './events';
-import { studentListData as initialStudentData, singleStudentData, studentAssessments, studentReports, getStudentById } from './placeholder-data';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData } from './events';
+import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricDraft } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
+let currentAssessmentState: AssessmentWorkspaceData = { ...assessmentWorkspaceData };
 
 const kpis = {
   pendingReview: 7,
@@ -67,17 +68,16 @@ const getStudent = (payload: { studentId: string }) => {
     const student = getStudentById(payload.studentId);
     if (!student) return null;
     
-    // Return just the profile data, not all the extra details from the placeholder
     const { avatarUrl, lastAssessmentDate, status, ...profileData } = student;
     return { student: profileData };
 }
 
 const getStudentAssessments = (payload: { studentId: string }) => {
-    return { assessments: studentAssessments };
+    return { assessments: fullAssessment.studentAssessments };
 }
 
 const getStudentReports = (payload: { studentId: string }) => {
-    return { reports: studentReports };
+    return { reports: fullAssessment.studentReports };
 }
 
 
@@ -91,8 +91,77 @@ const createStudent = (payload: StudentCreatePayload) => {
         lastAssessmentDate: null,
         status: 'No Assessments',
     };
-    students.unshift(newStudent); // Add to the beginning of the list
+    students.unshift(newStudent);
     return { studentId: newStudent.id };
+}
+
+// --- Assessment Workspace Handlers ---
+const getAssessment = (payload: { assessmentId: string }) => {
+    // If the ID is 'new', reset to the draft state.
+    if (payload.assessmentId === 'asm_new_id_123' && currentAssessmentState.id !== 'asm_new_id_123') {
+        currentAssessmentState = {
+            id: "asm_new_id_123",
+            title: "Unit 5 Reading Comprehension",
+            status: "draft",
+            student: { id: "stu_01", name: "Amelia Johnson" },
+            currentText: null,
+            uploads: [],
+            aiReview: null,
+            teacherFeedback: null,
+        };
+    } else {
+        // Return full assessment for a known ID
+        if (payload.assessmentId === assessmentWorkspaceData.id && !currentAssessmentState.currentText) {
+             currentAssessmentState = { ...assessmentWorkspaceData };
+        }
+    }
+    return { assessment: currentAssessmentState };
+};
+
+const saveAssessmentText = (payload: { assessmentId: string, text: string }) => {
+    currentAssessmentState.currentText = payload.text;
+    return {};
+}
+
+const extractText = (payload: { assessmentId: string, fileRef: string }) => {
+    return { extractedText: `This is sample OCR text extracted from ${payload.fileRef}. It may contane some errors for the techer to fix. For example, speling mistakes or formatting isues.` };
+}
+
+const runAIReview = (payload: { assessmentId: string }) => {
+    currentAssessmentState.status = 'ai_draft_ready';
+    currentAssessmentState.aiReview = {
+        status: 'ready',
+        suggestions: aiSuggestions,
+        rubricDraft: rubricDraft,
+    }
+    return { assessment: currentAssessmentState };
+}
+
+const finalizeAssessment = (payload: { assessmentId: string }) => {
+    currentAssessmentState.status = 'finalized';
+    return { assessment: currentAssessmentState };
+}
+
+const applySuggestion = (payload: { assessmentId: string; suggestionId: string, action: 'apply' | 'dismiss' }) => {
+    const suggestion = currentAssessmentState.aiReview?.suggestions.find(s => s.id === payload.suggestionId);
+    let newText = currentAssessmentState.currentText || '';
+    if (payload.action === 'apply' && suggestion?.replacement && newText) {
+        newText = newText.substring(0, suggestion.start) + suggestion.replacement + newText.substring(suggestion.end);
+    }
+    // Remove suggestion from list
+    if(currentAssessmentState.aiReview) {
+        currentAssessmentState.aiReview.suggestions = currentAssessmentState.aiReview.suggestions.filter(s => s.id !== payload.suggestionId);
+    }
+    currentAssessmentState.currentText = newText;
+    return { newText };
+}
+
+const saveTeacherFeedback = (payload: { assessmentId: string; teacherNotes: string, finalFeedback: string }) => {
+    currentAssessmentState.teacherFeedback = {
+        notes: payload.teacherNotes,
+        finalFeedback: payload.finalFeedback,
+    };
+    return {};
 }
 
 
@@ -107,12 +176,21 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'STUDENT_ASSESSMENTS_LIST': (payload: { studentId: string }) => getStudentAssessments(payload),
     'STUDENT_REPORTS_LIST': (payload: { studentId: string }) => getStudentReports(payload),
 
+    // Assessment Workspace
+    'ASSESSMENT_GET': (payload: { assessmentId: string }) => getAssessment(payload),
+    'ASSESSMENT_TEXT_SAVE': saveAssessmentText,
+    'ASSESSMENT_EXTRACT_TEXT': extractText,
+    'ASSESSMENT_RUN_AI_REVIEW': runAIReview,
+    'ASSESSMENT_FINALIZE': finalizeAssessment,
+    'ASSESSMENT_APPLY_SUGGESTION': applySuggestion,
+    'ASSESSMENT_SAVE_TEACHER_FEEDBACK': saveTeacherFeedback,
+
 
     // Action mocks just return success
     'REVIEW_OPEN': () => ({}),
     'DRAFT_OPEN': () => ({}),
     'NEW_ASSESSMENT_START': () => ({}),
-    'ASSESSMENT_CREATE_DRAFT': ({ title, studentId }: {title: string, studentId: string}) => ({ assessmentId: `asm_draft_${crypto.randomUUID()}` }),
+    'ASSESSMENT_CREATE_DRAFT': ({ title, studentId }: {title: string, studentId: string}) => ({ assessmentId: `asm_new_id_123` }),
 };
 
 
