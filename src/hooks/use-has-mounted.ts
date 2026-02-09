@@ -1,7 +1,14 @@
 'use client';
 
-// This hook has been removed to fix a rendering error.
-// Its functionality has been integrated into the components that need it.
+import { useState, useEffect } from 'react';
+
+// This hook is used to prevent hydration mismatches by detecting if the component has mounted on the client.
 export function useHasMounted() {
-  return true;
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  return hasMounted;
 }

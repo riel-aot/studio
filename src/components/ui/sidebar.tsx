@@ -5,6 +5,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
 
+import { useHasMounted } from "@/hooks/use-has-mounted"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -176,6 +177,15 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const hasMounted = useHasMounted()
+
+    if (!hasMounted) {
+      return (
+        <div className="group peer hidden md:block text-sidebar-foreground" data-state="collapsed">
+            <div className="duration-200 relative h-svh w-[--sidebar-width-icon] bg-transparent transition-[width] ease-linear" />
+        </div>
+      )
+    }
 
     if (collapsible === "none") {
       return (
