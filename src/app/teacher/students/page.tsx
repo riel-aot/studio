@@ -18,7 +18,7 @@ import { format, parseISO } from 'date-fns';
 
 function StudentListSkeleton() {
     return (
-        <Card>
+        <Card className="w-full">
             <CardHeader>
                 <CardTitle><Skeleton className="h-6 w-32" /></CardTitle>
                 <CardDescription><Skeleton className="h-4 w-48" /></CardDescription>
@@ -55,7 +55,7 @@ function StudentListSkeleton() {
 
 function EmptyState({ onAddStudent }: { onAddStudent: () => void }) {
     return (
-        <div className="text-center py-16 border-dashed border-2 rounded-lg">
+        <div className="text-center py-16 border-dashed border-2 rounded-lg w-full">
             <h3 className="text-xl font-semibold">No students yet</h3>
             <p className="text-muted-foreground mt-2 mb-4">Add your first student to start creating assessments.</p>
             <Button onClick={onAddStudent}>
@@ -95,7 +95,7 @@ export default function StudentsPage() {
     }
     
     if (isLoading && !data) return (
-        <div>
+        <div className="w-full">
              <PageHeader
                 title="Students"
                 description="All students in your classes."
@@ -137,7 +137,7 @@ export default function StudentsPage() {
             />
 
             {data?.students && data.students.length > 0 ? (
-                 <Card>
+                 <Card className="w-full">
                     <CardHeader>
                         <div className="flex justify-between items-center">
                             <div>

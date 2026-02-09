@@ -41,21 +41,14 @@ export function MainLayout({
                <SidebarTrigger className="md:hidden"/>
             </div>
 
-            <div className="flex-1">
-                <div className="relative w-full max-w-md mx-auto">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search student or assessment…"
-                        className="w-full rounded-lg bg-secondary pl-8 h-9"
-                    />
-                </div>
-            </div>
+            <div className="flex-1" />
 
             <UserNav />
           </header>
           <div className="flex-1 overflow-auto p-4 sm:px-6 sm:py-6">
-            {children}
+            <div className="w-full max-w-6xl mx-auto">
+              {children}
+            </div>
           </div>
         </SidebarInset>
       </div>
