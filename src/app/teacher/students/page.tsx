@@ -116,7 +116,7 @@ export default function StudentsPage() {
     if (error) return <p className="text-destructive">Failed to load students: {error.message}</p>;
 
     return (
-        <>
+        <div className="w-full">
             <AddStudentDrawer
                 isOpen={isDrawerOpen}
                 onOpenChange={setIsDrawerOpen}
@@ -208,6 +208,6 @@ export default function StudentsPage() {
             ) : (
                 <EmptyState onAddStudent={() => setIsDrawerOpen(true)} />
             )}
-        </>
+        </div>
     );
 }
