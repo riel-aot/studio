@@ -1,13 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
+// This hook has been removed to fix a rendering error.
+// Its functionality has been integrated into the components that need it.
 export function useHasMounted() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  return mounted;
+  return true;
 }

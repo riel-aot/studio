@@ -18,7 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useHasMounted } from "@/hooks/use-has-mounted"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -177,7 +176,6 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
-    const hasMounted = useHasMounted()
 
     if (collapsible === "none") {
       return (
@@ -192,10 +190,6 @@ const Sidebar = React.forwardRef<
           {children}
         </div>
       )
-    }
-
-    if (!hasMounted) {
-      return null
     }
 
     if (isMobile) {
