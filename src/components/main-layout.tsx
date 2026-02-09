@@ -40,7 +40,7 @@ export function MainLayout({
               <UserNav />
           </header>
           <main className="flex-1 bg-muted/40">
-            <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+            <div className="mx-auto w-full max-w-6xl p-6">
               {children}
             </div>
           </main>

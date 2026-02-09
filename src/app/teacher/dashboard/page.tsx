@@ -24,14 +24,14 @@ function DashboardLoadingSkeleton() {
         title="Dashboard"
         description="Review queue, drafts, and recent activity."
       />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
       </div>
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>To Review</CardTitle>
               <CardDescription>Assessments waiting for your feedback.</CardDescription>
@@ -54,7 +54,7 @@ function DashboardLoadingSkeleton() {
                       <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-[100px]" /></TableCell>
                       <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-[100px] ml-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-9 w-[80px] ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-11 w-[88px] ml-auto" /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -62,7 +62,7 @@ function DashboardLoadingSkeleton() {
             </CardContent>
           </Card>
         </div>
-        <div className="space-y-8">
+        <div className="space-y-6">
           <Card>
             <CardHeader><CardTitle>Drafts In Progress</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -72,7 +72,7 @@ function DashboardLoadingSkeleton() {
                         <Skeleton className="h-4 w-[150px]" />
                         <Skeleton className="h-3 w-[100px] mt-2" />
                     </div>
-                    <Skeleton className="h-9 w-[100px]" />
+                    <Skeleton className="h-11 w-[110px]" />
                 </div>
               ))}
             </CardContent>
@@ -81,8 +81,7 @@ function DashboardLoadingSkeleton() {
             <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
             <CardContent className="grid gap-2">
               <Skeleton className="h-11 w-full" />
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-11 w-full" />
             </CardContent>
           </Card>
         </div>
@@ -184,13 +183,13 @@ export default function TeacherDashboard() {
         title="Dashboard"
         description="Review queue, drafts, and recent activity."
       />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <StatCard title="Pending Review" value={kpiData?.kpis.pendingReview ?? 0} icon={PenSquare} />
         <StatCard title="Drafts" value={kpiData?.kpis.drafts ?? 0} icon={FileEdit} />
         <StatCard title="Finalized This Week" value={kpiData?.kpis.finalizedThisWeek ?? 0} icon={Users} />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
             <Card className="h-full">
             <CardHeader>
@@ -223,7 +222,7 @@ export default function TeacherDashboard() {
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button onClick={() => openReview({ assessmentId: item.assessmentId })} size="sm">Review</Button>
+                                    <Button onClick={() => openReview({ assessmentId: item.assessmentId })}>Review</Button>
                                 </TableCell>
                             </TableRow>
                             ))}
@@ -242,7 +241,7 @@ export default function TeacherDashboard() {
             </Card>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
             <Card>
             <CardHeader>
                 <CardTitle>Drafts In Progress</CardTitle>
@@ -255,7 +254,7 @@ export default function TeacherDashboard() {
                                 <p className="font-medium">{draft.assessmentName}</p>
                                 <p className="text-sm text-muted-foreground">{draft.studentName}</p>
                             </div>
-                            <Button onClick={() => openDraft({ assessmentId: draft.assessmentId })} variant="secondary" size="sm">
+                            <Button onClick={() => openDraft({ assessmentId: draft.assessmentId })} variant="secondary">
                                 Continue
                             </Button>
                         </div>
@@ -271,10 +270,10 @@ export default function TeacherDashboard() {
                 <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
-                <Button onClick={() => startNewAssessment()} className="justify-start">
+                <Button onClick={() => startNewAssessment()}>
                     <FilePlus className="mr-2 h-4 w-4" /> New Assessment
                 </Button>
-                <Button asChild variant="secondary" className="justify-start">
+                <Button asChild variant="secondary">
                     <Link href="/teacher/students/import"><Users className="mr-2 h-4 w-4" /> Import Students</Link>
                 </Button>
             </CardContent>
