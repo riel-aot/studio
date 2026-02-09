@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWebhook } from "@/lib/hooks";
@@ -37,8 +38,7 @@ export default function IntegrationsPage() {
     // Trigger on first load
     React.useEffect(() => {
         trigger();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [trigger]);
 
     return (
         <div>

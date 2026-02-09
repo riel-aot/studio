@@ -15,9 +15,11 @@ interface UseWebhookOptions<P> {
   manual?: boolean; 
 }
 
+const EMPTY_PAYLOAD = {};
+
 export function useWebhook<P, R>({
   eventName,
-  payload = {} as P,
+  payload = EMPTY_PAYLOAD as P,
   onSuccess,
   onError,
   manual = false,
