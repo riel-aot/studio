@@ -1,151 +1,251 @@
 'use client';
 
+import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { formatDistanceToNow } from 'date-fns';
+
 import { PageHeader } from '@/components/page-header';
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useWebhook } from '@/lib/hooks';
-import type { GetDashboardSummaryData } from '@/lib/events';
-import { BookCopy, FilePlus, Users, PenSquare, Draft } from 'lucide-react';
-import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useWebhook } from '@/lib/hooks';
+import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
+import { BookCopy, FileEdit, FilePlus, PenSquare, AlertCircle, Users } from 'lucide-react';
 
 function DashboardLoadingSkeleton() {
-    return (
-        <div>
-            <PageHeader title="Dashboard" />
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-            </div>
-            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>To Review</CardTitle>
-                        <CardDescription>Assessments waiting for your feedback.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
-                                <div key={i} className="flex items-center">
-                                    <Skeleton className="h-8 w-full" />
-                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Quick Actions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                           <Skeleton className="h-10 w-full" />
-                           <Skeleton className="h-10 w-full" />
-                           <Skeleton className="h-10 w-full" />
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+  return (
+    <div>
+      <PageHeader
+        title="Dashboard"
+        description="Review queue, drafts, and recent activity."
+      />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>To Review</CardTitle>
+              <CardDescription>Assessments waiting for your feedback.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Assessment</TableHead>
+                    <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
+                    <TableHead className="w-[100px] text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...Array(3)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-[100px] ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-9 w-[80px] ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
-    )
+        <div className="space-y-8">
+          <Card>
+            <CardHeader><CardTitle>Drafts In Progress</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {[...Array(2)].map((_, i) => (
+                 <div key={i} className="flex items-center justify-between">
+                    <div>
+                        <Skeleton className="h-4 w-[150px]" />
+                        <Skeleton className="h-3 w-[100px] mt-2" />
+                    </div>
+                    <Skeleton className="h-9 w-[100px]" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
+            <CardContent className="grid gap-2">
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }
 
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+    return (
+        <Alert variant="destructive" className="max-w-2xl mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Failed to Load Dashboard</AlertTitle>
+            <AlertDescription>
+                There was a problem fetching your dashboard data. Please try again.
+                <div className="mt-4">
+                    <Button variant="destructive" onClick={onRetry}>Retry</Button>
+                </div>
+            </AlertDescription>
+        </Alert>
+    );
+}
 
 export default function TeacherDashboard() {
-  const { data, isLoading, error } = useWebhook<
-    {},
-    GetDashboardSummaryData
-  >({
+  const router = useRouter();
+
+  const { data: kpiData, isLoading: kpiLoading, error: kpiError, trigger: refetchKpis } = useWebhook<{ }, { kpis: DashboardKpis }>({
     eventName: 'GET_DASHBOARD_SUMMARY',
-    // In a real app, you might fetch this from a real endpoint.
-    // For now, we'll just show an error state if the hook fails.
   });
+  
+  const { data: reviewQueueData, isLoading: reviewQueueLoading, error: reviewQueueError, trigger: refetchReviewQueue } = useWebhook<{ limit: number }, { items: ReviewQueueItem[] }>({
+    eventName: 'GET_REVIEW_QUEUE',
+    payload: { limit: 5 },
+  });
+
+  const { data: draftsData, isLoading: draftsLoading, error: draftsError, trigger: refetchDrafts } = useWebhook<{ limit: number }, { items: DraftItem[] }>({
+    eventName: 'GET_DRAFTS',
+    payload: { limit: 5 },
+  });
+
+  const { trigger: openReview } = useWebhook<{ assessmentId: string }, {}>({
+    eventName: 'REVIEW_OPEN',
+    manual: true,
+    onSuccess: (_, payload) => {
+        if (payload?.assessmentId) {
+            router.push(`/teacher/assessments/${payload.assessmentId}`);
+        }
+    },
+    errorMessage: 'Action failed. Please try again.',
+  });
+
+  const { trigger: openDraft } = useWebhook<{ assessmentId: string }, {}>({
+    eventName: 'DRAFT_OPEN',
+    manual: true,
+    onSuccess: (_, payload) => {
+        if (payload?.assessmentId) {
+            router.push(`/teacher/assessments/${payload.assessmentId}`);
+        }
+    },
+    errorMessage: 'Action failed. Please try again.',
+  });
+
+  const { trigger: startNewAssessment } = useWebhook<{}, {}>({
+    eventName: 'NEW_ASSESSMENT_START',
+    manual: true,
+    onSuccess: () => {
+        router.push(`/teacher/assessments/new`);
+    },
+    errorMessage: 'Action failed. Please try again.',
+  });
+
+
+  const isLoading = kpiLoading || reviewQueueLoading || draftsLoading;
+  const hasError = kpiError || reviewQueueError || draftsError;
+
+  const handleRetry = () => {
+    if (kpiError) refetchKpis();
+    if (reviewQueueError) refetchReviewQueue();
+    if (draftsError) refetchDrafts();
+  };
 
   if (isLoading) {
     return <DashboardLoadingSkeleton />;
   }
   
-  if (error || !data) {
-     return <div className="text-red-500">Error loading dashboard data: {error?.message}</div>
+  if (hasError) {
+     return <ErrorState onRetry={handleRetry} />;
   }
 
   return (
     <div>
-      <PageHeader title="Dashboard" />
+      <PageHeader 
+        title="Dashboard"
+        description="Review queue, drafts, and recent activity."
+      />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard title="Pending Review" value={data.kpis.pendingReview} icon={PenSquare} />
-        <StatCard title="Drafts" value={data.kpis.drafts} icon={Draft} />
-        <StatCard title="Finalized This Week" value={data.kpis.finalizedThisWeek} icon={Users} />
+        <StatCard title="Pending Review" value={kpiData?.kpis.pendingReview ?? 0} icon={PenSquare} />
+        <StatCard title="Drafts" value={kpiData?.kpis.drafts ?? 0} icon={FileEdit} />
+        <StatCard title="Finalized This Week" value={kpiData?.kpis.finalizedThisWeek ?? 0} icon={Users} />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle>To Review</CardTitle>
-            <CardDescription>
-              These assessments are complete and waiting for your feedback.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-             {data.reviewQueue.length > 0 ? (
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Student</TableHead>
-                            <TableHead className="hidden sm:table-cell">Assessment</TableHead>
-                            <TableHead className="hidden md:table-cell text-right">Submitted</TableHead>
-                            <TableHead className="text-right">Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.reviewQueue.map((item) => (
-                        <TableRow key={item.assessmentId}>
-                            <TableCell className="font-medium">{item.studentName}</TableCell>
-                            <TableCell className="hidden sm:table-cell">{item.assessmentName}</TableCell>
-                            <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</TableCell>
-                            <TableCell className="text-right">
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={`/teacher/assessments/${item.assessmentId}`}>Review</Link>
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-             ) : (
-                <p className="text-sm text-muted-foreground">Your review queue is empty. Great job!</p>
-             )}
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
             <Card>
             <CardHeader>
-                <CardTitle>Drafts</CardTitle>
+                <CardTitle>To Review</CardTitle>
                 <CardDescription>
-                Continue working on these assessments.
+                These assessments are complete and waiting for your feedback.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {data.drafts.length > 0 ? (
-                    <div className="space-y-4">
-                        {data.drafts.map(draft => (
-                             <div key={draft.assessmentId} className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-medium">{draft.assessmentName}</p>
-                                    <p className="text-sm text-muted-foreground">{draft.studentName}</p>
-                                </div>
-                                <Button asChild variant="secondary" size="sm">
-                                    <Link href={`/teacher/assessments/${draft.assessmentId}`}>Continue</Link>
-                                </Button>
-                            </div>
-                        ))}
+                {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Student</TableHead>
+                                <TableHead>Assessment</TableHead>
+                                <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
+                                <TableHead className="w-[100px] text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {reviewQueueData.items.map((item) => (
+                            <TableRow key={item.assessmentId}>
+                                <TableCell className="font-medium">{item.studentName}</TableCell>
+                                <TableCell>{item.assessmentName}</TableCell>
+                                <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button onClick={() => openReview({ assessmentId: item.assessmentId })} size="sm">Review</Button>
+                                </TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="text-center py-10">
+                        <p className="text-muted-foreground">Your review queue is empty. Great job!</p>
+                        <Button onClick={() => startNewAssessment()} className="mt-4">
+                            <FilePlus />
+                            Start a New Assessment
+                        </Button>
                     </div>
+                )}
+            </CardContent>
+            </Card>
+        </div>
+
+        <div className="space-y-8">
+            <Card>
+            <CardHeader>
+                <CardTitle>Drafts In Progress</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {draftsData?.items && draftsData.items.length > 0 ? (
+                    draftsData.items.map(draft => (
+                        <div key={draft.assessmentId} className="flex items-center justify-between">
+                            <div>
+                                <p className="font-medium">{draft.assessmentName}</p>
+                                <p className="text-sm text-muted-foreground">{draft.studentName}</p>
+                            </div>
+                            <Button onClick={() => openDraft({ assessmentId: draft.assessmentId })} variant="secondary" size="sm">
+                                Continue
+                            </Button>
+                        </div>
+                    ))
                 ): (
                     <p className="text-sm text-muted-foreground">No drafts in progress.</p>
                 )}
@@ -157,14 +257,14 @@ export default function TeacherDashboard() {
                 <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
-                <Button asChild variant="default" className="justify-start">
-                    <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4" /> New Assessment</Link>
+                <Button onClick={() => startNewAssessment()} className="justify-start">
+                    <FilePlus /> New Assessment
                 </Button>
                 <Button asChild variant="secondary" className="justify-start">
-                    <Link href="/teacher/rubrics"><BookCopy className="mr-2 h-4 w-4" /> Manage Rubrics</Link>
+                    <Link href="/teacher/rubrics"><BookCopy /> Manage Rubrics</Link>
                 </Button>
                 <Button asChild variant="secondary" className="justify-start">
-                    <Link href="/teacher/students"><Users className="mr-2 h-4 w-4" /> View Students</Link>
+                    <Link href="/teacher/students/import"><Users /> Import Students</Link>
                 </Button>
             </CardContent>
             </Card>

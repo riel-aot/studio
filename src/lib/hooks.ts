@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import type { EventName, WebhookRequest, WebhookResponse } from './events';
 import { useToast } from '@/hooks/use-toast';
@@ -9,9 +9,9 @@ import { devLogger } from './logger';
 interface UseWebhookOptions<P> {
   eventName: EventName;
   payload?: P;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: any, payload?: P) => void;
   onError?: (error: any) => void;
-  // If true, the hook will not run automatically on mount. Call `trigger` manually.
+  errorMessage?: string;
   manual?: boolean; 
 }
 
@@ -19,9 +19,10 @@ const EMPTY_PAYLOAD = {};
 
 export function useWebhook<P, R>({
   eventName,
-  payload = EMPTY_PAYLOAD as P,
+  payload: initialPayload = EMPTY_PAYLOAD as P,
   onSuccess,
   onError,
+  errorMessage,
   manual = false,
 }: UseWebhookOptions<P>) {
   const [data, setData] = useState<R | null>(null);
@@ -30,16 +31,15 @@ export function useWebhook<P, R>({
   const { user, token } = useAuth();
   const { toast } = useToast();
 
+  const payload = useMemo(() => initialPayload, [JSON.stringify(initialPayload)]);
+
   const callWebhook = useCallback(async (triggerPayload?: P) => {
     if (!user || !token) {
-      // Don't run if user is not authenticated. The AuthProvider should handle redirects.
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setData(null);
-
     const finalPayload = triggerPayload ?? payload;
 
     const requestBody: WebhookRequest<P> = {
@@ -75,12 +75,13 @@ export function useWebhook<P, R>({
       });
 
       if (!response.ok || !responseData.success) {
-        throw new Error(responseData.error?.message || 'An unknown error occurred');
+        const errMessage = responseData.error?.message || 'An unknown error occurred';
+        throw new Error(errMessage);
       }
 
       setData(responseData.data as R);
       if (onSuccess) {
-        onSuccess(responseData.data);
+        onSuccess(responseData.data, finalPayload);
       }
     } catch (err: any) {
       setError(err);
@@ -90,12 +91,12 @@ export function useWebhook<P, R>({
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: err.message,
+        description: errorMessage || err.message,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [eventName, payload, onSuccess, onError, toast, user, token]);
+  }, [eventName, payload, onSuccess, onError, toast, user, token, errorMessage]);
   
   useEffect(() => {
     if (!manual) {
@@ -103,5 +104,7 @@ export function useWebhook<P, R>({
     }
   }, [manual, callWebhook]);
 
-  return { data, error, isLoading, trigger: callWebhook };
+  const trigger = useCallback((triggerPayload?: P) => callWebhook(triggerPayload), [callWebhook]);
+
+  return { data, error, isLoading, trigger };
 }

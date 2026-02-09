@@ -29,21 +29,15 @@ function StatusSkeleton() {
     return <Skeleton className="h-[58px] w-full" />
 }
 
-export default function IntegrationsPage() {
+export default function SettingsPage() {
     const { data, isLoading, error, trigger } = useWebhook<{}, HealthCheckData>({ 
         eventName: 'HEALTH_CHECK',
-        manual: true // We will trigger it with a button
     });
-    
-    // Trigger on first load
-    React.useEffect(() => {
-        trigger();
-    }, [trigger]);
 
     return (
         <div>
         <PageHeader
-            title="Integration Status"
+            title="Settings & Integrations"
             description="Health check for connected services (for developer use)."
             actions={
                 <Button variant="outline" onClick={() => trigger()} disabled={isLoading}>
@@ -56,7 +50,7 @@ export default function IntegrationsPage() {
             <CardHeader>
             <CardTitle>System Health</CardTitle>
             <CardDescription>
-                This page is for developers to debug the connection status of backend services. It is not intended for end users.
+                This page is for developers to debug the connection status of backend services.
             </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">

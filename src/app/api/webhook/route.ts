@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type { WebhookRequest, WebhookResponse } from '@/lib/events';
+import { getMockResponse } from '@/lib/mock-api';
 
 export async function POST(req: NextRequest) {
   const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
@@ -18,6 +19,19 @@ export async function POST(req: NextRequest) {
 
   try {
     const body: WebhookRequest = await req.json();
+
+    // --- START MOCK RESPONSE ---
+    // For development, we intercept the call and return mock data.
+    if (process.env.NODE_ENV === 'development') {
+      const mockResponse = getMockResponse(body);
+      if (mockResponse) {
+        // Add a fake delay to simulate network latency
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return NextResponse.json(mockResponse);
+      }
+    }
+    // --- END MOCK RESPONSE ---
+
     const authToken = req.headers.get('Authorization');
 
     if (!authToken) {
@@ -27,10 +41,6 @@ export async function POST(req: NextRequest) {
         correlationId: 'local-auth-error',
       }, { status: 401 });
     }
-
-    // TODO: The frontend is currently sending a mock token.
-    // In a real app with MS Entra ID, n8n would be responsible for validating this token.
-    // The gateway's job is simply to pass it through.
 
     // Forward the request to the n8n webhook URL
     const n8nResponse = await fetch(n8nWebhookUrl, {
@@ -64,7 +74,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Error in webhook gateway:', error);
     
-    // This catches errors like invalid JSON from the client
     if (error instanceof SyntaxError) {
         return NextResponse.json<WebhookResponse>({
             success: false,

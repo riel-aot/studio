@@ -1,16 +1,24 @@
 import type { UserRole } from './auth';
 
-// As per WEBHOOK_CONTRACT.md
-
 export type EventName =
+  // Dashboard
   | 'GET_DASHBOARD_SUMMARY'
   | 'GET_REVIEW_QUEUE'
+  | 'GET_DRAFTS'
+  | 'REVIEW_OPEN'
+  | 'DRAFT_OPEN'
+  
+  // Assessments
   | 'NEW_ASSESSMENT_START'
   | 'ASSESSMENT_CREATE_DRAFT'
   | 'ASSESSMENT_GET'
   | 'ASSESSMENT_FINALIZE'
+  
+  // Students
   | 'STUDENT_LIST'
   | 'STUDENT_GET'
+
+  // Other
   | 'REPORT_GET'
   | 'HEALTH_CHECK';
 
@@ -38,35 +46,32 @@ export interface WebhookResponse<T = any> {
 // --- Specific Payload and Data types ---
 
 // GET_DASHBOARD_SUMMARY
-export type GetDashboardSummaryPayload = {};
-export type GetDashboardSummaryData = {
-  kpis: {
-    pendingReview: number;
-    drafts: number;
-    finalizedThisWeek: number;
-  };
-  reviewQueue: {
-    studentName: string;
-    studentId: string;
-    assessmentName: string;
-    assessmentId: string;
-    status: 'pending_review';
-    updatedAt: string;
-  }[];
-  drafts: {
-    assessmentId: string;
-    assessmentName: string;
-    studentName: string;
-    updatedAt: string;
-  }[];
+export type DashboardKpis = {
+  pendingReview: number;
+  drafts: number;
+  finalizedThisWeek: number;
 };
 
-// STUDENT_LIST
-export type GetStudentListPayload = {
-    page?: number;
-    limit?: number;
-    sortBy?: string;
+// GET_REVIEW_QUEUE
+export type ReviewQueueItem = {
+  studentName: string;
+  studentId: string;
+  assessmentName: string;
+  assessmentId: string;
+  status: 'pending_review' | 'ai_draft_ready';
+  updatedAt: string;
 };
+
+// GET_DRAFTS
+export type DraftItem = {
+  assessmentId: string;
+  assessmentName: string;
+  studentName: string;
+  updatedAt: string;
+};
+
+
+// STUDENT_LIST
 export type StudentListItem = {
     id: string;
     name: string;
@@ -79,15 +84,9 @@ export type GetStudentListData = {
 };
 
 // HEALTH_CHECK
-export type HealthCheckPayload = {};
 export type HealthCheckData = {
     authConfigured: boolean;
     webhookConfigured: boolean;
     databaseConnected: boolean;
     lastSuccessfulCall?: string;
 };
-
-// You can continue to define specific types for each event
-// For example:
-export type AssessmentGetPayload = { assessmentId: string };
-// export type AssessmentGetData = { ...full assessment object... };

@@ -23,7 +23,7 @@ const navLinks = [
   { href: '/teacher/assessments', icon: FileText, label: 'Assessments' },
   { href: '/teacher/rubrics', icon: BookCopy, label: 'Rubrics' },
   { href: '/teacher/reports', icon: BarChart, label: 'Reports' },
-  { href: '/teacher/settings/integrations', icon: Settings, label: 'Settings' },
+  { href: '/teacher/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function TeacherLayout({
@@ -52,8 +52,9 @@ export default function TeacherLayout({
           key={href}
           href={href}
           className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-            pathname.startsWith(href) && 'bg-accent text-primary'
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary',
+            // Simple startsWith for active state. For a route like /teacher/assessments/new, it will match /teacher/assessments
+            pathname.startsWith(href) ? "bg-accent text-primary" : ""
           )}
         >
           <Icon className="h-4 w-4" />
