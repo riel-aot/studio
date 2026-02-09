@@ -6,13 +6,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { MainLayout } from '@/components/main-layout';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart, LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 const navLinks = [
   { href: '/parent/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/parent/reports', icon: BarChart, label: 'Reports' },
 ];
 
 export default function ParentLayout({

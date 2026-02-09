@@ -1,9 +1,13 @@
-import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData } from './events';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData, ParentChildrenListResponse, ParentChild, ParentReportsListPayload, ParentReportData } from './events';
 import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData as initialAssessmentData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems, reportListItems, fullReportData } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
 let reports: ReportListItem[] = [...reportListItems];
 let currentAssessmentState: AssessmentWorkspaceData = { ...initialAssessmentData };
+
+const parentChildMap: { [parentId: string]: string[] } = {
+    'parent-01': ['stu_01'], // John Doe is parent of Amelia Johnson
+};
 
 const kpis = {
   pendingReview: 7,
@@ -256,45 +260,45 @@ const generateReport = (payload: ReportGeneratePayload) => {
     return { reportId: newReport.reportId };
 };
 
-const handlers: { [key: string]: (payload: any) => any } = {
-    'GET_DASHBOARD_SUMMARY': () => ({ kpis }),
-    'GET_REVIEW_QUEUE': () => ({ items: reviewQueue }),
-    'GET_DRAFTS': () => ({ items: drafts }),
-    'HEALTH_CHECK': () => healthCheck,
-    'STUDENT_LIST': () => studentList(),
-    'STUDENT_GET': (payload: { studentId: string }) => getStudent(payload),
-    'STUDENT_CREATE': (payload: StudentCreatePayload) => createStudent(payload),
-    'STUDENT_ASSESSMENTS_LIST': (payload: { studentId: string }) => getStudentAssessments(payload),
-    'STUDENT_REPORTS_LIST': (payload: { studentId: string }) => getStudentReports(payload),
+const handlers: { [key: string]: (payload: any, actor: WebhookRequest['actor']) => any } = {
+    'GET_DASHBOARD_SUMMARY': (payload, actor) => ({ kpis }),
+    'GET_REVIEW_QUEUE': (payload, actor) => ({ items: reviewQueue }),
+    'GET_DRAFTS': (payload, actor) => ({ items: drafts }),
+    'HEALTH_CHECK': (payload, actor) => healthCheck,
+    'STUDENT_LIST': (payload, actor) => studentList(),
+    'STUDENT_GET': (payload: { studentId: string }, actor) => getStudent(payload),
+    'STUDENT_CREATE': (payload: StudentCreatePayload, actor) => createStudent(payload),
+    'STUDENT_ASSESSMENTS_LIST': (payload: { studentId: string }, actor) => getStudentAssessments(payload),
+    'STUDENT_REPORTS_LIST': (payload: { studentId: string }, actor) => getStudentReports(payload),
 
     // Rubrics
-    'RUBRIC_LIST': () => ({ rubrics: mockRubrics }),
+    'RUBRIC_LIST': (payload, actor) => ({ rubrics: mockRubrics }),
 
     // Assessment
-    'ASSESSMENT_LIST': listAssessments,
-    'ASSESSMENT_GET': (payload: { assessmentId: string }) => getAssessment(payload),
-    'ASSESSMENT_SET_RUBRIC': setAssessmentRubric,
-    'ASSESSMENT_TEXT_UPDATE': updateAssessmentText,
-    'ASSESSMENT_TYPED_UPLOAD': uploadTypedFile,
-    'ASSESSMENT_EXTRACT_TEXT': extractText,
-    'ASSESSMENT_RUN_AI_GRADE': runAIGrade,
-    'ASSESSMENT_FINALIZE': finalizeAssessment,
-    'ASSESSMENT_SUGGESTION_ACTION': applySuggestion,
-    'ASSESSMENT_SAVE_TEACHER_FEEDBACK': saveTeacherFeedback,
-    'ASSESSMENT_SAVE_RUBRIC_OVERRIDE': saveRubricOverrides,
+    'ASSESSMENT_LIST': (payload, actor) => listAssessments(payload),
+    'ASSESSMENT_GET': (payload: { assessmentId: string }, actor) => getAssessment(payload),
+    'ASSESSMENT_SET_RUBRIC': (payload, actor) => setAssessmentRubric(payload),
+    'ASSESSMENT_TEXT_UPDATE': (payload, actor) => updateAssessmentText(payload),
+    'ASSESSMENT_TYPED_UPLOAD': (payload, actor) => uploadTypedFile(payload),
+    'ASSESSMENT_EXTRACT_TEXT': (payload, actor) => extractText(payload),
+    'ASSESSMENT_RUN_AI_GRADE': (payload, actor) => runAIGrade(payload),
+    'ASSESSMENT_FINALIZE': (payload, actor) => finalizeAssessment(payload),
+    'ASSESSMENT_SUGGESTION_ACTION': (payload, actor) => applySuggestion(payload),
+    'ASSESSMENT_SAVE_TEACHER_FEEDBACK': (payload, actor) => saveTeacherFeedback(payload),
+    'ASSESSMENT_SAVE_RUBRIC_OVERRIDE': (payload, actor) => saveRubricOverrides(payload),
 
 
     // Reports
-    'REPORTS_LIST': listReports,
-    'REPORT_GET': getReport,
-    'REPORT_GENERATE': generateReport,
-    'REPORT_SEND': () => ({ success: true }),
-    'REPORT_DOWNLOAD_PDF': () => ({ fileContent: 'mock-pdf-base64-content' }),
+    'REPORTS_LIST': (payload, actor) => listReports(),
+    'REPORT_GET': (payload, actor) => getReport(payload),
+    'REPORT_GENERATE': (payload, actor) => generateReport(payload),
+    'REPORT_SEND': (payload, actor) => ({ success: true }),
+    'REPORT_DOWNLOAD_PDF': (payload, actor) => ({ fileContent: 'mock-pdf-base64-content' }),
 
     // Action mocks just return success
-    'REVIEW_OPEN': () => ({}),
-    'DRAFT_OPEN': () => ({}),
-    'NEW_ASSESSMENT_START': () => ({}),
+    'REVIEW_OPEN': (payload, actor) => ({}),
+    'DRAFT_OPEN': (payload, actor) => ({}),
+    'NEW_ASSESSMENT_START': (payload, actor) => ({}),
     'ASSESSMENT_CREATE_DRAFT': ({ title, studentId, rubricId }: {title: string, studentId: string, rubricId: string}) => {
         const student = getStudentById(studentId);
         const newId = `asm_new_${crypto.randomUUID().slice(0,4)}`;
@@ -313,13 +317,65 @@ const handlers: { [key: string]: (payload: any) => any } = {
         };
         return { assessmentId: newId };
     },
+
+    // Parent Portal
+    'PARENT_CHILDREN_LIST': (payload, actor) => {
+        const childIds = parentChildMap[actor.userId] || [];
+        const children = childIds.map(id => {
+            const student = getStudentById(id);
+            if (!student) return null;
+            const studentReports = reportListItems.filter(r => r.studentName === student.name).sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
+            return {
+                childId: student.id,
+                childName: student.name,
+                gradeLabel: student.class,
+                latestReportAt: studentReports.length > 0 ? studentReports[0].generatedAt : null,
+            };
+        }).filter((c): c is ParentChild => c !== null);
+        return { children };
+    },
+    'PARENT_REPORTS_LIST': (payload: ParentReportsListPayload) => {
+        const student = getStudentById(payload.childId);
+        if (!student) { return { studentName: "Unknown", items: [], pagination: { page: 1, pageSize: 10, total: 0 }}; }
+
+        const items = reportListItems
+            .filter(item => item.studentName === student.name)
+            .map(({ reportId, periodLabel, generatedAt, hasPdf }) => ({ reportId, periodLabel, generatedAt, hasPdf }));
+        
+        return {
+            studentName: student.name,
+            items,
+            pagination: { page: 1, pageSize: 10, total: items.length },
+        };
+    },
+    'PARENT_REPORT_GET': (payload: { reportId: string }): { report: ParentReportData } => {
+        const summary = reportListItems.find(r => r.reportId === payload.reportId);
+        const studentName = summary?.studentName || fullReportData.studentName;
+
+        return {
+            report: {
+                reportId: payload.reportId,
+                childName: studentName,
+                periodLabel: summary?.periodLabel || fullReportData.periodLabel,
+                generatedAt: summary?.generatedAt || fullReportData.generatedAt,
+                hasPdf: summary?.hasPdf || false,
+                sections: {
+                    summary: fullReportData.summary,
+                    strengths: fullReportData.strengths,
+                    growthAreas: fullReportData.growthAreas,
+                    rubricSnapshot: fullReportData.rubricSnapshot,
+                    teacherFinalComment: fullReportData.teacherFinalComment
+                }
+            }
+        };
+    },
 };
 
 
 export function getMockResponse(body: WebhookRequest): WebhookResponse | null {
   const handler = handlers[body.eventName];
   if (handler) {
-    const data = handler(body.payload);
+    const data = handler(body.payload, body.actor);
     if (data === null) {
          return {
             success: false,

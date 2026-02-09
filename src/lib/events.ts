@@ -41,6 +41,11 @@ export type EventName =
   | 'REPORT_SEND'
   | 'REPORT_DOWNLOAD_PDF'
 
+  // Parent Portal
+  | 'PARENT_CHILDREN_LIST'
+  | 'PARENT_REPORTS_LIST'
+  | 'PARENT_REPORT_GET'
+
   // Other
   | 'HEALTH_CHECK';
 
@@ -309,4 +314,62 @@ export interface ReportData {
     }[];
     teacherFinalComment: string;
     includedAssessmentsCount: number;
+}
+
+// --- Parent Portal Types ---
+
+// PARENT_CHILDREN_LIST
+export interface ParentChild {
+    childId: string;
+    childName: string;
+    gradeLabel: string;
+    latestReportAt: string | null;
+}
+export interface ParentChildrenListResponse {
+    children: ParentChild[];
+}
+
+// PARENT_REPORTS_LIST
+export interface ParentReportListItem {
+    reportId: string;
+    periodLabel: string;
+    generatedAt: string;
+    hasPdf: boolean;
+}
+export interface ParentReportsListPayload {
+    childId: string;
+    page?: number;
+    pageSize?: number;
+}
+export interface ParentReportsListResponse {
+    studentName: string;
+    items: ParentReportListItem[];
+    pagination: {
+        page: number;
+        pageSize: number;
+        total: number;
+    };
+}
+
+// PARENT_REPORT_GET
+export interface ParentReportData {
+    reportId: string;
+    childName: string;
+    periodLabel: string;
+    generatedAt: string;
+    sections: {
+        summary: string;
+        strengths: string[];
+        growthAreas: string[];
+        rubricSnapshot: {
+            criterion: string;
+            averageScore: number;
+            trend: 'up' | 'down' | 'stable';
+        }[];
+        teacherFinalComment: string;
+    };
+    hasPdf: boolean;
+}
+export interface ParentReportGetResponse {
+    report: ParentReportData;
 }
