@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useHasMounted } from "@/hooks/use-has-mounted"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -176,21 +177,10 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { state, openMobile, setOpenMobile } = useSidebar()
+    const hasMounted = useHasMounted()
 
-    // The 'collapsible' prop is static, so this conditional return is safe.
-    if (collapsible === "none") {
-      return (
-        <div
-          className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      )
+    if (!hasMounted) {
+      return null
     }
 
     return (
@@ -267,6 +257,11 @@ const SidebarTrigger = React.forwardRef<
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
   const { toggleSidebar } = useSidebar()
+  const hasMounted = useHasMounted()
+
+  if (!hasMounted) {
+    return null
+  }
 
   return (
     <Button
