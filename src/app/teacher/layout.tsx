@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   BarChart,
-  BookCopy,
   LayoutDashboard,
   Settings,
   Users,
@@ -17,13 +16,15 @@ import {
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
-const navLinks = [
+const mainNavLinks = [
   { href: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/teacher/students', icon: Users, label: 'Students' },
   { href: '/teacher/assessments', icon: FileText, label: 'Assessments' },
   { href: '/teacher/reports', icon: BarChart, label: 'Reports' },
-  { href: '/teacher/settings', icon: Settings, label: 'Settings' },
 ];
+
+const settingsLink = { href: '/teacher/settings', icon: Settings, label: 'Settings' };
+
 
 export default function TeacherLayout({
   children,
@@ -45,22 +46,40 @@ export default function TeacherLayout({
   }
 
   const navItems = (
-    <SidebarMenu>
-      {navLinks.map(({ href, icon: Icon, label }) => (
-        <SidebarMenuItem key={href}>
-          <SidebarMenuButton
-            asChild
-            isActive={pathname.startsWith(href)}
-            tooltip={label}
-          >
-            <Link href={href}>
-              <Icon />
-              <span>{label}</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
-    </SidebarMenu>
+    <>
+      <SidebarMenu>
+        {mainNavLinks.map(({ href, icon: Icon, label }) => (
+          <SidebarMenuItem key={href}>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith(href)}
+              tooltip={label}
+            >
+              <Link href={href}>
+                <Icon />
+                <span>{label}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+      <div className="mt-auto">
+        <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(settingsLink.href)}
+                    tooltip={settingsLink.label}
+                >
+                    <Link href={settingsLink.href}>
+                        <settingsLink.icon />
+                        <span>{settingsLink.label}</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
+      </div>
+    </>
   );
 
   return <MainLayout navItems={navItems}>{children}</MainLayout>;
