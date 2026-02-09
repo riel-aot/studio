@@ -9,10 +9,10 @@ import type { StudentProfileData } from "@/lib/events";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { StudentAssessmentsTab } from "@/components/student-assessments-tab";
 import { StudentReportsTab } from "@/components/student-reports-tab";
-import { useCallback, use } from "react";
+import { useCallback } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -78,9 +78,9 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 }
 
 
-export default function StudentDetailPage({ params }: { params: { id: string } }) {
+export default function StudentDetailPage() {
   const router = useRouter();
-  const pageParams = use(params);
+  const pageParams = useParams<{ id: string }>();
 
   const { data: studentData, isLoading, error, trigger: refetchStudent } = useWebhook<{ studentId: string }, { student: StudentProfileData }>({ 
       eventName: 'STUDENT_GET', 

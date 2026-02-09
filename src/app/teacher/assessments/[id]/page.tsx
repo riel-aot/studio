@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, use } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { useWebhook } from '@/lib/hooks';
 import type { AssessmentWorkspaceData, AISuggestion, RubricListItem } from '@/lib/events';
 import { Button } from '@/components/ui/button';
@@ -495,7 +496,7 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
 // --- Main Page Component ---
 
 export default function AssessmentWorkspacePage() {
-  const params = use(useParams<{id: string}>());
+  const params = useParams<{id: string}>();
   const [assessmentData, setAssessmentData] = useState<AssessmentWorkspaceData | null>(null);
 
   const handleAssessmentUpdate = useCallback((data: Partial<AssessmentWorkspaceData>) => {
