@@ -88,10 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
   };
 
-  if (isLoading) {
-    return <LoadingSpinner fullScreen />;
-  }
-
   return (
     <AuthContext.Provider value={value}>
       {children}
