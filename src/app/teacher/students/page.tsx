@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileUp, ChevronRight } from 'lucide-react';
+import { PlusCircle, FileUp, ChevronRight, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -146,8 +146,12 @@ export default function StudentsPage() {
                                 <CardTitle>All Students ({data.total})</CardTitle>
                                 <CardDescription>A list of all students in your classes.</CardDescription>
                             </div>
-                            <div className="w-full max-w-sm">
-                                <Input placeholder="Search student name..." />
+                             <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search student name..."
+                                    className="w-full rounded-lg bg-secondary pl-8 h-9"
+                                />
                             </div>
                         </div>
                     </CardHeader>
