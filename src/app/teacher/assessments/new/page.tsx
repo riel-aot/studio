@@ -12,17 +12,26 @@ import { useWebhook } from "@/lib/hooks";
 import type { StudentListItem } from "@/lib/events";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 export default function NewAssessmentPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
+
+    const studentIdFromQuery = searchParams.get('studentId');
 
     // In a real app, you would likely fetch students and rubrics to populate the form
     const { data: studentData, isLoading: studentsLoading } = useWebhook<{ }, { students: StudentListItem[] }>({
         eventName: 'STUDENT_LIST',
     });
+
+    const preselectedStudent = useMemo(() => {
+        if (!studentIdFromQuery || !studentData?.students) return null;
+        return studentData.students.find(s => s.id === studentIdFromQuery);
+    }, [studentIdFromQuery, studentData]);
+
 
     const handleSuccess = useCallback((data: { assessmentId: string }) => {
         toast({ title: "Draft Created", description: "Your new assessment has been saved as a draft." });
@@ -40,7 +49,7 @@ export default function NewAssessmentPage() {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const title = formData.get('title') as string;
-        const studentId = formData.get('studentId') as string;
+        const studentId = studentIdFromQuery || formData.get('studentId') as string;
 
         if (!title || !studentId) {
             toast({ variant: 'destructive', title: "Missing fields", description: "Please provide a title and select a student." });
@@ -75,18 +84,24 @@ export default function NewAssessmentPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="studentId">Student</Label>
-                        <Select name="studentId" required>
-                            <SelectTrigger id="studentId" disabled={studentsLoading}>
-                                <SelectValue placeholder={studentsLoading ? "Loading students..." : "Select a student"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {studentData?.students.map(student => (
-                                    <SelectItem key={student.id} value={student.id}>
-                                        {student.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {preselectedStudent ? (
+                             <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                                {preselectedStudent.name}
+                            </div>
+                        ) : (
+                            <Select name="studentId" required>
+                                <SelectTrigger id="studentId" disabled={studentsLoading}>
+                                    <SelectValue placeholder={studentsLoading ? "Loading students..." : "Select a student"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {studentData?.students.map(student => (
+                                        <SelectItem key={student.id} value={student.id}>
+                                            {student.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="notes">Initial Notes (Optional)</Label>
@@ -94,15 +109,12 @@ export default function NewAssessmentPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit" disabled={isCreating}>
+                    <Button type="submit" disabled={isCreating || (studentsLoading && !!studentIdFromQuery)}>
                         {isCreating ? 'Saving Draft...' : 'Save as Draft'}
                     </Button>
                 </CardFooter>
             </Card>
         </form>
-         <p className="mt-4 text-center text-xs text-muted-foreground">
-            TODO: Implement webhook call for `ASSESSMENT_CREATE_DRAFT`.
-          </p>
     </div>
   );
 }
