@@ -138,10 +138,10 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       <PageHeader
         title={student.name}
         description={
-            <div className="flex items-center gap-4 text-muted-foreground">
+            <span className="flex items-center gap-4 text-muted-foreground">
                 <span>{student.class}</span>
                 <span className="font-mono text-xs">{student.studentIdNumber}</span>
-            </div>
+            </span>
         }
         actions={
           <Button onClick={() => startNewAssessment({ studentId: student.id })} disabled={isCreatingAssessment}>
