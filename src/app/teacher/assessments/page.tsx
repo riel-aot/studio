@@ -12,7 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useWebhook } from '@/lib/hooks';
 import type { AssessmentListPayload, AssessmentListResponse, AssessmentStatus } from '@/lib/events';
@@ -89,7 +88,7 @@ function EmptyState() {
             <p className="text-muted-foreground mt-2 mb-4">Try adjusting your filters or create a new assessment.</p>
             <Button asChild>
                 <Link href="/teacher/assessments/new">
-                    <FilePlus className="mr-2" />
+                    <FilePlus className="mr-2 h-4 w-4" />
                     Create New Assessment
                 </Link>
             </Button>
@@ -160,7 +159,7 @@ export default function AssessmentsPage() {
             description="Search, filter, and open assessments for review."
             actions={
               <Button asChild>
-                <Link href="/teacher/assessments/new"><FilePlus /> New Assessment</Link>
+                <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4" /> New Assessment</Link>
               </Button>
             }
           />
@@ -176,7 +175,7 @@ export default function AssessmentsPage() {
         description="Search, filter, and open assessments for review."
         actions={
           <Button asChild>
-            <Link href="/teacher/assessments/new"><FilePlus /> New Assessment</Link>
+            <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4" /> New Assessment</Link>
           </Button>
         }
       />

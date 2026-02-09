@@ -23,22 +23,21 @@ export function AssessmentWorkspaceSkeleton() {
             </div>
 
             {/* Body Skeleton */}
-            <div className="flex gap-6 h-[80vh]">
+            <div className="grid grid-cols-12 gap-6 h-[80vh]">
                 {/* Left Panel */}
-                <div className="w-[320px] shrink-0 p-4 border rounded-lg">
+                <div className="col-span-3 p-4 border rounded-lg">
                     <Skeleton className="h-6 w-32 mb-2" />
                     <Skeleton className="h-4 w-48 mb-6" />
                     <div className="space-y-4">
                         <Skeleton className="h-10 w-full" />
                         <Skeleton className="h-px w-full" />
                         <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-24 w-full" />
                         <Skeleton className="h-48 w-full" />
                         <Skeleton className="h-11 w-36" />
                     </div>
                 </div>
                 {/* Center Panel */}
-                <div className="flex-1 min-w-0 p-4 border rounded-lg">
+                <div className="col-span-5 p-4 border rounded-lg">
                     <Skeleton className="h-6 w-36 mb-2" />
                     <Skeleton className="h-4 w-52 mb-4" />
                     <div className="rounded-md border p-4 space-y-3 h-full">
@@ -52,7 +51,7 @@ export function AssessmentWorkspaceSkeleton() {
                     </div>
                 </div>
                 {/* Right Panel */}
-                <div className="w-[360px] shrink-0 p-4 border rounded-lg">
+                <div className="col-span-4 p-4 border rounded-lg">
                     <Skeleton className="h-6 w-48 mb-2" />
                     <Skeleton className="h-4 w-64 mb-6" />
                     <div className="space-y-4">

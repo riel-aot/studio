@@ -6,27 +6,28 @@ import { UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FileUploaderProps {
-  onFilesSelected: (files: File[]) => void;
+  onFileSelected: (file: File) => void;
   acceptedFileTypes?: Accept;
-  maxFiles?: number;
 }
 
 export function FileUploader({
-  onFilesSelected,
+  onFileSelected,
   acceptedFileTypes = {},
-  maxFiles = 1,
 }: FileUploaderProps) {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      onFilesSelected(acceptedFiles);
+      if (acceptedFiles.length > 0) {
+        onFileSelected(acceptedFiles[0]);
+      }
     },
-    [onFilesSelected]
+    [onFileSelected]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: acceptedFileTypes,
-    maxFiles: maxFiles,
+    maxFiles: 1,
+    multiple: false,
   });
 
   return (
@@ -42,10 +43,10 @@ export function FileUploader({
       <div className="text-center">
         <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
         <p className="mt-4 font-semibold text-foreground">
-          {isDragActive ? 'Drop the file here...' : 'Drag & drop file here, or click to select'}
+          {isDragActive ? 'Drop the file here...' : 'Drag & drop file, or click to select'}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Supported formats: {Object.values(acceptedFileTypes).flat().join(', ')}
+          Supported: {Object.values(acceptedFileTypes).flat().join(', ')}
         </p>
       </div>
     </div>

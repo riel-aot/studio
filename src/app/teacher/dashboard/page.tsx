@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
-import { BookCopy, FileEdit, FilePlus, PenSquare, AlertCircle, Users } from 'lucide-react';
+import { FileEdit, FilePlus, PenSquare, AlertCircle, Users } from 'lucide-react';
 
 function DashboardLoadingSkeleton() {
   return (
@@ -217,7 +217,7 @@ export default function TeacherDashboard() {
                                 <TableCell className="font-medium">{item.studentName}</TableCell>
                                 <TableCell>{item.assessmentName}</TableCell>
                                 <TableCell>
-                                    <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'secondary'}>
+                                    <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'destructive'}>
                                         {item.status === 'ai_draft_ready' ? 'AI Draft Ready' : 'Needs Review'}
                                     </Badge>
                                 </TableCell>
@@ -233,7 +233,7 @@ export default function TeacherDashboard() {
                     <div className="text-center py-10">
                         <p className="text-muted-foreground">Your review queue is empty. Great job!</p>
                         <Button onClick={() => startNewAssessment()} className="mt-4">
-                            <FilePlus />
+                            <FilePlus className="mr-2 h-4 w-4" />
                             Start a New Assessment
                         </Button>
                     </div>
@@ -272,10 +272,10 @@ export default function TeacherDashboard() {
             </CardHeader>
             <CardContent className="grid gap-2">
                 <Button onClick={() => startNewAssessment()} className="justify-start">
-                    <FilePlus /> New Assessment
+                    <FilePlus className="mr-2 h-4 w-4" /> New Assessment
                 </Button>
                 <Button asChild variant="secondary" className="justify-start">
-                    <Link href="/teacher/students/import"><Users /> Import Students</Link>
+                    <Link href="/teacher/students/import"><Users className="mr-2 h-4 w-4" /> Import Students</Link>
                 </Button>
             </CardContent>
             </Card>

@@ -13,7 +13,6 @@ export type EventName =
   | 'ASSESSMENT_CREATE_DRAFT'
   | 'ASSESSMENT_GET'
   | 'ASSESSMENT_FINALIZE'
-  | 'ASSESSMENT_TEXT_SAVE'
   | 'ASSESSMENT_TYPED_UPLOAD'
   | 'ASSESSMENT_EXTRACT_TEXT'
   | 'ASSESSMENT_TEXT_UPDATE'
@@ -30,6 +29,7 @@ export type EventName =
   | 'STUDENT_CREATE'
   | 'STUDENT_ASSESSMENTS_LIST'
   | 'STUDENT_REPORTS_LIST'
+  | 'STUDENT_IMPORT_PROCESS'
 
   // Rubrics
   | 'RUBRIC_LIST'
@@ -173,16 +173,6 @@ export type RubricGrade = {
     rationale: string;
     evidenceRefs?: string[];
 }
-
-export type RubricCriterion = {
-    id: string;
-    name: string;
-    description: string;
-    draftScore: number;
-    maxScore: number;
-    evidence: string;
-};
-
 
 export type AssessmentWorkspaceData = {
     id: string;
