@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { FinalizeConfirmationDialog } from '@/components/assessment-workspace/finalize-dialog';
 import { AssessmentWorkspaceSkeleton } from '@/components/assessment-workspace/skeletons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 
 // --- Helper Functions and Components ---
 
