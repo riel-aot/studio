@@ -26,7 +26,7 @@ export function MainLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen w-full">
         <Sidebar>
           <SidebarHeader>
             <Logo />
@@ -35,19 +35,16 @@ export function MainLayout({
         </Sidebar>
         
         <SidebarInset>
-          {/* This header will be full-width and sticky at the top */}
-          <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-4 sm:px-6">
-            <SidebarTrigger className="md:hidden"/>
-            {/* This spacer pushes the UserNav to the right */}
-            <div className="flex-1" /> 
-            <UserNav />
-          </header>
-          {/* This main area will contain the scrollable, centered content */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="mx-auto w-full max-w-6xl">
-              {children}
-            </div>
-          </main>
+          <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
+            <header className="flex h-14 items-center justify-between">
+              <SidebarTrigger className="md:hidden"/>
+              <div className="flex-1" /> 
+              <UserNav />
+            </header>
+            <main className="flex-1">
+                {children}
+            </main>
+          </div>
         </SidebarInset>
 
       </div>
