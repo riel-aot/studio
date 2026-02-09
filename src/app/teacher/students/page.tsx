@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, FileUp, ChevronRight, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useWebhook } from '@/lib/hooks';
 import type { GetStudentListData, StudentListItem } from '@/lib/events';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,7 +27,6 @@ function StudentListSkeleton() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[80px]">Avatar</TableHead>
                             <TableHead>Name</TableHead>
                             <TableHead>Class</TableHead>
                             <TableHead>Student ID</TableHead>
@@ -40,9 +38,7 @@ function StudentListSkeleton() {
                     <TableBody>
                         {[...Array(5)].map((_, i) => (
                             <TableRow key={i}>
-                                <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-
                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -60,8 +56,8 @@ function StudentListSkeleton() {
 function EmptyState({ onAddStudent }: { onAddStudent: () => void }) {
     return (
         <div className="text-center py-16 border-dashed border-2 rounded-lg">
-            <h3 className="text-xl font-semibold">No students found</h3>
-            <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first student.</p>
+            <h3 className="text-xl font-semibold">No students yet</h3>
+            <p className="text-muted-foreground mt-2 mb-4">Add your first student to start creating assessments.</p>
             <Button onClick={onAddStudent}>
                 <PlusCircle className="mr-2" />
                 Add Student
@@ -89,18 +85,20 @@ export default function StudentsPage() {
 
     const getStatusVariant = (status: string) => {
         switch (status) {
-            case 'Up to Date': return 'default';
             case 'Needs Review': return 'destructive';
-            case 'Draft in Progress': return 'secondary';
-            default: return 'outline';
+            case 'Draft in Progress': 
+            case 'Up to Date':
+            case 'No Assessments':
+            default: 
+                return 'secondary';
         }
     }
     
     if (isLoading && !data) return (
         <div>
              <PageHeader
-                title="Student Roster"
-                description="Search, add, and manage student profiles."
+                title="Students"
+                description="All students in your classes."
                 actions={
                     <div className="flex gap-2">
                         <Button variant="outline" asChild>
@@ -126,8 +124,8 @@ export default function StudentsPage() {
                 }}
             />
             <PageHeader
-                title="Student Roster"
-                description="Search, add, and manage student profiles."
+                title="Students"
+                description="All students in your classes."
                 actions={
                     <div className="flex gap-2">
                         <Button variant="outline" asChild>
@@ -144,7 +142,6 @@ export default function StudentsPage() {
                         <div className="flex justify-between items-center">
                             <div>
                                 <CardTitle>All Students ({data.total})</CardTitle>
-                                <CardDescription>A list of all students in your classes.</CardDescription>
                             </div>
                              <div className="relative w-full max-w-sm">
                                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -159,9 +156,8 @@ export default function StudentsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[60px]">Avatar</TableHead>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Class</TableHead>
+                                    <TableHead>Class / Grade</TableHead>
                                     <TableHead>Student ID</TableHead>
                                     <TableHead>Last Assessment</TableHead>
                                     <TableHead>Status</TableHead>
@@ -178,16 +174,10 @@ export default function StudentsPage() {
                                         onClick={() => handleRowClick(student.id)}
                                         onKeyDown={(e) => handleKeyDown(e, student.id)}
                                     >
-                                        <TableCell>
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage src={student.avatarUrl} alt={student.name} />
-                                                <AvatarFallback>{student.name.substring(0,2)}</AvatarFallback>
-                                            </Avatar>
-                                        </TableCell>
                                         <TableCell className="font-medium">{student.name}</TableCell>
                                         <TableCell>{student.class}</TableCell>
-                                        <TableCell className="font-mono text-xs">{student.studentIdNumber}</TableCell>
-                                        <TableCell className="text-sm">
+                                        <TableCell className="font-mono text-xs text-muted-foreground">{student.studentIdNumber}</TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
                                             {student.lastAssessmentDate 
                                                 ? format(parseISO(student.lastAssessmentDate), 'dd MMM yyyy')
                                                 : 'None'
@@ -197,7 +187,7 @@ export default function StudentsPage() {
                                             <Badge variant={getStatusVariant(student.status)}>{student.status}</Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <ChevronRight className="h-4 w-4 text-muted-foreground inline-block" />
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground inline-block opacity-50 group-hover:opacity-100 transition-opacity" />
                                         </TableCell>
                                     </TableRow>
                                 ))}

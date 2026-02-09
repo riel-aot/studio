@@ -69,7 +69,6 @@ const createStudent = (payload: StudentCreatePayload) => {
         name: payload.fullName,
         class: payload.className,
         studentIdNumber: payload.studentIdNumber,
-        parentEmail: payload.parentEmail,
         avatarUrl: `https://picsum.photos/seed/new${students.length + 1}/100/100`,
         lastAssessmentDate: null,
         status: 'No Assessments',

@@ -83,7 +83,6 @@ export type StudentListItem = {
     class: string;
     avatarUrl: string;
     studentIdNumber: string;
-    parentEmail: string;
     lastAssessmentDate: string | null;
     status: 'No Assessments' | 'Draft in Progress' | 'Needs Review' | 'Up to Date';
 };

@@ -41,7 +41,6 @@ The Students page relies on several webhook events to function.
           "name": "Amelia Johnson",
           "class": "Grade 5",
           "studentIdNumber": "S00123",
-          "parentEmail": "parent@example.com",
           "lastAssessmentDate": "2023-10-26T10:00:00Z",
           "status": "Needs Review",
           "avatarUrl": "..."
@@ -73,6 +72,6 @@ The Students page relies on several webhook events to function.
     ```
 
 - **`NEW_ASSESSMENT_START`**
-  - **Trigger**: Clicking the "New Assessment" button for a student in the table.
+  - **Trigger**: This action is now located inside the Student Profile page.
   - **Payload**: `{ "studentId": "string" }`
   - **Description**: The frontend navigates to `/teacher/assessments/new?studentId=[studentId]` on success.
