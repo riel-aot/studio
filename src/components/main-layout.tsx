@@ -55,7 +55,9 @@ export function MainLayout({
             <UserNav />
           </header>
           <main className="flex-1 overflow-auto p-4 sm:px-6 sm:py-6">
-            {children}
+            <div className="mx-auto w-full max-w-7xl">
+              {children}
+            </div>
           </main>
         </SidebarInset>
       </div>

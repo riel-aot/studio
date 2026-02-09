@@ -53,9 +53,11 @@ export default function StudentsPage() {
                 title="Student Roster"
                 description="Manage your students and view their progress."
                 actions={
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Import Students
+                    <Button asChild>
+                        <Link href="/teacher/students/import">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Import Students
+                        </Link>
                     </Button>
                 }
             />

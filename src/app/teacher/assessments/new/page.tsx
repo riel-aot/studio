@@ -63,7 +63,7 @@ export default function NewAssessmentPage() {
       />
 
         <form onSubmit={handleSubmit}>
-            <Card className="mx-auto max-w-2xl">
+            <Card>
                 <CardHeader>
                     <CardTitle>Assessment Details</CardTitle>
                     <CardDescription>Fill in the initial details. You can add more criteria later.</CardDescription>

@@ -46,7 +46,7 @@ export default function SettingsPage() {
                 </Button>
             }
         />
-        <Card className="max-w-2xl">
+        <Card>
             <CardHeader>
             <CardTitle>System Health</CardTitle>
             <CardDescription>
