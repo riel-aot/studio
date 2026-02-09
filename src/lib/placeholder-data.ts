@@ -1,4 +1,4 @@
-import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricGrade, RubricListItem, AssessmentListItem } from './events';
+import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricGrade, RubricListItem, AssessmentListItem, ReportListItem, ReportData } from './events';
 
 export const studentListData: StudentListItem[] = [
     { 
@@ -171,3 +171,61 @@ export const assessmentListItems: AssessmentListItem[] = [
     updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
+
+
+// --- MOCK DATA FOR REPORTS ---
+
+export const reportListItems: ReportListItem[] = [
+    {
+        reportId: 'rep_01',
+        studentName: 'Amelia Johnson',
+        periodLabel: 'Q3 2023',
+        generatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Generated',
+        hasPdf: true,
+        delivery: { portal: true, email: true },
+    },
+    {
+        reportId: 'rep_02',
+        studentName: 'Benjamin Carter',
+        periodLabel: 'Last 30 Days',
+        generatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Sent',
+        hasPdf: false,
+        delivery: { portal: true, email: true },
+    },
+    {
+        reportId: 'rep_03',
+        studentName: 'Amelia Johnson',
+        periodLabel: 'This Month',
+        generatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+        status: 'Queued',
+        hasPdf: true,
+        delivery: { portal: true, email: false },
+    },
+];
+
+export const fullReportData: ReportData = {
+    id: 'rep_01',
+    studentName: 'Amelia Johnson',
+    periodLabel: 'Q3 2023',
+    generatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    includedAssessmentsCount: 4,
+    summary: 'Amelia has shown strong progress in Reading Comprehension and foundational Math skills this quarter. She consistently demonstrates an ability to identify the central idea in complex texts. The primary area for growth is in providing detailed evidence to support her claims in written assignments.',
+    strengths: [
+        'Excellent grasp of central themes in literature.',
+        'Improved accuracy in multi-step math problems.',
+        'Actively participates in class discussions.',
+    ],
+    growthAreas: [
+        'Incorporate more specific textual evidence in essays.',
+        'Double-check for minor grammatical errors before submitting.',
+        'Expand vocabulary in science-related writing.',
+    ],
+    rubricSnapshot: [
+        { criterion: 'Central Idea', averageScore: 4.5, trend: 'up' },
+        { criterion: 'Evidence & Support', averageScore: 3.2, trend: 'stable' },
+        { criterion: 'Mechanics', averageScore: 3.8, trend: 'down' },
+    ],
+    teacherFinalComment: 'Amelia is a bright and engaged student with a clear passion for reading. I am confident that with a continued focus on using specific evidence in her writing, she will excel. It is a pleasure to have her in class.',
+};

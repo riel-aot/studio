@@ -1,8 +1,9 @@
 
-import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload } from './events';
-import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems } from './placeholder-data';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData } from './events';
+import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems, reportListItems, fullReportData } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
+let reports: ReportListItem[] = [...reportListItems];
 let currentAssessmentState: AssessmentWorkspaceData = { ...assessmentWorkspaceData };
 
 const kpis = {
@@ -152,13 +153,20 @@ const setAssessmentRubric = (payload: { assessmentId: string, rubricId: string }
 const saveAssessmentText = (payload: { assessmentId: string, text: string, source: 'typed' | 'handwritten_extracted' }) => {
     currentAssessmentState.currentText = payload.text;
     currentAssessmentState.source = payload.source;
-    return {};
+    return { assessment: currentAssessmentState };
 }
 
 const uploadTypedFile = (payload: { assessmentId: string, fileRef: string }) => {
     currentAssessmentState.source = 'typed';
     currentAssessmentState.currentText = `This is sample text extracted from the typed document: ${payload.fileRef}. Once saved, this text becomes read-only to ensure grading consistency against a single version of the student's work.`;
     currentAssessmentState.uploads.push({ id: `up_${crypto.randomUUID()}`, fileName: payload.fileRef, type: 'typed' });
+    // This now directly triggers the AI grade run
+    currentAssessmentState.status = 'ai_draft_ready';
+    currentAssessmentState.aiReview = {
+        status: 'ready',
+        suggestions: aiSuggestions,
+        rubricGrades: rubricGrades,
+    }
     return { assessment: currentAssessmentState };
 }
 
@@ -211,6 +219,42 @@ const saveRubricOverrides = (payload: { assessmentId: string; overrides: any }) 
     return {};
 }
 
+// --- Report Handlers ---
+const listReports = () => {
+    return {
+        items: reports,
+        pagination: { page: 1, pageSize: 20, total: reports.length },
+    };
+};
+
+const getReport = (payload: { reportId: string }): { report: ReportData } => {
+    return { report: fullReportData };
+};
+
+const generateReport = (payload: ReportGeneratePayload) => {
+    const student = getStudentById(payload.studentId);
+    const newReport: ReportListItem = {
+        reportId: `rep_${crypto.randomUUID()}`,
+        studentName: student?.name || 'Unknown Student',
+        periodLabel: payload.period.preset === 'last_30' ? 'Last 30 Days' : 'Custom Range',
+        generatedAt: new Date().toISOString(),
+        status: 'Queued',
+        hasPdf: payload.delivery.pdf,
+        delivery: {
+            portal: payload.delivery.portal,
+            email: payload.delivery.email,
+        },
+    };
+    reports.unshift(newReport);
+    // Simulate generation
+    setTimeout(() => {
+        const generatedReport = reports.find(r => r.reportId === newReport.reportId);
+        if (generatedReport) {
+            generatedReport.status = 'Generated';
+        }
+    }, 5000);
+    return { reportId: newReport.reportId };
+};
 
 const handlers: { [key: string]: (payload: any) => any } = {
     'GET_DASHBOARD_SUMMARY': () => ({ kpis }),
@@ -240,6 +284,13 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'ASSESSMENT_SAVE_TEACHER_FEEDBACK': saveTeacherFeedback,
     'ASSESSMENT_SAVE_RUBRIC_OVERRIDE': saveRubricOverrides,
 
+
+    // Reports
+    'REPORTS_LIST': listReports,
+    'REPORT_GET': getReport,
+    'REPORT_GENERATE': generateReport,
+    'REPORT_SEND': () => ({ success: true }),
+    'REPORT_DOWNLOAD_PDF': () => ({ fileContent: 'mock-pdf-base64-content' }),
 
     // Action mocks just return success
     'REVIEW_OPEN': () => ({}),

@@ -34,8 +34,14 @@ export type EventName =
   // Rubrics
   | 'RUBRIC_LIST'
 
-  // Other
+  // Reports
+  | 'REPORTS_LIST'
   | 'REPORT_GET'
+  | 'REPORT_GENERATE'
+  | 'REPORT_SEND'
+  | 'REPORT_DOWNLOAD_PDF'
+
+  // Other
   | 'HEALTH_CHECK';
 
 export interface WebhookRequest<T = Record<string, any>> {
@@ -254,4 +260,63 @@ export interface AssessmentListResponse {
     pageSize: number;
     total: number;
   };
+}
+
+// REPORTS
+export interface ReportListItem {
+    reportId: string;
+    studentName: string;
+    periodLabel: string;
+    generatedAt: string;
+    status: 'Queued' | 'Generated' | 'Sent' | 'Failed';
+    hasPdf: boolean;
+    delivery: {
+        portal: boolean;
+        email: boolean;
+    };
+}
+
+export interface ReportListResponse {
+    items: ReportListItem[];
+    pagination: {
+        page: number;
+        pageSize: number;
+        total: number;
+    };
+}
+
+export interface ReportGeneratePayload {
+    studentId: string;
+    period: {
+        preset?: 'last_30' | 'this_month';
+        startDate?: string;
+        endDate?: string;
+    };
+    include: {
+        summary: boolean;
+        rubricBreakdown: boolean;
+        teacherNotes: boolean;
+    };
+    delivery: {
+        portal: boolean;
+        email: boolean;
+        pdf: boolean;
+    };
+}
+
+export interface ReportData {
+    id: string;
+    studentName: string;
+    periodLabel: string;
+    generatedAt: string;
+    summary: string;
+    strengths: string[];
+    growthAreas: string[];
+    rubricSnapshot: {
+        criterion: string;
+        averageScore: number;
+        trend: 'up' | 'down' | 'stable';
+    }[];
+    teacherFinalComment: string;
+    includedAssessmentsCount: number;
 }
