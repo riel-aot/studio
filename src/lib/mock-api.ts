@@ -1,3 +1,4 @@
+
 import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload } from './events';
 import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems } from './placeholder-data';
 
@@ -227,6 +228,7 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'ASSESSMENT_TEXT_SAVE': saveAssessmentText,
     'ASSESSMENT_TYPED_UPLOAD': uploadTypedFile,
     'ASSESSMENT_EXTRACT_TEXT': extractText,
+    'ASSESSMENT_TEXT_UPDATE': saveAssessmentText,
     'ASSESSMENT_RUN_AI_GRADE': runAIGrade,
     'ASSESSMENT_FINALIZE': finalizeAssessment,
     'ASSESSMENT_SUGGESTION_ACTION': applySuggestion,
