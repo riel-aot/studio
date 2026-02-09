@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, use } from 'react';
 import { useWebhook } from '@/lib/hooks';
-import type { AssessmentWorkspaceData, AISuggestion, RubricCriterion, RubricListItem } from '@/lib/events';
+import type { AssessmentWorkspaceData, AISuggestion, RubricGrade, RubricListItem } from '@/lib/events';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, ChevronDown, FileText, ImageIcon, Loader2, Sparkles, X, Lock, FileCheck2 } from 'lucide-react';
 import Link from 'next/link';
@@ -19,12 +19,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 // --- Helper Functions and Components ---
 
@@ -91,50 +85,68 @@ function SetupInputPanel({
 }) {
     const [text, setText] = useState(assessment.currentText || '');
     
+    const onSetRubricSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+        onAssessmentUpdate(data.assessment);
+    }, [onAssessmentUpdate]);
+
     const { trigger: setRubric, isLoading: isSettingRubric } = useWebhook<{ assessmentId: string; rubricId: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_SET_RUBRIC',
         manual: true,
-        onSuccess: (data) => onAssessmentUpdate(data.assessment),
+        onSuccess: onSetRubricSuccess,
         errorMessage: "Failed to set rubric."
     });
 
     const { trigger: saveText, isLoading: isSaving } = useWebhook<{ assessmentId: string; text: string; source: 'typed' | 'handwritten_extracted' }, {}>({
-        eventName: 'ASSESSMENT_TEXT_SAVE',
+        eventName: 'ASSESSMENT_TEXT_UPDATE',
         manual: true,
         errorMessage: "Failed to save text."
     });
 
-    const { trigger: uploadTypedFile, isLoading: isUploadingTyped } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
-        eventName: 'ASSESSMENT_TYPED_UPLOAD',
-        manual: true,
-        onSuccess: (data) => onAssessmentUpdate(data.assessment),
-        errorMessage: "Failed to upload and process file."
-    });
-
-    const { trigger: extractText, isLoading: isExtracting } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
-        eventName: 'ASSESSMENT_EXTRACT_TEXT',
-        manual: true,
-        onSuccess: (data) => {
-            onAssessmentUpdate(data.assessment);
-            setText(data.assessment.currentText || '');
-        },
-        errorMessage: 'Failed to extract text from image.'
-    });
+    const onRunAIGradeSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+        onAssessmentUpdate(data.assessment);
+    }, [onAssessmentUpdate]);
 
     const { trigger: lockAndSend, isLoading: isLocking } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_RUN_AI_GRADE',
         manual: true,
-        onSuccess: (data) => onAssessmentUpdate(data.assessment),
+        onSuccess: onRunAIGradeSuccess,
     });
-    
+
+    const onUploadTypedFileSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+        onAssessmentUpdate(data.assessment);
+        // Immediately trigger AI grading after typed upload, if a rubric is selected
+        if (data.assessment.rubricId) {
+            lockAndSend({ assessmentId: data.assessment.id });
+        }
+    }, [onAssessmentUpdate, lockAndSend]);
+
+    const { trigger: uploadTypedFile, isLoading: isUploadingTyped } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
+        eventName: 'ASSESSMENT_TYPED_UPLOAD',
+        manual: true,
+        onSuccess: onUploadTypedFileSuccess,
+        errorMessage: "Failed to upload and process file."
+    });
+
+    const onExtractTextSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+        onAssessmentUpdate(data.assessment);
+        setText(data.assessment.currentText || '');
+    }, [onAssessmentUpdate]);
+
+    const { trigger: extractText, isLoading: isExtracting } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
+        eventName: 'ASSESSMENT_EXTRACT_TEXT',
+        manual: true,
+        onSuccess: onExtractTextSuccess,
+        errorMessage: 'Failed to extract text from image.'
+    });
+
     const handleTypedFileSelect = (files: File[]) => {
-        if (files.length > 0 && !isUploadingTyped) {
+        if (files.length > 0) {
             uploadTypedFile({ assessmentId: assessment.id, fileRef: files[0].name });
         }
     };
     
     const handleHandwrittenFileSelect = (files: File[]) => {
-        if (files.length > 0 && !isExtracting) {
+        if (files.length > 0) {
             extractText({ assessmentId: assessment.id, fileRef: files[0].name });
         }
     };
@@ -145,6 +157,8 @@ function SetupInputPanel({
     const selectedRubricName = useMemo(() => {
         return rubrics.find(r => r.id === assessment.rubricId)?.name;
     }, [rubrics, assessment.rubricId]);
+
+    const isProcessing = isUploadingTyped || isExtracting || isLocking || isSaving;
 
     return (
         <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
@@ -160,9 +174,9 @@ function SetupInputPanel({
                         required 
                         onValueChange={(rubricId) => setRubric({ assessmentId: assessment.id, rubricId })}
                         value={assessment.rubricId || ''}
-                        disabled={isSettingRubric || isFinalized}
+                        disabled={isSettingRubric || isFinalized || isProcessing}
                     >
-                        <SelectTrigger id="rubric" disabled={isSettingRubric || isFinalized}>
+                        <SelectTrigger id="rubric" disabled={isSettingRubric || isFinalized || isProcessing}>
                             <SelectValue placeholder={isSettingRubric ? "Saving..." : (selectedRubricName || "Select a rubric")} />
                         </SelectTrigger>
                         <SelectContent>
@@ -180,34 +194,46 @@ function SetupInputPanel({
                 {/* Submission Input */}
                 <Tabs defaultValue="typed">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="typed" disabled={isFinalized}><FileText className="mr-2 h-4 w-4" /> Typed</TabsTrigger>
-                        <TabsTrigger value="handwritten" disabled={isFinalized}><ImageIcon className="mr-2 h-4 w-4" /> Handwritten</TabsTrigger>
+                        <TabsTrigger value="typed" disabled={isFinalized || isProcessing}><FileText className="mr-2 h-4 w-4" /> Typed</TabsTrigger>
+                        <TabsTrigger value="handwritten" disabled={isFinalized || isProcessing}><ImageIcon className="mr-2 h-4 w-4" /> Handwritten</TabsTrigger>
                     </TabsList>
                     <TabsContent value="typed" className="pt-4">
                         <div className="space-y-4">
-                            {!assessment.currentText ? (
+                            {isUploadingTyped ? (
+                                <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="animate-spin mr-2" />Processing file and starting AI review...</div>
+                            ) : (
                                 <>
-                                    <FileUploader onFilesSelected={handleTypedFileSelect} acceptedFileTypes={{'application/pdf': ['.pdf'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'], 'text/plain': ['.txt']}} />
-                                    {isUploadingTyped && (
-                                        <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="animate-spin mr-2" />Processing file...</div>
+                                    {!assessment.currentText ? (
+                                        <>
+                                            <FileUploader onFilesSelected={handleTypedFileSelect} acceptedFileTypes={{'application/pdf': ['.pdf'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'], 'text/plain': ['.txt']}} />
+                                             {!assessment.rubricId &&
+                                                <Alert variant="destructive" className="text-xs">
+                                                    <AlertDescription>Please select a rubric before uploading a document.</AlertDescription>
+                                                </Alert>
+                                            }
+                                        </>
+                                    ) : (
+                                        <div className="p-4 border rounded-md bg-muted/50 text-sm">
+                                            <p className="font-semibold text-foreground flex items-center"><FileCheck2 className="mr-2 h-4 w-4 text-green-600" /> Document Saved</p>
+                                            <p className="text-muted-foreground mt-1">The student's document is now locked and ready for AI grading.</p>
+                                        </div>
                                     )}
                                 </>
-                            ) : (
-                                <div className="p-4 border rounded-md bg-muted/50 text-sm">
-                                    <p className="font-semibold text-foreground flex items-center"><FileCheck2 className="mr-2 h-4 w-4 text-green-600" /> Document Saved</p>
-                                    <p className="text-muted-foreground mt-1">The student's document is now locked and ready for AI grading.</p>
-                                </div>
                             )}
                         </div>
                     </TabsContent>
                     <TabsContent value="handwritten" className="pt-4">
                          <div className="space-y-4">
-                            {!assessment.currentText && !isExtracting && (
-                                <FileUploader onFilesSelected={handleHandwrittenFileSelect} acceptedFileTypes={{'image/jpeg': ['.jpeg', '.jpg'], 'image/png': ['.png']}} />
-                            )}
-                            {isExtracting && (
+                            {isExtracting ? (
                                 <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="animate-spin mr-2" />Extracting text from image...</div>
+                            ) : (
+                                <>
+                                    {!assessment.currentText && (
+                                        <FileUploader onFilesSelected={handleHandwrittenFileSelect} acceptedFileTypes={{'image/jpeg': ['.jpeg', '.jpg'], 'image/png': ['.png']}} />
+                                    )}
+                                </>
                             )}
+                            
                             {assessment.currentText && (
                                 <>
                                 <div className='space-y-1'>
@@ -224,7 +250,6 @@ function SetupInputPanel({
                                 {!isHandwrittenTextLocked && (
                                     <div className='flex flex-wrap gap-2'>
                                          <Button onClick={async () => {
-                                             if (isSaving || isLocking) return;
                                              await saveText({ assessmentId: assessment.id, text, source: 'handwritten_extracted' });
                                              lockAndSend({ assessmentId: assessment.id });
                                          }} disabled={isLocking || isSaving || !assessment.rubricId} variant="secondary">
@@ -332,11 +357,15 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
     const [teacherNotes, setTeacherNotes] = useState(assessment.teacherFeedback?.notes || '');
     const [finalFeedback, setFinalFeedback] = useState(assessment.teacherFeedback?.finalFeedback || '');
     
+    const onSaveFeedbackSuccess = useCallback(() => {
+        onSaveFeedback({ notes: teacherNotes, finalFeedback });
+    }, [onSaveFeedback, teacherNotes, finalFeedback]);
+
     const { trigger: saveFeedback, isLoading: isSavingFeedback } = useWebhook<{ assessmentId: string; teacherNotes: string; finalFeedback: string }, {}>({
         eventName: 'ASSESSMENT_SAVE_TEACHER_FEEDBACK',
         manual: true,
+        onSuccess: onSaveFeedbackSuccess,
         errorMessage: 'Failed to save feedback.',
-        onSuccess: () => onSaveFeedback({ notes: teacherNotes, finalFeedback })
     });
 
     const isFinalized = assessment.status === 'finalized';
@@ -408,54 +437,80 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
   const [assessmentData, setAssessmentData] = useState<AssessmentWorkspaceData | null>(null);
   const pageParams = use(params);
 
+  const handleAssessmentUpdate = useCallback((assessment: AssessmentWorkspaceData) => {
+    setAssessmentData(assessment);
+  }, []);
+
+  const onGetAssessmentSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+    handleAssessmentUpdate(data.assessment);
+  }, [handleAssessmentUpdate]);
+
+  const { isLoading: isPageLoading, error, trigger: refetch } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({ 
+    eventName: 'ASSESSMENT_GET', 
+    payload: { assessmentId: pageParams.id },
+    onSuccess: onGetAssessmentSuccess
+  });
+
   const {data: rubricsData, isLoading: rubricsLoading} = useWebhook<{}, { rubrics: RubricListItem[] }>({
       eventName: 'RUBRIC_LIST',
       payload: {},
   });
 
-  const handleAssessmentUpdate = useCallback((assessment: AssessmentWorkspaceData) => {
-    setAssessmentData(assessment);
-  }, []);
-
-  const { isLoading: isPageLoading, error, trigger: refetch } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({ 
-    eventName: 'ASSESSMENT_GET', 
-    payload: { assessmentId: pageParams.id },
-    onSuccess: (data) => handleAssessmentUpdate(data.assessment)
-  });
+  const onRunAIGradeSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+      handleAssessmentUpdate(data.assessment);
+  }, [handleAssessmentUpdate]);
 
   const { trigger: runAIGrade } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
       eventName: 'ASSESSMENT_RUN_AI_GRADE',
       manual: true,
-      onSuccess: (data) => handleAssessmentUpdate(data.assessment),
+      onSuccess: onRunAIGradeSuccess,
       errorMessage: "Failed to run AI grading. Please try again."
   });
+
+  const onFinalizeSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
+    handleAssessmentUpdate(data.assessment);
+  }, [handleAssessmentUpdate]);
 
   const { trigger: finalizeAssessment } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
       eventName: 'ASSESSMENT_FINALIZE',
       manual: true,
-      onSuccess: (data) => handleAssessmentUpdate(data.assessment),
+      onSuccess: onFinalizeSuccess,
       errorMessage: "Failed to finalize assessment."
   });
   
+  const onApplySuggestionSuccess = useCallback((data: { newText: string }, payload?: { assessmentId: string; suggestionId: string; action: 'apply' | 'dismiss' }) => {
+      setAssessmentData(prev => {
+          if (!prev || !payload) return prev;
+          
+          const updatedSuggestions = prev.aiReview?.suggestions.filter(s => s.id !== payload.suggestionId) ?? [];
+
+          return {
+              ...prev,
+              currentText: data.newText,
+              aiReview: prev.aiReview ? {
+                  ...prev.aiReview,
+                  suggestions: updatedSuggestions
+              } : null,
+          };
+      });
+  }, []);
+
   const { trigger: applySuggestion } = useWebhook<{ assessmentId: string, suggestionId: string, action: 'apply' | 'dismiss' }, { newText: string }>({
     eventName: 'ASSESSMENT_SUGGESTION_ACTION',
     manual: true,
-    onSuccess: (data) => {
-        if (assessmentData) {
-            setAssessmentData({ ...assessmentData, currentText: data.newText });
-        }
-    },
+    onSuccess: onApplySuggestionSuccess,
     errorMessage: "Action failed."
   });
   
-  const handleFeedbackSaved = (feedback: { notes: string; finalFeedback: string }) => {
-      if(assessmentData) {
-          setAssessmentData({
-              ...assessmentData,
-              teacherFeedback: feedback
-          });
-      }
-  };
+  const handleFeedbackSaved = useCallback((feedback: { notes: string; finalFeedback: string }) => {
+      setAssessmentData(prev => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            teacherFeedback: feedback
+        };
+    });
+  }, []);
 
   const handleRunAI = () => {
     if (assessmentData) {
