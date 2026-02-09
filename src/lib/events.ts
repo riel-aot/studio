@@ -18,6 +18,8 @@ export type EventName =
   | 'STUDENT_LIST'
   | 'STUDENT_GET'
   | 'STUDENT_CREATE'
+  | 'STUDENT_ASSESSMENTS_LIST'
+  | 'STUDENT_REPORTS_LIST'
 
   // Other
   | 'REPORT_GET'
@@ -89,6 +91,33 @@ export type StudentListItem = {
 export type GetStudentListData = {
     students: StudentListItem[];
     total: number;
+};
+
+// STUDENT_GET
+export type StudentProfileData = {
+    id: string;
+    name: string;
+    class: string;
+    studentIdNumber: string;
+    studentEmail: string | null;
+    parentEmail: string;
+};
+
+// STUDENT_ASSESSMENTS_LIST
+export type StudentAssessmentListItem = {
+    id: string;
+    name: string;
+    type: 'Writing' | 'Reading' | 'Math' | 'Science' | 'EAL';
+    status: 'Draft' | 'AI Draft Ready' | 'Needs Review' | 'Finalized';
+    updatedAt: string;
+};
+
+// STUDENT_REPORTS_LIST
+export type StudentReportListItem = {
+    id: string;
+    name: string;
+    generatedDate: string;
+    status: 'Draft' | 'Final';
 };
 
 // STUDENT_CREATE

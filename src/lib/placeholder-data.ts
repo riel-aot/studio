@@ -1,4 +1,4 @@
-import type { StudentListItem } from './events';
+import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData } from './events';
 
 export const studentListData: StudentListItem[] = [
     { 
@@ -48,23 +48,53 @@ export const studentListData: StudentListItem[] = [
     },
 ];
 
-export const getStudentById = (id: string) => {
-    return studentListData.find(s => s.id === id);
-}
+export const getStudentById = (id: string): (StudentListItem & { studentEmail: string | null; parentEmail: string }) | undefined => {
+    const student = studentListData.find(s => s.id === id);
+    if (!student) return undefined;
+    return {
+        ...student,
+        studentEmail: `${student.name.split(' ')[0].toLowerCase()}@school.edu`,
+        parentEmail: `${student.name.split(' ')[1].toLowerCase()}@family.com`
+    };
+};
 
-export const singleStudentData = (id: string) => ({
-    ...getStudentById(id),
-    details: {
-        gradeLevel: '5th Grade',
-        homeroom: 'Mrs. Gable',
-        lastLogin: '2023-10-26T08:00:00Z',
-    },
-    recentAssessments: [
-        { id: 'asm_01', name: 'Unit 3: Fractions', status: 'pending_review', date: '2023-10-26' },
-        { id: 'asm_11', name: 'Book Report: The Giver', status: 'finalized', date: '2023-10-15' },
-        { id: 'asm_12', name: 'Spelling Test #5', status: 'finalized', date: '2023-10-10' },
-    ]
-})
+export const singleStudentData = (id: string): (StudentProfileData & { details: any, recentAssessments: any[], recentReports: any[] }) | null => {
+    const student = getStudentById(id);
+    if (!student) return null;
+
+    return {
+        id: student.id,
+        name: student.name,
+        class: student.class,
+        studentIdNumber: student.studentIdNumber,
+        studentEmail: student.studentEmail,
+        parentEmail: student.parentEmail,
+        details: {
+            gradeLevel: '5th Grade',
+            homeroom: 'Mrs. Gable',
+            lastLogin: '2023-10-26T08:00:00Z',
+        },
+        recentAssessments: [
+            { id: 'asm_01', name: 'Unit 3: Fractions', status: 'pending_review', date: '2023-10-26' },
+            { id: 'asm_11', name: 'Book Report: The Giver', status: 'finalized', date: '2023-10-15' },
+            { id: 'asm_12', name: 'Spelling Test #5', status: 'finalized', date: '2023-10-10' },
+        ],
+        recentReports: []
+    }
+};
+
+export const studentAssessments: StudentAssessmentListItem[] = [
+    { id: 'asm_01', name: 'Unit 3: Fractions', type: 'Math', status: 'Needs Review', updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 'asm_11', name: 'Book Report: The Giver', type: 'Reading', status: 'Finalized', updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 'asm_12', name: 'Spelling Test #5', type: 'Writing', status: 'Finalized', updatedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 'asm_draft_03', name: 'Science Fair Proposal', type: 'Science', status: 'Draft', updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 'asm_ai_01', name: 'EAL Vocabulary Quiz', type: 'EAL', status: 'AI Draft Ready', updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+];
+
+export const studentReports: StudentReportListItem[] = [
+    { id: 'rep_01', name: 'Q3 Progress Report', generatedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), status: 'Final' },
+    { id: 'rep_02', name: 'Mid-Term Summary', generatedDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), status: 'Final' },
+];
 
 export const assessmentData = (id: string) => ({
     id,

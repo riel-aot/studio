@@ -1,5 +1,5 @@
 import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload } from './events';
-import { studentListData as initialStudentData } from './placeholder-data';
+import { studentListData as initialStudentData, singleStudentData, studentAssessments, studentReports, getStudentById } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
 
@@ -63,6 +63,24 @@ const studentList = () => ({
     total: students.length,
 });
 
+const getStudent = (payload: { studentId: string }) => {
+    const student = getStudentById(payload.studentId);
+    if (!student) return null;
+    
+    // Return just the profile data, not all the extra details from the placeholder
+    const { avatarUrl, lastAssessmentDate, status, ...profileData } = student;
+    return { student: profileData };
+}
+
+const getStudentAssessments = (payload: { studentId: string }) => {
+    return { assessments: studentAssessments };
+}
+
+const getStudentReports = (payload: { studentId: string }) => {
+    return { reports: studentReports };
+}
+
+
 const createStudent = (payload: StudentCreatePayload) => {
     const newStudent: StudentListItem = {
         id: `stu_${crypto.randomUUID()}`,
@@ -84,7 +102,11 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'GET_DRAFTS': () => ({ items: drafts }),
     'HEALTH_CHECK': () => healthCheck,
     'STUDENT_LIST': () => studentList(),
+    'STUDENT_GET': (payload: { studentId: string }) => getStudent(payload),
     'STUDENT_CREATE': (payload: StudentCreatePayload) => createStudent(payload),
+    'STUDENT_ASSESSMENTS_LIST': (payload: { studentId: string }) => getStudentAssessments(payload),
+    'STUDENT_REPORTS_LIST': (payload: { studentId: string }) => getStudentReports(payload),
+
 
     // Action mocks just return success
     'REVIEW_OPEN': () => ({}),
@@ -97,11 +119,17 @@ const handlers: { [key: string]: (payload: any) => any } = {
 export function getMockResponse(body: WebhookRequest): WebhookResponse | null {
   const handler = handlers[body.eventName];
   if (handler) {
-    // Simulate a network delay
-    // await new Promise(resolve => setTimeout(resolve, 500));
+    const data = handler(body.payload);
+    if (data === null) {
+         return {
+            success: false,
+            error: { message: 'Not found' },
+            correlationId: `mock_${crypto.randomUUID()}`,
+        };
+    }
     return {
       success: true,
-      data: handler(body.payload),
+      data,
       correlationId: `mock_${crypto.randomUUID()}`,
     };
   }
