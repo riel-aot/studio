@@ -206,6 +206,11 @@ const saveTeacherFeedback = (payload: { assessmentId: string; teacherNotes: stri
     return {};
 }
 
+const saveRubricOverrides = (payload: { assessmentId: string; overrides: any }) => {
+    currentAssessmentState.teacherOverrides = payload.overrides;
+    return {};
+}
+
 
 const handlers: { [key: string]: (payload: any) => any } = {
     'GET_DASHBOARD_SUMMARY': () => ({ kpis }),
@@ -233,6 +238,7 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'ASSESSMENT_FINALIZE': finalizeAssessment,
     'ASSESSMENT_SUGGESTION_ACTION': applySuggestion,
     'ASSESSMENT_SAVE_TEACHER_FEEDBACK': saveTeacherFeedback,
+    'ASSESSMENT_SAVE_RUBRIC_OVERRIDE': saveRubricOverrides,
 
 
     // Action mocks just return success

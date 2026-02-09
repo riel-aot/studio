@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 // --- Helper Functions and Components ---
 
@@ -96,17 +97,11 @@ function SetupInputPanel({
         errorMessage: "Failed to set rubric."
     });
 
-    const { trigger: saveText, isLoading: isSaving } = useWebhook<{ assessmentId: string; text: string; source: 'typed' | 'handwritten_extracted' }, {}>({
-        eventName: 'ASSESSMENT_TEXT_UPDATE',
-        manual: true,
-        errorMessage: "Failed to save text."
-    });
-
     const onRunAIGradeSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
         onAssessmentUpdate(data.assessment);
     }, [onAssessmentUpdate]);
 
-    const { trigger: lockAndSend, isLoading: isLocking } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
+    const { trigger: runAiGrade, isLoading: isRunningAi } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_RUN_AI_GRADE',
         manual: true,
         onSuccess: onRunAIGradeSuccess,
@@ -116,9 +111,9 @@ function SetupInputPanel({
         onAssessmentUpdate(data.assessment);
         // Immediately trigger AI grading after typed upload, if a rubric is selected
         if (data.assessment.rubricId) {
-            lockAndSend({ assessmentId: data.assessment.id });
+            runAiGrade({ assessmentId: data.assessment.id });
         }
-    }, [onAssessmentUpdate, lockAndSend]);
+    }, [onAssessmentUpdate, runAiGrade]);
 
     const { trigger: uploadTypedFile, isLoading: isUploadingTyped } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_TYPED_UPLOAD',
@@ -141,6 +136,8 @@ function SetupInputPanel({
 
     const handleTypedFileSelect = (files: File[]) => {
         if (files.length > 0) {
+            // Here you would normally upload the file to a storage service and get a fileRef.
+            // For the mock, we'll just use the file name as the ref.
             uploadTypedFile({ assessmentId: assessment.id, fileRef: files[0].name });
         }
     };
@@ -158,7 +155,7 @@ function SetupInputPanel({
         return rubrics.find(r => r.id === assessment.rubricId)?.name;
     }, [rubrics, assessment.rubricId]);
 
-    const isProcessing = isUploadingTyped || isExtracting || isLocking || isSaving;
+    const isProcessing = isUploadingTyped || isExtracting || isRunningAi;
 
     return (
         <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
@@ -199,7 +196,7 @@ function SetupInputPanel({
                     </TabsList>
                     <TabsContent value="typed" className="pt-4">
                         <div className="space-y-4">
-                            {isUploadingTyped ? (
+                            {isUploadingTyped || isRunningAi ? (
                                 <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="animate-spin mr-2" />Processing file and starting AI review...</div>
                             ) : (
                                 <>
@@ -249,11 +246,8 @@ function SetupInputPanel({
                                 </div>
                                 {!isHandwrittenTextLocked && (
                                     <div className='flex flex-wrap gap-2'>
-                                         <Button onClick={async () => {
-                                             await saveText({ assessmentId: assessment.id, text, source: 'handwritten_extracted' });
-                                             lockAndSend({ assessmentId: assessment.id });
-                                         }} disabled={isLocking || isSaving || !assessment.rubricId} variant="secondary">
-                                            {(isLocking || isSaving) ? <Loader2 className="animate-spin mr-2" /> : <Lock className="mr-2 h-4 w-4" />} Lock & Send to AI
+                                         <Button onClick={() => runAiGrade({ assessmentId: assessment.id })} disabled={isRunningAi || !assessment.rubricId} variant="secondary">
+                                            {isRunningAi ? <Loader2 className="animate-spin mr-2" /> : <Lock className="mr-2 h-4 w-4" />} Lock & Send to AI
                                         </Button>
                                     </div>
                                 )}
@@ -356,7 +350,32 @@ function StudentDocumentPanel({ text, suggestions, onApplySuggestion }: { text: 
 function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessment: AssessmentWorkspaceData; onSaveFeedback: (feedback: { notes: string; finalFeedback: string }) => void; onSaveOverride: (overrides: any) => void; }) {
     const [teacherNotes, setTeacherNotes] = useState(assessment.teacherFeedback?.notes || '');
     const [finalFeedback, setFinalFeedback] = useState(assessment.teacherFeedback?.finalFeedback || '');
+    const [overrides, setOverrides] = useState(assessment.teacherOverrides || {});
+    const { toast } = useToast();
+
+    const handleOverrideChange = (criterionId: string, field: 'score' | 'note', value: string | number) => {
+        const newScore = field === 'score' ? Number(value) : (overrides[criterionId]?.score);
+        const newNote = field === 'note' ? String(value) : (overrides[criterionId]?.note || '');
+        
+        setOverrides((prev: any) => ({
+            ...prev,
+            [criterionId]: {
+                score: newScore,
+                note: newNote,
+            }
+        }));
+    };
     
+    const { trigger: saveOverrides, isLoading: isSavingOverrides } = useWebhook<{ assessmentId: string; overrides: any }, {}>({
+        eventName: 'ASSESSMENT_SAVE_RUBRIC_OVERRIDE',
+        manual: true,
+        onSuccess: () => {
+            onSaveOverride(overrides);
+            toast({ title: "Overrides saved successfully." });
+        },
+        errorMessage: "Failed to save rubric overrides."
+    });
+
     const onSaveFeedbackSuccess = useCallback(() => {
         onSaveFeedback({ notes: teacherNotes, finalFeedback });
     }, [onSaveFeedback, teacherNotes, finalFeedback]);
@@ -390,20 +409,38 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
                                 <div className='mt-3 space-y-2'>
                                     <Label className='text-xs'>Teacher Override</Label>
                                     <div className='flex gap-2'>
-                                        <Select disabled={isFinalized}>
+                                        <Select 
+                                            disabled={isFinalized}
+                                            onValueChange={(value) => handleOverrideChange(criterion.id, 'score', value)}
+                                            value={overrides[criterion.id]?.score?.toString()}
+                                        >
                                             <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
                                             <SelectContent>
                                                 {[...Array(6).keys()].map(i => <SelectItem key={i} value={String(i)}>{i}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
-                                        <Input placeholder="Note for this criterion..." className='text-xs' disabled={isFinalized}/>
+                                        <Input 
+                                            placeholder="Note for this criterion..." 
+                                            className='text-xs' 
+                                            disabled={isFinalized}
+                                            value={overrides[criterion.id]?.note || ''}
+                                            onChange={(e) => handleOverrideChange(criterion.id, 'note', e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             </div>
                         ))
                     ) : <p className="text-sm text-muted-foreground text-center pt-4">No rubric draft available. Run AI grading first.</p>}
                      {!isFinalized && assessment.aiReview?.rubricGrades && (
-                        <Button size="sm" variant="secondary" disabled={true}>Save Overrides</Button>
+                        <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            disabled={isSavingOverrides}
+                            onClick={() => saveOverrides({ assessmentId: assessment.id, overrides })}
+                        >
+                            {isSavingOverrides ? <Loader2 className="animate-spin mr-2" /> : null}
+                            Save Overrides
+                        </Button>
                      )}
                 </div>
 
@@ -511,6 +548,16 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
         };
     });
   }, []);
+  
+  const handleOverridesSaved = useCallback((savedOverrides: any) => {
+      setAssessmentData(prev => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            teacherOverrides: savedOverrides
+        };
+    });
+  }, []);
 
   const handleRunAI = () => {
     if (assessmentData) {
@@ -567,7 +614,7 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
         </div>
         {/* Right Rail */}
         <div className="w-[360px] shrink-0">
-          <GradingPanel assessment={assessmentData} onSaveFeedback={handleFeedbackSaved} onSaveOverride={() => {}} />
+          <GradingPanel assessment={assessmentData} onSaveFeedback={handleFeedbackSaved} onSaveOverride={handleOverridesSaved} />
         </div>
       </div>
     </div>
