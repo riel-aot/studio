@@ -35,9 +35,9 @@ export function MainLayout({
           <SidebarContent>{navItems}</SidebarContent>
         </Sidebar>
         <div className="flex-1 min-w-0">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 bg-background px-4 sm:px-6">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
               <SidebarTrigger className="md:hidden" />
-              <div className="flex flex-1 justify-center">
+              <div className="flex-1">
                 <form>
                   <div className="relative w-full max-w-md">
                     <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
