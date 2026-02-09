@@ -192,7 +192,7 @@ export default function TeacherDashboard() {
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-            <Card>
+            <Card className="h-full">
             <CardHeader>
                 <CardTitle>To Review</CardTitle>
                 <CardDescription>
