@@ -1,61 +1,56 @@
-import type { GetDashboardSummaryData, StudentListItem } from './events';
-
-export const dashboardSummaryData: GetDashboardSummaryData = {
-  kpis: {
-    pendingReview: 7,
-    drafts: 3,
-    finalizedThisWeek: 12,
-  },
-  reviewQueue: [
-    {
-      studentName: 'Amelia Johnson',
-      studentId: 'stu_01',
-      assessmentName: 'Unit 3: Fractions',
-      assessmentId: 'asm_01',
-      status: 'pending_review',
-      updatedAt: '2023-10-26T10:00:00Z',
-    },
-    {
-      studentName: 'Benjamin Carter',
-      studentId: 'stu_02',
-      assessmentName: 'History Mid-Term Essay',
-      assessmentId: 'asm_02',
-      status: 'pending_review',
-      updatedAt: '2023-10-26T09:30:00Z',
-    },
-    {
-      studentName: 'Charlotte Davis',
-      studentId: 'stu_03',
-      assessmentName: 'Science Project Proposal',
-      assessmentId: 'asm_03',
-      status: 'pending_review',
-      updatedAt: '2023-10-25T15:00:00Z',
-    },
-  ],
-  drafts: [
-    {
-      assessmentId: 'asm_draft_01',
-      assessmentName: 'Creative Writing Assignment',
-      studentName: 'Olivia Martinez',
-      updatedAt: '2023-10-24T11:00:00Z',
-    },
-    {
-      assessmentId: 'asm_draft_02',
-      assessmentName: 'Algebra II Quiz',
-      studentName: 'Liam Garcia',
-      updatedAt: '2023-10-23T14:20:00Z',
-    },
-  ],
-};
+import type { StudentListItem } from './events';
 
 export const studentListData: StudentListItem[] = [
-    { id: 'stu_01', name: 'Amelia Johnson', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student1/100/100' },
-    { id: 'stu_02', name: 'Benjamin Carter', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student2/100/100' },
-    { id: 'stu_03', name: 'Charlotte Davis', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student3/100/100' },
-    { id: 'stu_04', name: 'Daniel Evans', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student4/100/100' },
-    { id: 'stu_05', name: 'Emma Foster', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student5/100/100' },
-    { id: 'stu_06', name: 'Finn Harris', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student6/100/100' },
-    { id: 'stu_07', name: 'Grace Hill', class: 'Grade 5', avatarUrl: 'https://picsum.photos/seed/student7/100/100' },
+    { 
+        id: 'stu_01', 
+        name: 'Amelia Johnson', 
+        class: 'Grade 5', 
+        avatarUrl: 'https://picsum.photos/seed/student1/100/100',
+        studentIdNumber: 'S00123',
+        parentEmail: 'amelia.parent@example.com',
+        lastAssessmentDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Needs Review',
+    },
+    { 
+        id: 'stu_02', 
+        name: 'Benjamin Carter', 
+        class: 'Grade 5', 
+        avatarUrl: 'https://picsum.photos/seed/student2/100/100',
+        studentIdNumber: 'S00124',
+        parentEmail: 'ben.carter.family@example.com',
+        lastAssessmentDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Up to Date',
+    },
+    { 
+        id: 'stu_03', 
+        name: 'Charlotte Davis', 
+        class: 'Grade 5', 
+        avatarUrl: 'https://picsum.photos/seed/student3/100/100',
+        studentIdNumber: 'S00125',
+        parentEmail: 'charlotte.davis.dad@example.com',
+        lastAssessmentDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Draft in Progress',
+    },
+    { 
+        id: 'stu_04', 
+        name: 'Daniel Evans', 
+        class: 'Grade 5', 
+        avatarUrl: 'https://picsum.photos/seed/student4/100/100',
+        studentIdNumber: 'S00126',
+        parentEmail: 'evans.family@example.com',
+        lastAssessmentDate: null,
+        status: 'No Assessments',
+    },
+    { 
+        id: 'stu_05', 
+        name: 'Emma Foster', 
+        class: 'Grade 5', 
+        avatarUrl: 'https://picsum.photos/seed/student5/100/100',
+        studentIdNumber: 'S00127',
+        parentEmail: 'contact.foster.home@example.com',
+        lastAssessmentDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Up to Date',
+    },
 ];
 
 export const getStudentById = (id: string) => {

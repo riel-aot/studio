@@ -1,5 +1,7 @@
-import type { WebhookRequest, WebhookResponse } from './events';
-import { studentListData } from './placeholder-data';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload } from './events';
+import { studentListData as initialStudentData } from './placeholder-data';
+
+let students: StudentListItem[] = [...initialStudentData];
 
 const kpis = {
   pendingReview: 7,
@@ -56,10 +58,25 @@ const healthCheck = {
     lastSuccessfulCall: new Date().toISOString(),
 };
 
-const studentList = {
-    students: studentListData,
-    total: studentListData.length,
-};
+const studentList = () => ({
+    students: students,
+    total: students.length,
+});
+
+const createStudent = (payload: StudentCreatePayload) => {
+    const newStudent: StudentListItem = {
+        id: `stu_${crypto.randomUUID()}`,
+        name: payload.fullName,
+        class: payload.className,
+        studentIdNumber: payload.studentIdNumber,
+        parentEmail: payload.parentEmail,
+        avatarUrl: `https://picsum.photos/seed/new${students.length + 1}/100/100`,
+        lastAssessmentDate: null,
+        status: 'No Assessments',
+    };
+    students.unshift(newStudent); // Add to the beginning of the list
+    return { studentId: newStudent.id };
+}
 
 
 const handlers: { [key: string]: (payload: any) => any } = {
@@ -67,7 +84,8 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'GET_REVIEW_QUEUE': () => ({ items: reviewQueue }),
     'GET_DRAFTS': () => ({ items: drafts }),
     'HEALTH_CHECK': () => healthCheck,
-    'STUDENT_LIST': () => (studentList),
+    'STUDENT_LIST': () => studentList(),
+    'STUDENT_CREATE': (payload: StudentCreatePayload) => createStudent(payload),
 
     // Action mocks just return success
     'REVIEW_OPEN': () => ({}),
@@ -80,6 +98,8 @@ const handlers: { [key: string]: (payload: any) => any } = {
 export function getMockResponse(body: WebhookRequest): WebhookResponse | null {
   const handler = handlers[body.eventName];
   if (handler) {
+    // Simulate a network delay
+    // await new Promise(resolve => setTimeout(resolve, 500));
     return {
       success: true,
       data: handler(body.payload),

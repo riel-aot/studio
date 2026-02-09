@@ -17,6 +17,7 @@ export type EventName =
   // Students
   | 'STUDENT_LIST'
   | 'STUDENT_GET'
+  | 'STUDENT_CREATE'
 
   // Other
   | 'REPORT_GET'
@@ -70,6 +71,10 @@ export type DraftItem = {
   updatedAt: string;
 };
 
+// NEW_ASSESSMENT_START
+export type NewAssessmentStartPayload = {
+    studentId: string;
+};
 
 // STUDENT_LIST
 export type StudentListItem = {
@@ -77,11 +82,28 @@ export type StudentListItem = {
     name: string;
     class: string;
     avatarUrl: string;
+    studentIdNumber: string;
+    parentEmail: string;
+    lastAssessmentDate: string | null;
+    status: 'No Assessments' | 'Draft in Progress' | 'Needs Review' | 'Up to Date';
 };
 export type GetStudentListData = {
     students: StudentListItem[];
     total: number;
 };
+
+// STUDENT_CREATE
+export type StudentCreatePayload = {
+    fullName: string;
+    studentIdNumber: string;
+    className: string;
+    studentEmail?: string;
+    parentEmail: string;
+};
+export type StudentCreateResponse = {
+    studentId: string;
+};
+
 
 // HEALTH_CHECK
 export type HealthCheckData = {
