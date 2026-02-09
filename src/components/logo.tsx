@@ -33,7 +33,7 @@ export function Logo({ className }: { className?: string }) {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="text-lg font-semibold tracking-tighter">ClassPulse</span>
+      <span className="text-lg font-semibold tracking-tighter group-data-[state=collapsed]:hidden">ClassPulse</span>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export function MainLayout({
 
   return (
     <SidebarProvider>
-        <Sidebar>
+        <Sidebar collapsible="icon">
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
@@ -33,7 +33,7 @@ export function MainLayout({
         </Sidebar>
         <div className="flex flex-1 flex-col min-w-0">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
-              <SidebarTrigger className="md:hidden" />
+              <SidebarTrigger />
               <div className="w-full flex-1">
                 {/* Global search could go here */}
               </div>
