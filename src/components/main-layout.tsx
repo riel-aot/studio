@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/hooks/use-auth';
 import { UserNav } from './user-nav';
 import { Logo } from './logo';
 import {
@@ -19,10 +18,6 @@ export function MainLayout({
   children: React.ReactNode;
   navItems: React.ReactNode;
 }) {
-  const { user } = useAuth();
-  
-  if (!user) return null;
-
   return (
     <SidebarProvider>
         <Sidebar collapsible="icon">
