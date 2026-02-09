@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
-import { FileEdit, FilePlus, PenSquare, AlertCircle, Users } from 'lucide-react';
+import { FileEdit, FilePlus, PenSquare, AlertCircle, Users, ChevronRight } from 'lucide-react';
 
 function DashboardLoadingSkeleton() {
   return (
@@ -44,7 +44,7 @@ function DashboardLoadingSkeleton() {
                     <TableHead>Assessment</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
-                    <TableHead className="w-[100px] text-right">Action</TableHead>
+                    <TableHead><span className="sr-only">View</span></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -54,7 +54,7 @@ function DashboardLoadingSkeleton() {
                       <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-[100px]" /></TableCell>
                       <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-[100px] ml-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-11 w-[88px] ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-4 ml-auto" /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -72,7 +72,7 @@ function DashboardLoadingSkeleton() {
                         <Skeleton className="h-4 w-[150px]" />
                         <Skeleton className="h-3 w-[100px] mt-2" />
                     </div>
-                    <Skeleton className="h-11 w-[110px]" />
+                    <Skeleton className="h-4 w-4" />
                 </div>
               ))}
             </CardContent>
@@ -80,8 +80,8 @@ function DashboardLoadingSkeleton() {
           <Card>
             <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
             <CardContent className="grid gap-2">
-              <Skeleton className="h-11 w-full" />
-              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
             </CardContent>
           </Card>
         </div>
@@ -207,12 +207,12 @@ export default function TeacherDashboard() {
                                 <TableHead>Assessment</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
-                                <TableHead className="w-[100px] text-right">Action</TableHead>
+                                <TableHead><span className="sr-only">View</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {reviewQueueData.items.map((item) => (
-                            <TableRow key={item.assessmentId}>
+                            <TableRow key={item.assessmentId} onClick={() => openReview({ assessmentId: item.assessmentId })} className="cursor-pointer">
                                 <TableCell className="font-medium">{item.studentName}</TableCell>
                                 <TableCell>{item.assessmentName}</TableCell>
                                 <TableCell>
@@ -222,7 +222,7 @@ export default function TeacherDashboard() {
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button onClick={() => openReview({ assessmentId: item.assessmentId })}>Review</Button>
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                 </TableCell>
                             </TableRow>
                             ))}
@@ -246,17 +246,15 @@ export default function TeacherDashboard() {
             <CardHeader>
                 <CardTitle>Drafts In Progress</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-2">
                 {draftsData?.items && draftsData.items.length > 0 ? (
                     draftsData.items.map(draft => (
-                        <div key={draft.assessmentId} className="flex items-center justify-between">
+                        <div key={draft.assessmentId} className="flex items-center justify-between p-2 -m-2 rounded-md hover:bg-accent cursor-pointer" onClick={() => openDraft({ assessmentId: draft.assessmentId })}>
                             <div>
                                 <p className="font-medium">{draft.assessmentName}</p>
                                 <p className="text-sm text-muted-foreground">{draft.studentName}</p>
                             </div>
-                            <Button onClick={() => openDraft({ assessmentId: draft.assessmentId })} variant="secondary">
-                                Continue
-                            </Button>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </div>
                     ))
                 ): (
