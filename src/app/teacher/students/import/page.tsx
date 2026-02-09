@@ -30,7 +30,7 @@ export default function ImportStudentsPage() {
         title="Import Students"
         description="Bulk-add students to your classes using a CSV or Excel file."
       />
-      <Card className="max-w-2xl mx-auto">
+      <Card>
         <CardHeader>
           <CardTitle>Upload File</CardTitle>
           <CardDescription>
