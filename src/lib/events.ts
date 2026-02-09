@@ -16,9 +16,12 @@ export type EventName =
   | 'ASSESSMENT_TEXT_SAVE'
   | 'ASSESSMENT_TYPED_UPLOAD'
   | 'ASSESSMENT_EXTRACT_TEXT'
-  | 'ASSESSMENT_RUN_AI_REVIEW'
-  | 'ASSESSMENT_APPLY_SUGGESTION'
+  | 'ASSESSMENT_TEXT_UPDATE'
+  | 'ASSESSMENT_RUN_AI_GRADE'
+  | 'ASSESSMENT_SUGGESTION_ACTION'
   | 'ASSESSMENT_SAVE_TEACHER_FEEDBACK'
+  | 'ASSESSMENT_SET_RUBRIC'
+  | 'ASSESSMENT_SAVE_RUBRIC_OVERRIDE'
   
   // Students
   | 'STUDENT_LIST'
@@ -26,6 +29,9 @@ export type EventName =
   | 'STUDENT_CREATE'
   | 'STUDENT_ASSESSMENTS_LIST'
   | 'STUDENT_REPORTS_LIST'
+
+  // Rubrics
+  | 'RUBRIC_LIST'
 
   // Other
   | 'REPORT_GET'
@@ -79,10 +85,13 @@ export type DraftItem = {
   updatedAt: string;
 };
 
-// NEW_ASSESSMENT_START
-export type NewAssessmentStartPayload = {
-    studentId: string;
+// RUBRIC_LIST
+export type RubricListItem = {
+    id: string;
+    name: string;
+    version: string;
 };
+
 
 // STUDENT_LIST
 export type StudentListItem = {
@@ -138,15 +147,25 @@ export type StudentCreateResponse = {
     studentId: string;
 };
 
-// ASSESSMENT_GET
+// ASSESSMENT_GET & related
 export type AISuggestion = {
     id: string;
     start: number;
     end: number;
-    category: 'Grammar' | 'Clarity' | 'Structure' | 'Rubric Evidence';
-    note: string;
+    criterionName: string;
+    severity: 'Minor' | 'Moderate' | 'Major';
+    comment: string;
     replacement?: string;
 };
+
+export type RubricGrade = {
+    id: string;
+    criterionId: string;
+    criterionName: string;
+    suggestedLevelOrScore: number;
+    rationale: string;
+    evidenceRefs?: string[];
+}
 
 export type RubricCriterion = {
     id: string;
@@ -155,26 +174,35 @@ export type RubricCriterion = {
     draftScore: number;
     maxScore: number;
     evidence: string;
-}
+};
+
 
 export type AssessmentWorkspaceData = {
     id: string;
     title: string;
     status: 'draft' | 'ai_draft_ready' | 'needs_review' | 'finalized';
+    rubricId: string | null;
     student: {
         id: string;
         name: string;
     };
+    source: 'typed' | 'handwritten_extracted' | null;
     currentText: string | null;
     uploads: { id: string, fileName: string, type: 'typed' | 'handwritten' }[];
     aiReview: {
         status: 'idle' | 'running' | 'ready' | 'error';
         suggestions: AISuggestion[];
-        rubricDraft: RubricCriterion[];
+        rubricGrades: RubricGrade[];
     } | null;
     teacherFeedback: {
         notes: string;
         finalFeedback: string;
+    } | null;
+    teacherOverrides: {
+        [criterionId: string]: {
+            score: number;
+            note: string;
+        }
     } | null;
 };
 

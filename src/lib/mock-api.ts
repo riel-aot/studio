@@ -1,5 +1,5 @@
-import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData } from './events';
-import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricDraft } from './placeholder-data';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem } from './events';
+import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
 let currentAssessmentState: AssessmentWorkspaceData = { ...assessmentWorkspaceData };
@@ -104,22 +104,28 @@ const getAssessment = (payload: { assessmentId: string }) => {
             title: "Unit 5 Reading Comprehension",
             status: "draft",
             student: { id: "stu_01", name: "Amelia Johnson" },
+            rubricId: null,
+            source: null,
             currentText: null,
             uploads: [],
             aiReview: null,
             teacherFeedback: null,
+            teacherOverrides: null,
         };
-    } else {
-        // Return full assessment for a known ID
-        if (payload.assessmentId === assessmentWorkspaceData.id && !currentAssessmentState.currentText) {
-             currentAssessmentState = { ...assessmentWorkspaceData };
-        }
+    } else if (payload.assessmentId === assessmentWorkspaceData.id && !currentAssessmentState.currentText) {
+         currentAssessmentState = { ...assessmentWorkspaceData };
     }
     return { assessment: currentAssessmentState };
 };
 
-const saveAssessmentText = (payload: { assessmentId: string, text: string }) => {
+const setAssessmentRubric = (payload: { assessmentId: string, rubricId: string }) => {
+    currentAssessmentState.rubricId = payload.rubricId;
+    return {};
+}
+
+const saveAssessmentText = (payload: { assessmentId: string, text: string, source: 'typed' | 'handwritten_extracted' }) => {
     currentAssessmentState.currentText = payload.text;
+    currentAssessmentState.source = payload.source;
     return {};
 }
 
@@ -127,12 +133,12 @@ const extractText = (payload: { assessmentId: string, fileRef: string }) => {
     return { extractedText: `This is sample OCR text extracted from ${payload.fileRef}. It may contane some errors for the techer to fix. For example, speling mistakes or formatting isues.` };
 }
 
-const runAIReview = (payload: { assessmentId: string }) => {
+const runAIGrade = (payload: { assessmentId: string }) => {
     currentAssessmentState.status = 'ai_draft_ready';
     currentAssessmentState.aiReview = {
         status: 'ready',
         suggestions: aiSuggestions,
-        rubricDraft: rubricDraft,
+        rubricGrades: rubricGrades,
     }
     return { assessment: currentAssessmentState };
 }
@@ -176,13 +182,17 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'STUDENT_ASSESSMENTS_LIST': (payload: { studentId: string }) => getStudentAssessments(payload),
     'STUDENT_REPORTS_LIST': (payload: { studentId: string }) => getStudentReports(payload),
 
+    // Rubrics
+    'RUBRIC_LIST': () => ({ rubrics: mockRubrics }),
+
     // Assessment Workspace
     'ASSESSMENT_GET': (payload: { assessmentId: string }) => getAssessment(payload),
+    'ASSESSMENT_SET_RUBRIC': setAssessmentRubric,
     'ASSESSMENT_TEXT_SAVE': saveAssessmentText,
     'ASSESSMENT_EXTRACT_TEXT': extractText,
-    'ASSESSMENT_RUN_AI_REVIEW': runAIReview,
+    'ASSESSMENT_RUN_AI_GRADE': runAIGrade,
     'ASSESSMENT_FINALIZE': finalizeAssessment,
-    'ASSESSMENT_APPLY_SUGGESTION': applySuggestion,
+    'ASSESSMENT_SUGGESTION_ACTION': applySuggestion,
     'ASSESSMENT_SAVE_TEACHER_FEEDBACK': saveTeacherFeedback,
 
 

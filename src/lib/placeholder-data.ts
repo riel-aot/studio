@@ -1,4 +1,4 @@
-import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricCriterion } from './events';
+import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricGrade, RubricListItem } from './events';
 
 export const studentListData: StudentListItem[] = [
     { 
@@ -80,31 +80,41 @@ export const fullAssessment = {
 const sampleText = "The book 'The Giver' by Lois Lowry explores a society that has eliminated pain and strife by converting to 'Sameness'—a tightly controlled social order. The story folows a boy named Jonas who is chosen to be the next 'Receiver of Memory', the only person who holds the memories of the past, including pain and pleasure. This role isolates him from his friends and family. One of the central themes is the importance of individuality and freedom of choice. Lowry uses a simple writing style, but the concepts are deep. The ending is ambiguous, leaving the reader to wonder about Jonas's fate.";
 
 export const aiSuggestions: AISuggestion[] = [
-    { id: 'sug_01', start: 161, end: 167, category: 'Grammar', note: 'Spelling error.', replacement: 'follows' },
-    { id: 'sug_02', start: 350, end: 382, category: 'Clarity', note: 'This could be phrased more clearly to emphasize the trade-off.', replacement: 'This role isolates him, highlighting the conflict between a painless society and deep human connection.' },
-    { id: 'sug_03', start: 22, end: 34, category: 'Rubric Evidence', note: 'Identifies the author of the text.', replacement: undefined },
-    { id: 'sug_04', start: 407, end: 446, category: 'Rubric Evidence', note: 'Correctly identifies a major theme of the book.', replacement: undefined },
+    { id: 'sug_01', start: 161, end: 167, criterionName: 'Mechanics', severity: 'Major', comment: 'Spelling error.', replacement: 'follows' },
+    { id: 'sug_02', start: 350, end: 382, criterionName: 'Clarity', severity: 'Moderate', comment: 'This could be phrased more clearly to emphasize the trade-off.', replacement: 'This role isolates him, highlighting the conflict between a painless society and deep human connection.' },
+    { id: 'sug_03', start: 22, end: 34, criterionName: 'Evidence', severity: 'Minor', comment: 'Identifies the author of the text.', replacement: undefined },
+    { id: 'sug_04', start: 407, end: 446, criterionName: 'Central Idea', severity: 'Moderate', comment: 'Correctly identifies a major theme of the book.', replacement: undefined },
 ];
 
-export const rubricDraft: RubricCriterion[] = [
-    { id: 'crit_01', name: 'Identifies Central Idea', description: 'Student accurately identifies the main theme or central idea of the text.', draftScore: 4, maxScore: 5, evidence: 'Correctly identifies a major theme of the book.' },
-    { id: 'crit_02', name: 'Supporting Details', description: 'Uses specific details from the text to support their analysis.', draftScore: 3, maxScore: 5, evidence: 'References the main character and his role.' },
-    { id: 'crit_03', name: 'Clarity and Mechanics', description: 'Writing is clear, with few grammatical or spelling errors.', draftScore: 3, maxScore: 5, evidence: 'Contains a few spelling and clarity issues.' },
+export const rubricGrades: RubricGrade[] = [
+    { id: 'rg_01', criterionId: 'crit_01', criterionName: 'Central Idea', suggestedLevelOrScore: 4, rationale: 'Student accurately identifies the main theme of individuality vs. community.' },
+    { id: 'rg_02', criterionId: 'crit_02', criterionName: 'Evidence', suggestedLevelOrScore: 3, rationale: 'Uses some details, but could include more specific examples from the text to support claims.' },
+    { id: 'rg_03', criterionId: 'crit_03', criterionName: 'Mechanics', suggestedLevelOrScore: 3, rationale: 'Contains a few spelling and clarity issues that slightly impede readability.' },
 ];
+
+export const mockRubrics: RubricListItem[] = [
+    { id: 'rub_01', name: '5th Grade Book Report', version: '1.2' },
+    { id: 'rub_02', name: 'Standard ELA Essay', version: '2.0' },
+    { id: 'rub_03', name: 'Quick Write - Single Paragraph', version: '1.0' },
+];
+
 
 export const assessmentWorkspaceData: AssessmentWorkspaceData = {
     id: "asm_01",
     title: "Book Report: The Giver",
     status: 'draft',
+    rubricId: null,
     student: {
         id: "stu_01",
         name: "Amelia Johnson",
     },
+    source: "typed",
     currentText: sampleText,
     uploads: [{ id: 'up_01', fileName: 'The Giver Report.docx', type: 'typed' }],
     aiReview: null,
     teacherFeedback: {
         notes: 'Amelia seems to grasp the main concepts but needs to work on proofreading her work before submission.',
         finalFeedback: 'Good analysis of the central theme, Amelia. Be sure to proofread for minor spelling errors next time. Your insights are strong!'
-    }
+    },
+    teacherOverrides: null,
 };

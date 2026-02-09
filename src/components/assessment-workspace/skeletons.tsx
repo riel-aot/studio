@@ -1,8 +1,6 @@
 'use client';
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function AssessmentWorkspaceSkeleton() {
     return (
@@ -25,67 +23,45 @@ export function AssessmentWorkspaceSkeleton() {
             </div>
 
             {/* Body Skeleton */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="flex gap-6 h-[80vh]">
                 {/* Left Panel */}
-                <div className="lg:col-span-3">
-                    <Card className="h-full">
-                        <CardHeader>
-                            <Skeleton className="h-6 w-20 mb-2" />
-                            <Skeleton className="h-4 w-40" />
-                        </CardHeader>
-                        <CardContent>
-                             <Tabs defaultValue="typed">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <Skeleton className="h-8 w-full" />
-                                    <Skeleton className="h-8 w-full" />
-                                </TabsList>
-                                <TabsContent value="typed" className="pt-4 space-y-4">
-                                    <Skeleton className="h-24 w-full" />
-                                    <Skeleton className="h-64 w-full" />
-                                    <Skeleton className="h-11 w-28" />
-                                </TabsContent>
-                            </Tabs>
-                        </CardContent>
-                    </Card>
+                <div className="w-[320px] shrink-0 p-4 border rounded-lg">
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-48 mb-6" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-px w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-11 w-36" />
+                    </div>
                 </div>
                 {/* Center Panel */}
-                <div className="lg:col-span-5">
-                    <Card className="h-full">
-                        <CardHeader>
-                            <Skeleton className="h-6 w-24 mb-2" />
-                            <Skeleton className="h-4 w-48" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border p-4 space-y-4">
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-[90%]" />
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-[80%]" />
-                                <Skeleton className="h-4 w-full" />
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="flex-1 min-w-0 p-4 border rounded-lg">
+                    <Skeleton className="h-6 w-36 mb-2" />
+                    <Skeleton className="h-4 w-52 mb-4" />
+                    <div className="rounded-md border p-4 space-y-3 h-full">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-[90%]" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-[80%]" />
+                        <Skeleton className="h-4 w-full" />
+                         <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-[90%]" />
+                    </div>
                 </div>
                 {/* Right Panel */}
-                <div className="lg:col-span-4">
-                    <Card className="h-full">
-                        <CardHeader>
-                            <Skeleton className="h-6 w-36 mb-2" />
-                            <Skeleton className="h-4 w-52" />
-                        </CardHeader>
-                        <CardContent>
-                             <Tabs defaultValue="suggestions">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <Skeleton className="h-8 w-full" />
-                                    <Skeleton className="h-8 w-full" />
-                                </TabsList>
-                                <TabsContent value="suggestions" className="pt-4 space-y-4">
-                                    <Skeleton className="h-20 w-full" />
-                                    <Skeleton className="h-20 w-full" />
-                                </TabsContent>
-                            </Tabs>
-                        </CardContent>
-                    </Card>
+                <div className="w-[360px] shrink-0 p-4 border rounded-lg">
+                    <Skeleton className="h-6 w-48 mb-2" />
+                    <Skeleton className="h-4 w-64 mb-6" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-px w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                    </div>
                 </div>
             </div>
         </div>

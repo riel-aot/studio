@@ -2,9 +2,9 @@
 
 import React, { useState, useMemo, useCallback, use } from 'react';
 import { useWebhook } from '@/lib/hooks';
-import type { AssessmentWorkspaceData, AISuggestion, RubricCriterion } from '@/lib/events';
+import type { AssessmentWorkspaceData, AISuggestion, RubricCriterion, RubricListItem } from '@/lib/events';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, FileText, ImageIcon, Loader2, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle, ChevronDown, FileText, ImageIcon, Loader2, Sparkles, X, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,6 +17,13 @@ import { FinalizeConfirmationDialog } from '@/components/assessment-workspace/fi
 import { AssessmentWorkspaceSkeleton } from '@/components/assessment-workspace/skeletons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // --- Helper Functions and Components ---
 
@@ -40,7 +47,7 @@ function getStatusPill(status: AssessmentWorkspaceData['status']) {
 function WorkspaceHeader({ data, onRunAI, onFinalize }: { data: AssessmentWorkspaceData, onRunAI: () => void, onFinalize: () => void }) {
     const [isFinalizeOpen, setIsFinalizeOpen] = useState(false);
     
-    const showRunAI = data.status === 'draft' && !!data.currentText;
+    const showRunAI = data.status === 'draft' && !!data.currentText && !!data.rubricId;
     const showFinalize = data.status === 'ai_draft_ready' || data.status === 'needs_review';
 
     return (
@@ -63,7 +70,7 @@ function WorkspaceHeader({ data, onRunAI, onFinalize }: { data: AssessmentWorksp
                 </div>
                 <div className="flex items-center gap-4">
                     {getStatusPill(data.status)}
-                    {showRunAI && <Button onClick={onRunAI}><Sparkles className="mr-2 h-4 w-4" /> Run AI Review</Button>}
+                    {showRunAI && <Button onClick={onRunAI}><Sparkles className="mr-2 h-4 w-4" /> Run AI Grading</Button>}
                     {showFinalize && <Button onClick={() => setIsFinalizeOpen(true)}><CheckCircle className="mr-2 h-4 w-4" /> Finalize Assessment</Button>}
                 </div>
             </div>
@@ -72,98 +79,195 @@ function WorkspaceHeader({ data, onRunAI, onFinalize }: { data: AssessmentWorksp
     );
 }
 
-function InputPanel({ assessment, onTextSaved }: { assessment: AssessmentWorkspaceData, onTextSaved: (text: string) => void }) {
+function SetupInputPanel({ 
+    assessment, 
+    rubrics,
+    onRubricSelected,
+    onTextSaved,
+    onTextExtracted
+}: { 
+    assessment: AssessmentWorkspaceData, 
+    rubrics: RubricListItem[],
+    onRubricSelected: (rubricId: string) => void,
+    onTextSaved: (text: string, source: 'typed' | 'handwritten_extracted') => void,
+    onTextExtracted: (text: string) => void
+}) {
     const [text, setText] = useState(assessment.currentText || '');
     const [files, setFiles] = useState<File[]>([]);
     
-    const { trigger: saveText, isLoading: isSaving } = useWebhook<{ assessmentId: string; text: string }, {}>({
+    const { trigger: setRubric, isLoading: isSettingRubric } = useWebhook<{ assessmentId: string; rubricId: string }, {}>({
+        eventName: 'ASSESSMENT_SET_RUBRIC',
+        manual: true,
+        onSuccess: (_, payload) => payload && onRubricSelected(payload.rubricId),
+        errorMessage: "Failed to set rubric."
+    });
+
+    const { trigger: saveText, isLoading: isSaving } = useWebhook<{ assessmentId: string; text: string; source: 'typed' | 'handwritten_extracted' }, {}>({
         eventName: 'ASSESSMENT_TEXT_SAVE',
         manual: true,
-        onSuccess: () => onTextSaved(text),
+        onSuccess: (_, payload) => payload && onTextSaved(payload.text, payload.source),
         errorMessage: "Failed to save text."
     });
 
     const { trigger: extractText, isLoading: isExtracting } = useWebhook<{ assessmentId: string; fileRef: string }, { extractedText: string }>({
         eventName: 'ASSESSMENT_EXTRACT_TEXT',
         manual: true,
-        onSuccess: (data) => setText(data.extractedText),
+        onSuccess: (data) => {
+            setText(data.extractedText);
+            onTextExtracted(data.extractedText);
+        },
         errorMessage: 'Failed to extract text from image.'
     });
 
-    const isReadOnly = assessment.status === 'finalized';
+    const { trigger: lockAndSend, isLoading: isLocking } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
+        eventName: 'ASSESSMENT_RUN_AI_GRADE',
+        manual: true,
+        // The main page handler will update the state
+    });
+
+    const isFinalized = assessment.status === 'finalized';
+    const isTypedTextLocked = assessment.source === 'typed' && !!assessment.currentText;
+    const isHandwrittenTextLocked = assessment.aiReview?.status === 'ready' || assessment.aiReview?.status === 'running';
+
+    const selectedRubricName = useMemo(() => {
+        return rubrics.find(r => r.id === assessment.rubricId)?.name;
+    }, [rubrics, assessment.rubricId]);
 
     return (
-        <Card className="h-full">
-            <CardHeader>
-                <CardTitle>Input</CardTitle>
-                <CardDescription>Provide the student's work.</CardDescription>
-            </CardHeader>
-            <CardContent>
+        <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
+            <h3 className="text-lg font-semibold mb-1">Setup & Input</h3>
+            <p className="text-sm text-muted-foreground mb-4">Select rubric and provide student work.</p>
+            
+            <div className='space-y-4'>
+                {/* Rubric Selection */}
+                <div className="space-y-2">
+                    <Label htmlFor="rubric">Rubric</Label>
+                    <Select 
+                        name="rubric" 
+                        required 
+                        onValueChange={(rubricId) => setRubric({ assessmentId: assessment.id, rubricId })}
+                        value={assessment.rubricId || ''}
+                        disabled={isSettingRubric || isFinalized}
+                    >
+                        <SelectTrigger id="rubric" disabled={isSettingRubric || isFinalized}>
+                            <SelectValue placeholder={isSettingRubric ? "Saving..." : (selectedRubricName || "Select a rubric")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {rubrics.map(rubric => (
+                                <SelectItem key={rubric.id} value={rubric.id}>
+                                    {rubric.name} (v{rubric.version})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <Separator />
+            
+                {/* Submission Input */}
                 <Tabs defaultValue="typed">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="typed"><FileText className="mr-2 h-4 w-4" /> Typed Work</TabsTrigger>
-                        <TabsTrigger value="handwritten"><ImageIcon className="mr-2 h-4 w-4" /> Handwritten</TabsTrigger>
+                        <TabsTrigger value="typed" disabled={isFinalized}><FileText className="mr-2 h-4 w-4" /> Typed</TabsTrigger>
+                        <TabsTrigger value="handwritten" disabled={isFinalized}><ImageIcon className="mr-2 h-4 w-4" /> Handwritten</TabsTrigger>
                     </TabsList>
                     <TabsContent value="typed" className="pt-4">
                         <div className="space-y-4">
-                            <FileUploader onFilesSelected={setFiles} />
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t" />
+                            {!isTypedTextLocked ? (
+                                <>
+                                    <FileUploader onFilesSelected={setFiles} />
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or</span></div>
+                                    </div>
+                                    <Textarea 
+                                        placeholder="Paste student's text here..." 
+                                        className="h-48"
+                                        value={text}
+                                        onChange={(e) => setText(e.target.value)}
+                                    />
+                                    <Button onClick={() => saveText({ assessmentId: assessment.id, text, source: 'typed' })} disabled={isSaving || !text}>
+                                        {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Typed Submission
+                                    </Button>
+                                </>
+                            ) : (
+                                <div className="p-4 border rounded-md bg-muted/50 text-sm">
+                                    <p className="font-semibold text-foreground flex items-center"><Lock className="mr-2 h-4 w-4" /> Text Locked</p>
+                                    <p className="text-muted-foreground mt-1">Typed submissions are read-only once saved to ensure grading consistency.</p>
                                 </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-card px-2 text-muted-foreground">Or</span>
-                                </div>
-                            </div>
-                            <Textarea 
-                                placeholder="Paste student's text here..." 
-                                className="h-64"
-                                value={text}
-                                onChange={(e) => setText(e.target.value)}
-                                readOnly={isReadOnly}
-                            />
-                            <Button onClick={() => saveText({ assessmentId: assessment.id, text })} disabled={isSaving || isReadOnly}>
-                                {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Text
-                            </Button>
+                            )}
                         </div>
                     </TabsContent>
                     <TabsContent value="handwritten" className="pt-4">
                          <div className="space-y-4">
-                            <FileUploader onFilesSelected={setFiles} acceptedFileTypes={{'image/*': ['.jpeg', '.png'], 'application/pdf': ['.pdf']}} />
-                            {files.length > 0 && (
-                                <Button onClick={() => extractText({ assessmentId: assessment.id, fileRef: files[0].name })} disabled={isExtracting || isReadOnly}>
+                            {!assessment.currentText && <FileUploader onFilesSelected={setFiles} acceptedFileTypes={{'image/*': ['.jpeg', '.png'], 'application/pdf': ['.pdf']}} />}
+                            {files.length > 0 && !assessment.currentText && (
+                                <Button onClick={() => extractText({ assessmentId: assessment.id, fileRef: files[0].name })} disabled={isExtracting}>
                                     {isExtracting ? <Loader2 className="animate-spin mr-2" /> : null} Extract Text
                                 </Button>
                             )}
-                            <Textarea 
-                                placeholder="Extracted text will appear here. You can edit it before running the AI review." 
-                                className="h-64"
-                                value={text}
-                                onChange={(e) => setText(e.target.value)}
-                                readOnly={isReadOnly || isExtracting}
-                            />
-                             <Button onClick={() => saveText({ assessmentId: assessment.id, text })} disabled={isSaving || isReadOnly}>
-                                {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Extracted Text
-                            </Button>
+                            {assessment.currentText && (
+                                <>
+                                <Textarea 
+                                    placeholder="Extracted text will appear here. You can edit it before running the AI review." 
+                                    className="h-48"
+                                    value={text}
+                                    onChange={(e) => setText(e.target.value)}
+                                    readOnly={isFinalized || isHandwrittenTextLocked}
+                                />
+                                {!isHandwrittenTextLocked && (
+                                    <div className='flex flex-wrap gap-2'>
+                                        <Button onClick={() => saveText({ assessmentId: assessment.id, text, source: 'handwritten_extracted' })} disabled={isSaving}>
+                                            {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Extracted Text
+                                        </Button>
+                                         <Button onClick={() => lockAndSend({ assessmentId: assessment.id })} disabled={isLocking || !assessment.rubricId} variant="secondary">
+                                            {isLocking ? <Loader2 className="animate-spin mr-2" /> : <Lock className="mr-2 h-4 w-4" />} Lock & Send to AI
+                                        </Button>
+                                    </div>
+                                )}
+                                {isHandwrittenTextLocked && (
+                                    <div className="p-4 border rounded-md bg-muted/50 text-sm">
+                                        <p className="font-semibold text-foreground flex items-center"><Lock className="mr-2 h-4 w-4" /> Text Locked</p>
+                                        <p className="text-muted-foreground mt-1">Text is now read-only and is being reviewed by the AI.</p>
+                                    </div>
+                                )}
+                                {!assessment.rubricId && !isHandwrittenTextLocked &&
+                                    <Alert variant="destructive" className="text-xs">
+                                        <AlertDescription>Please select a rubric before sending to AI.</AlertDescription>
+                                    </Alert>
+                                }
+                                </>
+                            )}
                         </div>
                     </TabsContent>
                 </Tabs>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
-function DocumentPanel({ text, suggestions, onApplySuggestion }: { text: string; suggestions: AISuggestion[]; onApplySuggestion: (suggestionId: string, action: 'apply' | 'dismiss') => void; }) {
+function StudentDocumentPanel({ text, suggestions, onApplySuggestion }: { text: string; suggestions: AISuggestion[]; onApplySuggestion: (suggestionId: string, action: 'apply' | 'dismiss') => void; }) {
+    
+    const getSeverityClass = (severity: AISuggestion['severity']) => {
+        const baseClass = "cursor-pointer rounded px-0.5";
+        switch(severity) {
+            case 'Major': return `${baseClass} bg-yellow-300/60 hover:bg-yellow-300/90`;
+            case 'Moderate': return `${baseClass} bg-yellow-200/60 hover:bg-yellow-200/90 underline decoration-dotted`;
+            case 'Minor':
+            default:
+                return `${baseClass} bg-yellow-100/60 hover:bg-yellow-100/90 underline decoration-dashed`;
+        }
+    }
+
     const processedText = useMemo(() => {
         if (!suggestions || suggestions.length === 0) {
-            return <span>{text}</span>;
+            return <p>{text}</p>;
         }
 
         let lastIndex = 0;
         const parts: React.ReactNode[] = [];
         const sortedSuggestions = [...suggestions].sort((a, b) => a.start - b.start);
 
-        sortedSuggestions.forEach((suggestion, i) => {
+        sortedSuggestions.forEach((suggestion) => {
             if (suggestion.start > lastIndex) {
                 parts.push(text.substring(lastIndex, suggestion.start));
             }
@@ -172,15 +276,15 @@ function DocumentPanel({ text, suggestions, onApplySuggestion }: { text: string;
             parts.push(
                 <Popover key={suggestion.id}>
                     <PopoverTrigger asChild>
-                        <mark className="bg-yellow-200/50 hover:bg-yellow-200/80 cursor-pointer rounded px-0.5">
+                        <mark className={getSeverityClass(suggestion.severity)}>
                             {highlightedText}
                         </mark>
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
                         <div className="grid gap-4">
                             <div className="space-y-2">
-                                <h4 className="font-medium leading-none">{suggestion.category}</h4>
-                                <p className="text-sm text-muted-foreground">{suggestion.note}</p>
+                                <h4 className="font-medium leading-none">{suggestion.criterionName}</h4>
+                                <p className="text-sm text-muted-foreground">{suggestion.comment}</p>
                             </div>
                             {suggestion.replacement && (
                                 <div className="rounded-md border bg-muted p-2">
@@ -188,7 +292,7 @@ function DocumentPanel({ text, suggestions, onApplySuggestion }: { text: string;
                                 </div>
                             )}
                             <div className="flex gap-2">
-                                {suggestion.replacement && <Button size="sm" onClick={() => onApplySuggestion(suggestion.id, 'apply')}>Apply</Button>}
+                                {suggestion.replacement && <Button size="sm" onClick={() => onApplySuggestion(suggestion.id, 'apply')}>Accept</Button>}
                                 <Button size="sm" variant="outline" onClick={() => onApplySuggestion(suggestion.id, 'dismiss')}>Dismiss</Button>
                             </div>
                         </div>
@@ -202,115 +306,91 @@ function DocumentPanel({ text, suggestions, onApplySuggestion }: { text: string;
             parts.push(text.substring(lastIndex));
         }
 
-        return <>{parts}</>;
+        return <p>{parts}</p>;
     }, [text, suggestions, onApplySuggestion]);
     
     return (
-        <Card className="h-full">
-            <CardHeader>
-                <CardTitle>Document</CardTitle>
-                <CardDescription>The official text for review and feedback.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="prose prose-sm max-w-none rounded-md border p-4 h-[70vh] overflow-y-auto">
-                    {text ? processedText : <p className="text-muted-foreground">Student work will appear here once saved from the left panel.</p>}
-                </div>
-            </CardContent>
-        </Card>
+        <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
+            <h3 className="text-lg font-semibold mb-1">Student Document</h3>
+            <p className="text-sm text-muted-foreground mb-4">The official text for grading.</p>
+            <div className="prose prose-sm max-w-none rounded-md border p-4 h-full overflow-y-auto bg-background">
+                {text ? processedText : <p className="text-muted-foreground">Student work will appear here once saved from the left panel.</p>}
+            </div>
+        </div>
     );
 }
 
-function ReviewPanel({ assessment, onApplySuggestion, onSaveFeedback }: { assessment: AssessmentWorkspaceData; onApplySuggestion: (suggestionId: string, action: 'apply' | 'dismiss') => void; onSaveFeedback: (feedback: { teacherNotes: string; finalFeedback: string }) => void; }) {
+function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessment: AssessmentWorkspaceData; onSaveFeedback: (feedback: { notes: string; finalFeedback: string }) => void; onSaveOverride: (overrides: any) => void; }) {
     const [teacherNotes, setTeacherNotes] = useState(assessment.teacherFeedback?.notes || '');
     const [finalFeedback, setFinalFeedback] = useState(assessment.teacherFeedback?.finalFeedback || '');
     
-    const { trigger: saveFeedback, isLoading: isSaving } = useWebhook<{ assessmentId: string; teacherNotes: string; finalFeedback: string }, {}>({
+    const { trigger: saveFeedback, isLoading: isSavingFeedback } = useWebhook<{ assessmentId: string; teacherNotes: string; finalFeedback: string }, {}>({
         eventName: 'ASSESSMENT_SAVE_TEACHER_FEEDBACK',
         manual: true,
         errorMessage: 'Failed to save feedback.',
-        onSuccess: () => onSaveFeedback({ teacherNotes, finalFeedback })
+        onSuccess: () => onSaveFeedback({ notes: teacherNotes, finalFeedback })
     });
 
-    const suggestionGroups = useMemo(() => {
-        const groups: { [key: string]: AISuggestion[] } = {};
-        assessment.aiReview?.suggestions?.forEach(s => {
-            if (!groups[s.category]) {
-                groups[s.category] = [];
-            }
-            groups[s.category].push(s);
-        });
-        return groups;
-    }, [assessment.aiReview?.suggestions]);
-
-    const isReadOnly = assessment.status === 'finalized';
+    const isFinalized = assessment.status === 'finalized';
 
     return (
-        <Card className="h-full">
-            <CardHeader>
-                <CardTitle>Review & Feedback</CardTitle>
-                <CardDescription>AI suggestions and rubric scoring.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Tabs defaultValue="suggestions">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
-                        <TabsTrigger value="rubric">Rubric Draft</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="suggestions" className="pt-4 space-y-4 h-[65vh] overflow-y-auto">
-                         {Object.entries(suggestionGroups).length > 0 ? Object.entries(suggestionGroups).map(([category, suggestions]) => (
-                             <div key={category}>
-                                <h4 className="font-semibold text-sm mb-2">{category} ({suggestions.length})</h4>
-                                <div className="space-y-2">
-                                {suggestions.map(s => (
-                                    <Card key={s.id} className="p-3">
-                                        <p className="text-sm text-muted-foreground">{s.note}</p>
-                                        {s.replacement && <p className="text-sm mt-1">Change to: <span className="font-semibold">{s.replacement}</span></p>}
-                                        <div className="flex gap-2 mt-2">
-                                            {s.replacement && <Button size="sm" variant="ghost" onClick={() => onApplySuggestion(s.id, 'apply')}>Apply</Button>}
-                                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => onApplySuggestion(s.id, 'dismiss')}>Dismiss</Button>
-                                        </div>
-                                    </Card>
-                                ))}
+        <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
+             <h3 className="text-lg font-semibold mb-1">Rubric Grading & Approval</h3>
+            <p className="text-sm text-muted-foreground mb-4">Review AI grades and provide final feedback.</p>
+            
+            <div className='h-full overflow-y-auto pr-2 space-y-6'>
+                {/* Rubric Grades */}
+                <div className='space-y-4'>
+                    <h4 className='font-semibold'>Rubric Grades (AI Draft)</h4>
+                    {assessment.aiReview?.rubricGrades ? (
+                        assessment.aiReview.rubricGrades.map(criterion => (
+                            <div key={criterion.id} className='p-3 border rounded-md'>
+                                <div className='flex justify-between items-start'>
+                                    <h5 className="font-semibold">{criterion.criterionName}</h5>
+                                    <Badge>AI Score: {criterion.suggestedLevelOrScore}</Badge>
                                 </div>
-                             </div>
-                         )) : <p className="text-sm text-muted-foreground text-center pt-10">No AI suggestions available. Run the AI review first.</p>}
-                    </TabsContent>
-                    <TabsContent value="rubric" className="pt-4 space-y-4 h-[65vh] overflow-y-auto">
-                        {assessment.aiReview?.rubricDraft ? (
-                            <>
-                            {assessment.aiReview.rubricDraft.map(criterion => (
-                                <div key={criterion.id}>
-                                    <h4 className="font-semibold">{criterion.name}</h4>
-                                    <p className="text-sm text-muted-foreground">{criterion.description}</p>
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <Badge>Score: {criterion.draftScore}/{criterion.maxScore}</Badge>
-                                        <p className="text-xs italic text-muted-foreground">{criterion.evidence}</p>
+                                <p className="text-xs italic text-muted-foreground mt-1">&quot;{criterion.rationale}&quot;</p>
+                                <div className='mt-3 space-y-2'>
+                                    <Label className='text-xs'>Teacher Override</Label>
+                                    <div className='flex gap-2'>
+                                        <Select disabled={isFinalized}>
+                                            <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
+                                            <SelectContent>
+                                                {[...Array(6).keys()].map(i => <SelectItem key={i} value={String(i)}>{i}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <Input placeholder="Note for this criterion..." className='text-xs' disabled={isFinalized}/>
                                     </div>
                                 </div>
-                            ))}
-                             <Separator className="my-4"/>
-                            </>
-                        ) : <p className="text-sm text-muted-foreground text-center pt-10">No rubric draft available. Run the AI review first.</p>}
+                            </div>
+                        ))
+                    ) : <p className="text-sm text-muted-foreground text-center pt-4">No rubric draft available. Run AI grading first.</p>}
+                     {!isFinalized && assessment.aiReview?.rubricGrades && (
+                        <Button size="sm" variant="secondary" disabled={true}>Save Overrides</Button>
+                     )}
+                </div>
 
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="teacher-notes">Teacher Notes (Private)</Label>
-                                <Textarea id="teacher-notes" value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} readOnly={isReadOnly} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="final-feedback">Final Feedback for Student</Label>
-                                <Textarea id="final-feedback" value={finalFeedback} onChange={e => setFinalFeedback(e.target.value)} readOnly={isReadOnly}/>
-                            </div>
-                            {!isReadOnly && (
-                                <Button onClick={() => saveFeedback({assessmentId: assessment.id, teacherNotes, finalFeedback})} disabled={isSaving}>
-                                    {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Feedback
-                                </Button>
-                            )}
-                        </div>
-                    </TabsContent>
-                </Tabs>
-            </CardContent>
-        </Card>
+                <Separator />
+
+                {/* Final Feedback */}
+                <div className="space-y-4">
+                     <h4 className='font-semibold'>Final Feedback</h4>
+                    <div className="space-y-2">
+                        <Label htmlFor="teacher-notes">Teacher Notes (Private)</Label>
+                        <Textarea id="teacher-notes" value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} readOnly={isFinalized} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="final-feedback">Final Feedback for Student</Label>
+                        <Textarea id="final-feedback" value={finalFeedback} onChange={e => setFinalFeedback(e.target.value)} readOnly={isFinalized}/>
+                    </div>
+                    {!isFinalized && (
+                        <Button onClick={() => saveFeedback({assessmentId: assessment.id, teacherNotes, finalFeedback})} disabled={isSavingFeedback}>
+                            {isSavingFeedback ? <Loader2 className="animate-spin mr-2" /> : null} Save Feedback
+                        </Button>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -319,6 +399,11 @@ function ReviewPanel({ assessment, onApplySuggestion, onSaveFeedback }: { assess
 export default function AssessmentWorkspacePage({ params }: { params: { id: string } }) {
   const [assessmentData, setAssessmentData] = useState<AssessmentWorkspaceData | null>(null);
   const pageParams = use(params);
+
+  const {data: rubricsData, isLoading: rubricsLoading} = useWebhook<{}, { rubrics: RubricListItem[] }>({
+      eventName: 'RUBRIC_LIST',
+      payload: {},
+  });
 
   const handleDataSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
     setAssessmentData(data.assessment);
@@ -330,11 +415,11 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
     onSuccess: handleDataSuccess
   });
 
-  const { trigger: runAIReview } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
-      eventName: 'ASSESSMENT_RUN_AI_REVIEW',
+  const { trigger: runAIGrade } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
+      eventName: 'ASSESSMENT_RUN_AI_GRADE',
       manual: true,
       onSuccess: handleDataSuccess,
-      errorMessage: "Failed to run AI review. Please try again."
+      errorMessage: "Failed to run AI grading. Please try again."
   });
 
   const { trigger: finalizeAssessment } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
@@ -345,7 +430,7 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
   });
   
   const { trigger: applySuggestion } = useWebhook<{ assessmentId: string, suggestionId: string, action: 'apply' | 'dismiss' }, { newText: string }>({
-    eventName: 'ASSESSMENT_APPLY_SUGGESTION',
+    eventName: 'ASSESSMENT_SUGGESTION_ACTION',
     manual: true,
     onSuccess: (data) => {
         if (assessmentData) {
@@ -355,13 +440,13 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
     errorMessage: "Action failed."
   });
 
-  const handleTextSaved = (newText: string) => {
+  const handleTextSaved = (newText: string, source: 'typed' | 'handwritten_extracted') => {
     if (assessmentData) {
-        setAssessmentData({ ...assessmentData, currentText: newText });
+        setAssessmentData({ ...assessmentData, currentText: newText, source });
     }
   };
   
-  const handleFeedbackSaved = (feedback: { teacherNotes: string; finalFeedback: string }) => {
+  const handleFeedbackSaved = (feedback: { notes: string; finalFeedback: string }) => {
       if(assessmentData) {
           setAssessmentData({
               ...assessmentData,
@@ -372,7 +457,7 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
 
   const handleRunAI = () => {
     if (assessmentData) {
-        runAIReview({ assessmentId: assessmentData.id });
+        runAIGrade({ assessmentId: assessmentData.id });
     }
   };
   
@@ -382,7 +467,19 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
     }
   };
 
-  if (isPageLoading) return <AssessmentWorkspaceSkeleton />;
+  const handleRubricSelected = (rubricId: string) => {
+      if(assessmentData) {
+        setAssessmentData({ ...assessmentData, rubricId });
+      }
+  }
+
+  const handleTextExtracted = (newText: string) => {
+    if (assessmentData) {
+        setAssessmentData({ ...assessmentData, currentText: newText, source: "handwritten_extracted" });
+    }
+  }
+
+  if (isPageLoading || rubricsLoading) return <AssessmentWorkspaceSkeleton />;
   
   if (error || !assessmentData) {
     return (
@@ -410,15 +507,24 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
     <div className="w-full">
       <WorkspaceHeader data={assessmentData} onRunAI={handleRunAI} onFinalize={handleFinalize} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-3">
-          <InputPanel assessment={assessmentData} onTextSaved={handleTextSaved} />
+      <div className="flex gap-6 h-[80vh]">
+        {/* Left Rail */}
+        <div className="w-[320px] shrink-0">
+          <SetupInputPanel 
+            assessment={assessmentData}
+            rubrics={rubricsData?.rubrics || []}
+            onRubricSelected={handleRubricSelected}
+            onTextSaved={handleTextSaved}
+            onTextExtracted={handleTextExtracted}
+          />
         </div>
-        <div className="lg:col-span-5">
-          <DocumentPanel text={assessmentData.currentText || ''} suggestions={assessmentData.aiReview?.suggestions || []} onApplySuggestion={(suggestionId, action) => applySuggestion({assessmentId: assessmentData.id, suggestionId, action})} />
+        {/* Center Panel */}
+        <div className="flex-1 min-w-0">
+          <StudentDocumentPanel text={assessmentData.currentText || ''} suggestions={assessmentData.aiReview?.suggestions || []} onApplySuggestion={(suggestionId, action) => applySuggestion({assessmentId: assessmentData.id, suggestionId, action})} />
         </div>
-        <div className="lg:col-span-4">
-          <ReviewPanel assessment={assessmentData} onApplySuggestion={(suggestionId, action) => applySuggestion({assessmentId: assessmentData.id, suggestionId, action})} onSaveFeedback={handleFeedbackSaved} />
+        {/* Right Rail */}
+        <div className="w-[360px] shrink-0">
+          <GradingPanel assessment={assessmentData} onSaveFeedback={handleFeedbackSaved} onSaveOverride={() => {}} />
         </div>
       </div>
     </div>
