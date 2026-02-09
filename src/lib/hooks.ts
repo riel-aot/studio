@@ -95,16 +95,13 @@ export function useWebhook<P, R>({
     } finally {
       setIsLoading(false);
     }
-  }, [eventName, user, token, payload, onSuccess, onError, toast]);
+  }, [eventName, payload, onSuccess, onError, toast, user, token]);
   
   useEffect(() => {
     if (!manual) {
       callWebhook();
     }
-  // The dependencies are carefully chosen to re-run only when needed.
-  // We stringify the payload to compare its value, not its reference.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventName, user, token, manual, JSON.stringify(payload)]);
+  }, [manual, callWebhook]);
 
   return { data, error, isLoading, trigger: callWebhook };
 }

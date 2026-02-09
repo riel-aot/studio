@@ -13,6 +13,7 @@ import type { StudentListItem } from "@/lib/events";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 
 export default function NewAssessmentPage() {
     const router = useRouter();
@@ -23,17 +24,16 @@ export default function NewAssessmentPage() {
         eventName: 'STUDENT_LIST',
     });
 
+    const handleSuccess = useCallback((data: { assessmentId: string }) => {
+        toast({ title: "Draft Created", description: "Your new assessment has been saved as a draft." });
+        router.push(`/teacher/assessments/${data.assessmentId}`);
+    }, [router, toast]);
+
     // We use the `manual` option here, so the webhook is only called on form submission.
     const { trigger: createAssessment, isLoading: isCreating } = useWebhook<{ title: string, studentId: string }, { assessmentId: string }>({
         eventName: 'ASSESSMENT_CREATE_DRAFT',
         manual: true,
-        onSuccess: (data) => {
-            toast({ title: "Draft Created", description: "Your new assessment has been saved as a draft." });
-            router.push(`/teacher/assessments/${data.assessmentId}`);
-        },
-        onError: (error) => {
-             // Toast is already shown by the hook
-        }
+        onSuccess: handleSuccess,
     });
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
