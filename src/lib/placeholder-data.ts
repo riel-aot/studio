@@ -1,4 +1,4 @@
-import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricGrade, RubricListItem } from './events';
+import type { StudentListItem, StudentAssessmentListItem, StudentReportListItem, StudentProfileData, AssessmentWorkspaceData, AISuggestion, RubricGrade, RubricListItem, AssessmentListItem } from './events';
 
 export const studentListData: StudentListItem[] = [
     { 
@@ -118,3 +118,56 @@ export const assessmentWorkspaceData: AssessmentWorkspaceData = {
     },
     teacherOverrides: null,
 };
+
+export const assessmentListItems: AssessmentListItem[] = [
+  {
+    assessmentId: 'asm_01',
+    title: 'Unit 3: Fractions',
+    student: { id: 'stu_01', name: 'Amelia Johnson' },
+    classLabel: 'Grade 5',
+    submissionType: 'typed',
+    rubric: { id: 'rub_02', name: 'Standard ELA Essay' },
+    status: 'needs_review',
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    assessmentId: 'asm_02',
+    title: 'History Mid-Term Essay',
+    student: { id: 'stu_02', name: 'Benjamin Carter' },
+    classLabel: 'Grade 5',
+    submissionType: 'handwritten',
+    rubric: { id: 'rub_02', name: 'Standard ELA Essay' },
+    status: 'ai_draft_ready',
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    assessmentId: 'asm_draft_01',
+    title: 'Creative Writing Assignment',
+    student: { id: 'stu_03', name: 'Charlotte Davis' },
+    classLabel: 'Grade 5',
+    submissionType: 'typed',
+    rubric: { id: 'rub_03', name: 'Quick Write - Single Paragraph' },
+    status: 'draft',
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    assessmentId: 'asm_04',
+    title: 'Book Report: The Giver',
+    student: { id: 'stu_01', name: 'Amelia Johnson' },
+    classLabel: 'Grade 5',
+    submissionType: 'typed',
+    rubric: { id: 'rub_01', name: '5th Grade Book Report' },
+    status: 'finalized',
+    updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+    {
+    assessmentId: 'asm_05',
+    title: 'Lab Report: Photosynthesis',
+    student: { id: 'stu_05', name: 'Emma Foster' },
+    classLabel: 'Grade 5',
+    submissionType: 'handwritten',
+    rubric: { id: 'rub_01', name: '5th Grade Book Report' },
+    status: 'needs_review',
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];

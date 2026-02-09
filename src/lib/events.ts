@@ -22,6 +22,7 @@ export type EventName =
   | 'ASSESSMENT_SAVE_TEACHER_FEEDBACK'
   | 'ASSESSMENT_SET_RUBRIC'
   | 'ASSESSMENT_SAVE_RUBRIC_OVERRIDE'
+  | 'ASSESSMENT_LIST'
   
   // Students
   | 'STUDENT_LIST'
@@ -214,3 +215,43 @@ export type HealthCheckData = {
     databaseConnected: boolean;
     lastSuccessfulCall?: string;
 };
+
+// ASSESSMENT_LIST
+export type AssessmentStatus = 'draft' | 'ai_draft_ready' | 'needs_review' | 'finalized';
+
+export interface AssessmentListItem {
+  assessmentId: string;
+  title: string;
+  student: { id: string; name: string };
+  classLabel: string;
+  submissionType: 'typed' | 'handwritten';
+  rubric: { id: string; name: string };
+  status: AssessmentStatus;
+  updatedAt: string;
+}
+
+export interface AssessmentListCounts {
+  needsReview: number;
+  drafts: number;
+  finalizedThisWeek: number;
+}
+
+export interface AssessmentListPayload {
+  status?: AssessmentStatus | 'all';
+  classId?: string;
+  rubricId?: string;
+  submissionType?: 'typed' | 'handwritten';
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AssessmentListResponse {
+  items: AssessmentListItem[];
+  counts: AssessmentListCounts;
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+  };
+}

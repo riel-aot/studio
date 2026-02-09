@@ -1,5 +1,5 @@
-import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem } from './events';
-import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics } from './placeholder-data';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload } from './events';
+import { studentListData as initialStudentData, getStudentById, assessmentWorkspaceData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
 let currentAssessmentState: AssessmentWorkspaceData = { ...assessmentWorkspaceData };
@@ -95,7 +95,44 @@ const createStudent = (payload: StudentCreatePayload) => {
     return { studentId: newStudent.id };
 }
 
-// --- Assessment Workspace Handlers ---
+// --- Assessment Handlers ---
+
+const listAssessments = (payload: AssessmentListPayload) => {
+  const { status = 'all', page = 1, pageSize = 10, search = '' } = payload;
+  
+  let filteredItems = assessmentListItems;
+
+  if (status !== 'all') {
+    filteredItems = filteredItems.filter(item => item.status === status);
+  }
+
+  if (search) {
+      const lowercasedSearch = search.toLowerCase();
+      filteredItems = filteredItems.filter(item => 
+          item.title.toLowerCase().includes(lowercasedSearch) ||
+          item.student.name.toLowerCase().includes(lowercasedSearch) ||
+          item.rubric.name.toLowerCase().includes(lowercasedSearch)
+      );
+  }
+
+  const total = filteredItems.length;
+  const items = filteredItems.slice((page - 1) * pageSize, page * pageSize);
+
+  return {
+    items,
+    counts: {
+      needsReview: assessmentListItems.filter(i => i.status === 'needs_review').length,
+      drafts: assessmentListItems.filter(i => i.status === 'draft').length,
+      finalizedThisWeek: assessmentListItems.filter(i => i.status === 'finalized' && new Date(i.updatedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length,
+    },
+    pagination: {
+      page,
+      pageSize,
+      total,
+    },
+  };
+};
+
 const getAssessment = (payload: { assessmentId: string }) => {
     // If the ID is 'new', reset to the draft state.
     if (payload.assessmentId === 'asm_new_id_123' && currentAssessmentState.id !== 'asm_new_id_123') {
@@ -195,7 +232,8 @@ const handlers: { [key: string]: (payload: any) => any } = {
     // Rubrics
     'RUBRIC_LIST': () => ({ rubrics: mockRubrics }),
 
-    // Assessment Workspace
+    // Assessment
+    'ASSESSMENT_LIST': listAssessments,
     'ASSESSMENT_GET': (payload: { assessmentId: string }) => getAssessment(payload),
     'ASSESSMENT_SET_RUBRIC': setAssessmentRubric,
     'ASSESSMENT_TEXT_SAVE': saveAssessmentText,
