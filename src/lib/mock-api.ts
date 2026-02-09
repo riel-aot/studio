@@ -1,4 +1,5 @@
 import type { WebhookRequest, WebhookResponse } from './events';
+import { studentListData } from './placeholder-data';
 
 const kpis = {
   pendingReview: 7,
@@ -55,17 +56,24 @@ const healthCheck = {
     lastSuccessfulCall: new Date().toISOString(),
 };
 
+const studentList = {
+    students: studentListData,
+    total: studentListData.length,
+};
+
 
 const handlers: { [key: string]: (payload: any) => any } = {
     'GET_DASHBOARD_SUMMARY': () => ({ kpis }),
     'GET_REVIEW_QUEUE': () => ({ items: reviewQueue }),
     'GET_DRAFTS': () => ({ items: drafts }),
     'HEALTH_CHECK': () => healthCheck,
+    'STUDENT_LIST': () => (studentList),
 
     // Action mocks just return success
     'REVIEW_OPEN': () => ({}),
     'DRAFT_OPEN': () => ({}),
     'NEW_ASSESSMENT_START': () => ({}),
+    'ASSESSMENT_CREATE_DRAFT': ({ title, studentId }: {title: string, studentId: string}) => ({ assessmentId: `asm_draft_${crypto.randomUUID()}` }),
 };
 
 

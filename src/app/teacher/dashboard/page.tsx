@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
@@ -42,6 +42,7 @@ function DashboardLoadingSkeleton() {
                   <TableRow>
                     <TableHead>Student</TableHead>
                     <TableHead>Assessment</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
                     <TableHead className="w-[100px] text-right">Action</TableHead>
                   </TableRow>
@@ -51,6 +52,7 @@ function DashboardLoadingSkeleton() {
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-[100px]" /></TableCell>
                       <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-[100px] ml-auto" /></TableCell>
                       <TableCell><Skeleton className="h-9 w-[80px] ml-auto" /></TableCell>
                     </TableRow>
@@ -121,34 +123,40 @@ export default function TeacherDashboard() {
     payload: { limit: 5 },
   });
 
+  const handleReviewOpen = useCallback((_: any, payload?: { assessmentId: string }) => {
+    if (payload?.assessmentId) {
+        router.push(`/teacher/assessments/${payload.assessmentId}`);
+    }
+  }, [router]);
+
   const { trigger: openReview } = useWebhook<{ assessmentId: string }, {}>({
     eventName: 'REVIEW_OPEN',
     manual: true,
-    onSuccess: (_, payload) => {
-        if (payload?.assessmentId) {
-            router.push(`/teacher/assessments/${payload.assessmentId}`);
-        }
-    },
+    onSuccess: handleReviewOpen,
     errorMessage: 'Action failed. Please try again.',
   });
+
+  const handleDraftOpen = useCallback((_: any, payload?: { assessmentId: string }) => {
+      if (payload?.assessmentId) {
+          router.push(`/teacher/assessments/${payload.assessmentId}`);
+      }
+  }, [router]);
 
   const { trigger: openDraft } = useWebhook<{ assessmentId: string }, {}>({
     eventName: 'DRAFT_OPEN',
     manual: true,
-    onSuccess: (_, payload) => {
-        if (payload?.assessmentId) {
-            router.push(`/teacher/assessments/${payload.assessmentId}`);
-        }
-    },
+    onSuccess: handleDraftOpen,
     errorMessage: 'Action failed. Please try again.',
   });
+
+  const handleNewAssessmentStart = useCallback(() => {
+    router.push(`/teacher/assessments/new`);
+  }, [router]);
 
   const { trigger: startNewAssessment } = useWebhook<{}, {}>({
     eventName: 'NEW_ASSESSMENT_START',
     manual: true,
-    onSuccess: () => {
-        router.push(`/teacher/assessments/new`);
-    },
+    onSuccess: handleNewAssessmentStart,
     errorMessage: 'Action failed. Please try again.',
   });
 
@@ -198,6 +206,7 @@ export default function TeacherDashboard() {
                             <TableRow>
                                 <TableHead>Student</TableHead>
                                 <TableHead>Assessment</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
                                 <TableHead className="w-[100px] text-right">Action</TableHead>
                             </TableRow>
@@ -207,6 +216,11 @@ export default function TeacherDashboard() {
                             <TableRow key={item.assessmentId}>
                                 <TableCell className="font-medium">{item.studentName}</TableCell>
                                 <TableCell>{item.assessmentName}</TableCell>
+                                <TableCell>
+                                    <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'secondary'}>
+                                        {item.status === 'ai_draft_ready' ? 'AI Draft Ready' : 'Needs Review'}
+                                    </Badge>
+                                </TableCell>
                                 <TableCell className="hidden md:table-cell text-right text-muted-foreground">{formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</TableCell>
                                 <TableCell className="text-right">
                                     <Button onClick={() => openReview({ assessmentId: item.assessmentId })} size="sm">Review</Button>
