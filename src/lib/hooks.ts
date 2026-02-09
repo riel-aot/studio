@@ -33,9 +33,9 @@ export function useWebhook<P, R>({
 
   const payload = useMemo(() => initialPayload, [JSON.stringify(initialPayload)]);
 
-  const callWebhook = useCallback(async (triggerPayload?: P) => {
+  const callWebhook = useCallback(async (triggerPayload?: P): Promise<WebhookResponse<R> | void> => {
     if (!user || !token) {
-      return;
+      return Promise.resolve();
     }
 
     setIsLoading(true);
@@ -83,6 +83,7 @@ export function useWebhook<P, R>({
       if (onSuccess) {
         onSuccess(responseData.data, finalPayload);
       }
+      return responseData;
     } catch (err: any) {
       setError(err);
       if (onError) {
@@ -93,6 +94,7 @@ export function useWebhook<P, R>({
         title: 'Error',
         description: errorMessage || err.message,
       });
+      return Promise.reject(err);
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +106,7 @@ export function useWebhook<P, R>({
     }
   }, [manual, callWebhook]);
 
-  const trigger = useCallback((triggerPayload?: P) => callWebhook(triggerPayload), [callWebhook]);
+  const trigger = useCallback(async (triggerPayload?: P) => callWebhook(triggerPayload), [callWebhook]);
 
   return { data, error, isLoading, trigger };
 }

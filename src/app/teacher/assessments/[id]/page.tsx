@@ -4,7 +4,7 @@ import React, { useState, useMemo, useCallback, use } from 'react';
 import { useWebhook } from '@/lib/hooks';
 import type { AssessmentWorkspaceData, AISuggestion, RubricCriterion, RubricListItem } from '@/lib/events';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, ChevronDown, FileText, ImageIcon, Loader2, Sparkles, X, Lock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, ChevronDown, FileText, ImageIcon, Loader2, Sparkles, X, Lock, FileCheck2 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -83,39 +83,40 @@ function WorkspaceHeader({ data, onRunAI, onFinalize }: { data: AssessmentWorksp
 function SetupInputPanel({ 
     assessment, 
     rubrics,
-    onRubricSelected,
-    onTextSaved,
-    onTextExtracted
+    onAssessmentUpdate,
 }: { 
     assessment: AssessmentWorkspaceData, 
     rubrics: RubricListItem[],
-    onRubricSelected: (rubricId: string) => void,
-    onTextSaved: (text: string, source: 'typed' | 'handwritten_extracted') => void,
-    onTextExtracted: (text: string) => void
+    onAssessmentUpdate: (data: AssessmentWorkspaceData) => void,
 }) {
     const [text, setText] = useState(assessment.currentText || '');
-    const [files, setFiles] = useState<File[]>([]);
     
-    const { trigger: setRubric, isLoading: isSettingRubric } = useWebhook<{ assessmentId: string; rubricId: string }, {}>({
+    const { trigger: setRubric, isLoading: isSettingRubric } = useWebhook<{ assessmentId: string; rubricId: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_SET_RUBRIC',
         manual: true,
-        onSuccess: (_, payload) => payload && onRubricSelected(payload.rubricId),
+        onSuccess: (data) => onAssessmentUpdate(data.assessment),
         errorMessage: "Failed to set rubric."
     });
 
     const { trigger: saveText, isLoading: isSaving } = useWebhook<{ assessmentId: string; text: string; source: 'typed' | 'handwritten_extracted' }, {}>({
         eventName: 'ASSESSMENT_TEXT_SAVE',
         manual: true,
-        onSuccess: (_, payload) => payload && onTextSaved(payload.text, payload.source),
         errorMessage: "Failed to save text."
     });
 
-    const { trigger: extractText, isLoading: isExtracting } = useWebhook<{ assessmentId: string; fileRef: string }, { extractedText: string }>({
+    const { trigger: uploadTypedFile, isLoading: isUploadingTyped } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
+        eventName: 'ASSESSMENT_TYPED_UPLOAD',
+        manual: true,
+        onSuccess: (data) => onAssessmentUpdate(data.assessment),
+        errorMessage: "Failed to upload and process file."
+    });
+
+    const { trigger: extractText, isLoading: isExtracting } = useWebhook<{ assessmentId: string; fileRef: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_EXTRACT_TEXT',
         manual: true,
         onSuccess: (data) => {
-            setText(data.extractedText);
-            onTextExtracted(data.extractedText);
+            onAssessmentUpdate(data.assessment);
+            setText(data.assessment.currentText || '');
         },
         errorMessage: 'Failed to extract text from image.'
     });
@@ -123,12 +124,23 @@ function SetupInputPanel({
     const { trigger: lockAndSend, isLoading: isLocking } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
         eventName: 'ASSESSMENT_RUN_AI_GRADE',
         manual: true,
-        // The main page handler will update the state
+        onSuccess: (data) => onAssessmentUpdate(data.assessment),
     });
+    
+    const handleTypedFileSelect = (files: File[]) => {
+        if (files.length > 0 && !isUploadingTyped) {
+            uploadTypedFile({ assessmentId: assessment.id, fileRef: files[0].name });
+        }
+    };
+    
+    const handleHandwrittenFileSelect = (files: File[]) => {
+        if (files.length > 0 && !isExtracting) {
+            extractText({ assessmentId: assessment.id, fileRef: files[0].name });
+        }
+    };
 
     const isFinalized = assessment.status === 'finalized';
-    const isTypedTextLocked = assessment.source === 'typed' && !!assessment.currentText;
-    const isHandwrittenTextLocked = assessment.aiReview?.status === 'ready' || assessment.aiReview?.status === 'running';
+    const isHandwrittenTextLocked = assessment.aiReview?.status === 'ready' || assessment.aiReview?.status === 'running' || assessment.status === 'finalized';
 
     const selectedRubricName = useMemo(() => {
         return rubrics.find(r => r.id === assessment.rubricId)?.name;
@@ -173,55 +185,50 @@ function SetupInputPanel({
                     </TabsList>
                     <TabsContent value="typed" className="pt-4">
                         <div className="space-y-4">
-                            {!isTypedTextLocked ? (
+                            {!assessment.currentText ? (
                                 <>
-                                    <FileUploader onFilesSelected={setFiles} />
-                                    <div className="relative">
-                                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or</span></div>
-                                    </div>
-                                    <Textarea 
-                                        placeholder="Paste student's text here..." 
-                                        className="h-48"
-                                        value={text}
-                                        onChange={(e) => setText(e.target.value)}
-                                    />
-                                    <Button onClick={() => saveText({ assessmentId: assessment.id, text, source: 'typed' })} disabled={isSaving || !text}>
-                                        {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Typed Submission
-                                    </Button>
+                                    <FileUploader onFilesSelected={handleTypedFileSelect} acceptedFileTypes={{'application/pdf': ['.pdf'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'], 'text/plain': ['.txt']}} />
+                                    {isUploadingTyped && (
+                                        <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="animate-spin mr-2" />Processing file...</div>
+                                    )}
                                 </>
                             ) : (
                                 <div className="p-4 border rounded-md bg-muted/50 text-sm">
-                                    <p className="font-semibold text-foreground flex items-center"><Lock className="mr-2 h-4 w-4" /> Text Locked</p>
-                                    <p className="text-muted-foreground mt-1">Typed submissions are read-only once saved to ensure grading consistency.</p>
+                                    <p className="font-semibold text-foreground flex items-center"><FileCheck2 className="mr-2 h-4 w-4 text-green-600" /> Document Saved</p>
+                                    <p className="text-muted-foreground mt-1">The student's document is now locked and ready for AI grading.</p>
                                 </div>
                             )}
                         </div>
                     </TabsContent>
                     <TabsContent value="handwritten" className="pt-4">
                          <div className="space-y-4">
-                            {!assessment.currentText && <FileUploader onFilesSelected={setFiles} acceptedFileTypes={{'image/*': ['.jpeg', '.png'], 'application/pdf': ['.pdf']}} />}
-                            {files.length > 0 && !assessment.currentText && (
-                                <Button onClick={() => extractText({ assessmentId: assessment.id, fileRef: files[0].name })} disabled={isExtracting}>
-                                    {isExtracting ? <Loader2 className="animate-spin mr-2" /> : null} Extract Text
-                                </Button>
+                            {!assessment.currentText && !isExtracting && (
+                                <FileUploader onFilesSelected={handleHandwrittenFileSelect} acceptedFileTypes={{'image/jpeg': ['.jpeg', '.jpg'], 'image/png': ['.png']}} />
+                            )}
+                            {isExtracting && (
+                                <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="animate-spin mr-2" />Extracting text from image...</div>
                             )}
                             {assessment.currentText && (
                                 <>
-                                <Textarea 
-                                    placeholder="Extracted text will appear here. You can edit it before running the AI review." 
-                                    className="h-48"
-                                    value={text}
-                                    onChange={(e) => setText(e.target.value)}
-                                    readOnly={isFinalized || isHandwrittenTextLocked}
-                                />
+                                <div className='space-y-1'>
+                                    <Label htmlFor='extracted-text'>Extracted Text (Editable)</Label>
+                                    <Textarea 
+                                        id='extracted-text'
+                                        placeholder="Extracted text will appear here. You can edit it before running the AI review." 
+                                        className="h-48"
+                                        value={text}
+                                        onChange={(e) => setText(e.target.value)}
+                                        readOnly={isFinalized || isHandwrittenTextLocked}
+                                    />
+                                </div>
                                 {!isHandwrittenTextLocked && (
                                     <div className='flex flex-wrap gap-2'>
-                                        <Button onClick={() => saveText({ assessmentId: assessment.id, text, source: 'handwritten_extracted' })} disabled={isSaving}>
-                                            {isSaving ? <Loader2 className="animate-spin mr-2" /> : null} Save Extracted Text
-                                        </Button>
-                                         <Button onClick={() => lockAndSend({ assessmentId: assessment.id })} disabled={isLocking || !assessment.rubricId} variant="secondary">
-                                            {isLocking ? <Loader2 className="animate-spin mr-2" /> : <Lock className="mr-2 h-4 w-4" />} Lock & Send to AI
+                                         <Button onClick={async () => {
+                                             if (isSaving || isLocking) return;
+                                             await saveText({ assessmentId: assessment.id, text, source: 'handwritten_extracted' });
+                                             lockAndSend({ assessmentId: assessment.id });
+                                         }} disabled={isLocking || isSaving || !assessment.rubricId} variant="secondary">
+                                            {(isLocking || isSaving) ? <Loader2 className="animate-spin mr-2" /> : <Lock className="mr-2 h-4 w-4" />} Lock & Send to AI
                                         </Button>
                                     </div>
                                 )}
@@ -406,27 +413,27 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
       payload: {},
   });
 
-  const handleDataSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
-    setAssessmentData(data.assessment);
+  const handleAssessmentUpdate = useCallback((assessment: AssessmentWorkspaceData) => {
+    setAssessmentData(assessment);
   }, []);
 
   const { isLoading: isPageLoading, error, trigger: refetch } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({ 
     eventName: 'ASSESSMENT_GET', 
     payload: { assessmentId: pageParams.id },
-    onSuccess: handleDataSuccess
+    onSuccess: (data) => handleAssessmentUpdate(data.assessment)
   });
 
   const { trigger: runAIGrade } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
       eventName: 'ASSESSMENT_RUN_AI_GRADE',
       manual: true,
-      onSuccess: handleDataSuccess,
+      onSuccess: (data) => handleAssessmentUpdate(data.assessment),
       errorMessage: "Failed to run AI grading. Please try again."
   });
 
   const { trigger: finalizeAssessment } = useWebhook<{ assessmentId: string }, { assessment: AssessmentWorkspaceData }>({
       eventName: 'ASSESSMENT_FINALIZE',
       manual: true,
-      onSuccess: handleDataSuccess,
+      onSuccess: (data) => handleAssessmentUpdate(data.assessment),
       errorMessage: "Failed to finalize assessment."
   });
   
@@ -440,12 +447,6 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
     },
     errorMessage: "Action failed."
   });
-
-  const handleTextSaved = (newText: string, source: 'typed' | 'handwritten_extracted') => {
-    if (assessmentData) {
-        setAssessmentData({ ...assessmentData, currentText: newText, source });
-    }
-  };
   
   const handleFeedbackSaved = (feedback: { notes: string; finalFeedback: string }) => {
       if(assessmentData) {
@@ -467,18 +468,6 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
         finalizeAssessment({ assessmentId: assessmentData.id });
     }
   };
-
-  const handleRubricSelected = (rubricId: string) => {
-      if(assessmentData) {
-        setAssessmentData({ ...assessmentData, rubricId });
-      }
-  }
-
-  const handleTextExtracted = (newText: string) => {
-    if (assessmentData) {
-        setAssessmentData({ ...assessmentData, currentText: newText, source: "handwritten_extracted" });
-    }
-  }
 
   if (isPageLoading || rubricsLoading) return <AssessmentWorkspaceSkeleton />;
   
@@ -514,9 +503,7 @@ export default function AssessmentWorkspacePage({ params }: { params: { id: stri
           <SetupInputPanel 
             assessment={assessmentData}
             rubrics={rubricsData?.rubrics || []}
-            onRubricSelected={handleRubricSelected}
-            onTextSaved={handleTextSaved}
-            onTextExtracted={handleTextExtracted}
+            onAssessmentUpdate={handleAssessmentUpdate}
           />
         </div>
         {/* Center Panel */}

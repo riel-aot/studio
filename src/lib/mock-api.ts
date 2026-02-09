@@ -120,7 +120,7 @@ const getAssessment = (payload: { assessmentId: string }) => {
 
 const setAssessmentRubric = (payload: { assessmentId: string, rubricId: string }) => {
     currentAssessmentState.rubricId = payload.rubricId;
-    return {};
+    return { assessment: currentAssessmentState };
 }
 
 const saveAssessmentText = (payload: { assessmentId: string, text: string, source: 'typed' | 'handwritten_extracted' }) => {
@@ -129,8 +129,18 @@ const saveAssessmentText = (payload: { assessmentId: string, text: string, sourc
     return {};
 }
 
+const uploadTypedFile = (payload: { assessmentId: string, fileRef: string }) => {
+    currentAssessmentState.source = 'typed';
+    currentAssessmentState.currentText = `This is sample text extracted from the typed document: ${payload.fileRef}. Once saved, this text becomes read-only to ensure grading consistency against a single version of the student's work.`;
+    currentAssessmentState.uploads.push({ id: `up_${crypto.randomUUID()}`, fileName: payload.fileRef, type: 'typed' });
+    return { assessment: currentAssessmentState };
+}
+
 const extractText = (payload: { assessmentId: string, fileRef: string }) => {
-    return { extractedText: `This is sample OCR text extracted from ${payload.fileRef}. It may contane some errors for the techer to fix. For example, speling mistakes or formatting isues.` };
+    currentAssessmentState.source = 'handwritten_extracted';
+    currentAssessmentState.currentText = `This is sample OCR text extracted from ${payload.fileRef}. It may contane some errors for the techer to fix. For example, speling mistakes or formatting isues.`;
+    currentAssessmentState.uploads.push({ id: `up_${crypto.randomUUID()}`, fileName: payload.fileRef, type: 'handwritten' });
+    return { assessment: currentAssessmentState };
 }
 
 const runAIGrade = (payload: { assessmentId: string }) => {
@@ -189,6 +199,7 @@ const handlers: { [key: string]: (payload: any) => any } = {
     'ASSESSMENT_GET': (payload: { assessmentId: string }) => getAssessment(payload),
     'ASSESSMENT_SET_RUBRIC': setAssessmentRubric,
     'ASSESSMENT_TEXT_SAVE': saveAssessmentText,
+    'ASSESSMENT_TYPED_UPLOAD': uploadTypedFile,
     'ASSESSMENT_EXTRACT_TEXT': extractText,
     'ASSESSMENT_RUN_AI_GRADE': runAIGrade,
     'ASSESSMENT_FINALIZE': finalizeAssessment,
