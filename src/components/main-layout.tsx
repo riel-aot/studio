@@ -10,7 +10,6 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarTrigger,
-  SidebarInset,
 } from '@/components/ui/sidebar';
 
 export function MainLayout({
@@ -26,27 +25,23 @@ export function MainLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <Sidebar>
-          <SidebarHeader>
-            <Logo />
-          </SidebarHeader>
-          <SidebarContent>{navItems}</SidebarContent>
-        </Sidebar>
-        
-        <SidebarInset>
+      <Sidebar>
+        <SidebarHeader>
+          <Logo />
+        </SidebarHeader>
+        <SidebarContent>{navItems}</SidebarContent>
+      </Sidebar>
+      <div className="flex min-h-screen w-full flex-col min-w-0">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-4 sm:px-6">
+            <SidebarTrigger className="md:hidden" />
+            <div className="flex-1" />
+            <UserNav />
+        </header>
+        <main className="w-full flex-1">
           <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
-            <header className="flex h-14 items-center justify-between">
-              <SidebarTrigger className="md:hidden"/>
-              <div className="flex-1" /> 
-              <UserNav />
-            </header>
-            <main className="flex-1">
-                {children}
-            </main>
+            {children}
           </div>
-        </SidebarInset>
-
+        </main>
       </div>
     </SidebarProvider>
   );
