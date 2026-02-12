@@ -21,9 +21,7 @@ ENV NODE_ENV=production
 # Copy the standalone Next.js server output from the builder stage
 COPY --from=builder /app/.next/standalone ./
 
-# Copy the public and static assets
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/static ./.next/static
+
 
 # Expose the port the app will run on.
 # The default is 3000, but our project is configured for 9002.
