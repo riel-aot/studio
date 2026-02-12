@@ -34,27 +34,4 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/classpulse-frontend:latest
             ghcr.io/${{ github.repository_owner }}/classpulse-frontend:${{ github.sha }}
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script: |
-            set -e
-            docker login ghcr.io -u ${{ secrets.GHCR_USER }} -p ${{ secrets.GHCR_TOKEN }}
-            docker pull ghcr.io/${{ github.repository_owner }}/classpulse-frontend:latest
-            docker stop classpulse-frontend || true
-            docker rm classpulse-frontend || true
-            docker run -d \
-              --name classpulse-frontend \
-              --restart unless-stopped \
-              -p 9002:9002 \
-              --env-file /opt/classpulse/.env.local \
-              ghcr.io/${{ github.repository_owner }}/classpulse-frontend:latest
-            docker image prune -f
+ 
