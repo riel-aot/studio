@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/input';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUploader } from '@/components/file-uploader';
 import { Loader2, UserPlus, FileSpreadsheet, UploadCloud, Info } from 'lucide-react';
@@ -125,7 +125,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
               <UserPlus className="h-6 w-6 text-[#2F5BEA]" />
               Manage Enrollment
             </SheetTitle>
-            <SheetDescription className="text-slate-500">
+            <SheetDescription className="text-slate-500 text-sm">
               Add a new student manually or upload a roster via spreadsheet.
             </SheetDescription>
           </SheetHeader>
@@ -151,7 +151,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         <FormItem>
                           <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
                           <FormControl>
-                            <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-slate-200 focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA]" {...field} />
+                            <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-slate-200 focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA] text-sm" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -165,7 +165,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                           <FormItem>
                             <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student ID</FormLabel>
                             <FormControl>
-                              <Input placeholder="System ID Number" className="h-12 rounded-xl border-slate-200" {...field} />
+                              <Input placeholder="System ID Number" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -178,7 +178,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                           <FormItem>
                             <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Academic Level</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Grade 5" className="h-12 rounded-xl border-slate-200" {...field} />
+                              <Input placeholder="e.g., Grade 5" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -193,7 +193,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         <FormItem>
                           <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student Email (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="Official school email address" className="h-12 rounded-xl border-slate-200" {...field} />
+                            <Input placeholder="Official school email address" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -206,7 +206,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         <FormItem>
                           <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Parent / Guardian Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-slate-200" {...field} />
+                            <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -220,11 +220,11 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                       variant="ghost"
                       onClick={() => onOpenChange(false)}
                       disabled={isLoading}
-                      className="font-bold text-slate-400 hover:text-slate-900 h-12"
+                      className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20">
+                    <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm">
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Add Student
                     </Button>
@@ -275,14 +275,14 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                   variant="ghost"
                   onClick={() => onOpenChange(false)}
                   disabled={isLoading}
-                  className="font-bold text-slate-400 hover:text-slate-900 h-12"
+                  className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm"
                 >
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleBulkUpload} 
                   disabled={isLoading || bulkFiles.length === 0}
-                  className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20"
+                  className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm"
                 >
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                   Process Roster
