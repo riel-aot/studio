@@ -60,6 +60,7 @@ export default function AthenaLandingPage() {
     if (newRole === role) return;
     
     // Set rotation: +360 for Parent, -360 for Teacher (relative to current)
+    // We use rotateY for the "ballerina" vertical axis spin
     if (newRole === 'parent') {
       setRotation(prev => prev + 360);
     } else {
@@ -133,7 +134,10 @@ export default function AthenaLandingPage() {
             </div>
 
             {/* Right Column: Login Card Area */}
-            <div className="bg-slate-50/50 p-8 md:p-16 flex flex-col items-center justify-center relative">
+            <div 
+              className="bg-slate-50/50 p-8 md:p-16 flex flex-col items-center justify-center relative"
+              style={{ perspective: '1200px' }}
+            >
               
               {/* Role Switcher Pill */}
               <div className="absolute top-12 flex bg-white p-1 rounded-full shadow-md border border-slate-200 z-10">
@@ -158,16 +162,17 @@ export default function AthenaLandingPage() {
               </div>
 
               <motion.div 
-                animate={{ rotate: rotation }}
+                animate={{ rotateY: rotation }}
                 transition={{ 
                   type: "spring", 
-                  stiffness: 120, 
-                  damping: 15,
-                  mass: 1
+                  stiffness: 70, 
+                  damping: 18,
+                  mass: 1.2
                 }}
                 className="w-full max-w-[460px] space-y-8 mt-12"
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <div className="bg-white p-10 rounded-[1.5rem] shadow-xl border border-slate-100/50">
+                <div className="bg-white p-10 rounded-[1.5rem] shadow-xl border border-slate-100/50" style={{ backfaceVisibility: 'hidden' }}>
                   <div className="text-center mb-10">
                     <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
                       Login as {role === 'teacher' ? 'Teacher' : 'Parent'}
