@@ -132,7 +132,7 @@ export default function TeacherDashboard() {
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
             fill
-            className="object-contain scale-[2.1] origin-bottom-right translate-x-[39px] translate-y-[78px]"
+            className="object-contain scale-[2.1] origin-bottom-right translate-x-[39px] translate-y-[80px]"
             priority
             data-ai-hint="classroom illustration"
           />
