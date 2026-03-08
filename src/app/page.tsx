@@ -97,7 +97,7 @@ export default function AthenaLandingPage() {
               src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1000&auto=format&fit=crop"} 
               alt={heroImage?.description || "Athena Education"}
               fill
-              className="object-contain rounded-2xl"
+              className="object-contain rounded-2xl scale-150"
               priority
               data-ai-hint="classroom data"
             />
