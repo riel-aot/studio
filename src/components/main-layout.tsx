@@ -29,7 +29,7 @@ export function MainLayout({
 
   return (
     <SidebarProvider>
-        <Sidebar collapsible="icon" className="border-r border-[#E5E7EB]">
+        <Sidebar collapsible="icon" className="border-r border-[#E5E7EB]" id="onboarding-sidebar">
           <SidebarHeader className="h-16 flex items-center justify-center border-b border-[#E5E7EB]">
             <Logo />
           </SidebarHeader>
