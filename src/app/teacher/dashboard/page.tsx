@@ -29,10 +29,18 @@ const gradeDistData = [
   { range: 'F', count: 1, fill: '#E5E7EB' },
 ];
 
+const gradeDistDataDark = [
+  { range: 'A', count: 12, fill: '#3B82F6' },
+  { range: 'B', count: 18, fill: '#2563EB' },
+  { range: 'C', count: 8, fill: '#1D4ED8' },
+  { range: 'D', count: 3, fill: '#1E3A8A' },
+  { range: 'F', count: 1, fill: '#1F2937' },
+];
+
 function DashboardLoadingSkeleton() {
   return (
     <div className="space-y-8">
-      <div className="h-64 w-full rounded-2xl bg-white animate-pulse" />
+      <div className="h-64 w-full rounded-2xl bg-white dark:bg-[#111827] animate-pulse" />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCardSkeleton />
         <StatCardSkeleton />
@@ -115,19 +123,19 @@ export default function TeacherDashboard() {
     <div className="space-y-8">
       <OnboardingTour />
       
-      {/* Welcome Banner - Solid Blue Layout */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] text-white p-8 md:p-12 shadow-lg min-h-[240px] flex items-center border border-[#E5E7EB]">
+      {/* Welcome Banner - Redesigned Gradient for Dark Mode */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] dark:bg-gradient-to-br dark:from-[#1D4ED8] dark:to-[#1E3A8A] text-white p-8 md:p-12 shadow-lg min-h-[240px] flex items-center border border-[#E5E7EB] dark:border-[#1F2937]">
         <div className="max-w-md space-y-4 relative z-10">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Welcome back, {user?.name || 'Teacher'}
           </h1>
-          <p className="text-blue-100 text-sm md:text-base font-medium leading-relaxed">
+          <p className="text-blue-100 dark:text-blue-200 text-sm md:text-base font-medium leading-relaxed">
             You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
           </p>
         </div>
 
-        {/* Classroom Illustration - Anchored bottom-right with 2.1x scale */}
-        <div className="absolute right-0 bottom-0 h-48 w-72 pointer-events-none">
+        {/* Classroom Illustration */}
+        <div className="absolute right-0 bottom-0 h-48 w-72 pointer-events-none opacity-90 dark:opacity-80">
           <Image 
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
@@ -142,12 +150,12 @@ export default function TeacherDashboard() {
       {/* Today's Teacher Brief */}
       <div id="onboarding-kpis" className="space-y-4">
         <div className="flex items-center gap-3">
-          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center">
-            <Sparkles className="h-3 w-3 text-[#2F5BEA]" />
+          <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center">
+            <Sparkles className="h-3 w-3 text-[#2F5BEA] dark:text-[#3B82F6]" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[#111827]">Today&apos;s Teacher Brief</h2>
-            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Action Items</p>
+            <h2 className="text-base font-bold text-[#111827] dark:text-[#E5E7EB]">Today&apos;s Teacher Brief</h2>
+            <p className="text-[10px] text-slate-500 dark:text-slate-500 font-medium uppercase tracking-wider">Action Items</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -181,14 +189,14 @@ export default function TeacherDashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Main Feed: Priority Tasks */}
         <div className="lg:col-span-8 space-y-6">
-          <Card id="onboarding-review-queue" className="border-[#E5E7EB] shadow-sm overflow-hidden">
-            <CardHeader className="bg-white border-b border-[#F1F2F6] py-3 px-6">
+          <Card id="onboarding-review-queue" className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm overflow-hidden">
+            <CardHeader className="bg-white dark:bg-[#111827] border-b border-[#F1F2F6] dark:border-[#1F2937] py-3 px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base font-bold text-[#111827]">Grading Priority</CardTitle>
-                  <CardDescription className="text-[10px] text-slate-500">Submissions ready for validation.</CardDescription>
+                  <CardTitle className="text-base font-bold text-[#111827] dark:text-[#E5E7EB]">Grading Priority</CardTitle>
+                  <CardDescription className="text-[10px] text-slate-500 dark:text-slate-500">Submissions ready for validation.</CardDescription>
                 </div>
-                <Badge variant="secondary" className="bg-blue-50 text-[#2F5BEA] border-none font-bold text-[9px]">
+                <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-500/10 text-[#2F5BEA] dark:text-[#3B82F6] border-none font-bold text-[9px]">
                   {reviewQueueData?.items.length || 0} ITEMS
                 </Badge>
               </div>
@@ -196,12 +204,12 @@ export default function TeacherDashboard() {
             <CardContent className="p-0 overflow-x-auto">
               {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
                 <Table>
-                  <TableHeader className="bg-slate-50/50">
-                    <TableRow className="hover:bg-transparent border-b border-[#F1F2F6]">
-                      <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider pl-6">Student</TableHead>
-                      <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Assessment</TableHead>
-                      <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Status</TableHead>
-                      <TableHead className="hidden md:table-cell text-right font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Last Update</TableHead>
+                  <TableHeader className="bg-slate-50/50 dark:bg-[#1F2937]/30">
+                    <TableRow className="hover:bg-transparent border-b border-[#F1F2F6] dark:border-[#1F2937]">
+                      <TableHead className="font-bold text-[#111827] dark:text-slate-400 h-10 text-[10px] uppercase tracking-wider pl-6">Student</TableHead>
+                      <TableHead className="font-bold text-[#111827] dark:text-slate-400 h-10 text-[10px] uppercase tracking-wider">Assessment</TableHead>
+                      <TableHead className="font-bold text-[#111827] dark:text-slate-400 h-10 text-[10px] uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="hidden md:table-cell text-right font-bold text-[#111827] dark:text-slate-400 h-10 text-[10px] uppercase tracking-wider">Last Update</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -210,20 +218,20 @@ export default function TeacherDashboard() {
                       <TableRow
                         key={item.assessmentId}
                         onClick={() => openReview({ assessmentId: normalizeAssessmentIdentifier(item.assessmentId) ?? item.assessmentId })}
-                        className="group cursor-pointer hover:bg-slate-50/80 transition-colors border-b border-[#F1F2F6] last:border-0"
+                        className="group cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/20 transition-colors border-b border-[#F1F2F6] dark:border-[#1F2937] last:border-0"
                       >
-                        <TableCell className="font-semibold text-[#111827] py-3 pl-6 text-sm">{item.studentName}</TableCell>
-                        <TableCell className="text-slate-600 py-3 text-sm">{item.assessmentName}</TableCell>
+                        <TableCell className="font-semibold text-[#111827] dark:text-[#E5E7EB] py-3 pl-6 text-sm">{item.studentName}</TableCell>
+                        <TableCell className="text-slate-600 dark:text-slate-400 py-3 text-sm">{item.assessmentName}</TableCell>
                         <TableCell className="py-3">
-                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'destructive'} className="rounded-md font-bold uppercase text-[8px] tracking-wider px-1.5 py-0 whitespace-nowrap">
+                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'destructive'}>
                             {item.status === 'ai_draft_ready' ? 'AI READY' : 'REVIEW'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-right text-slate-400 py-3 font-medium text-xs">
+                        <TableCell className="hidden md:table-cell text-right text-slate-400 dark:text-slate-500 py-3 font-medium text-xs">
                           {formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true }).replace('about ', '')}
                         </TableCell>
                         <TableCell className="text-right py-3 pr-4">
-                          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-[#2F5BEA] group-hover:translate-x-0.5 transition-all" />
+                          <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-700 group-hover:text-[#2F5BEA] dark:group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition-all" />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -231,12 +239,12 @@ export default function TeacherDashboard() {
                 </Table>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                  <div className="h-10 w-10 bg-blue-50 rounded-full flex items-center justify-center mb-3">
-                    <Sparkles className="h-5 w-5 text-[#2F5BEA]" />
+                  <div className="h-10 w-10 bg-blue-50 dark:bg-blue-500/10 rounded-full flex items-center justify-center mb-3">
+                    <Sparkles className="h-5 w-5 text-[#2F5BEA] dark:text-[#3B82F6]" />
                   </div>
-                  <h3 className="text-sm font-bold text-[#111827]">Queue Cleared</h3>
-                  <p className="text-[10px] text-slate-500 max-w-xs mt-1">All current submissions have been processed.</p>
-                  <Button size="sm" onClick={() => startNewAssessment()} className="mt-4 bg-[#2F5BEA] font-bold text-xs h-9">
+                  <h3 className="text-sm font-bold text-[#111827] dark:text-[#E5E7EB]">Queue Cleared</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-500 max-w-xs mt-1">All current submissions have been processed.</p>
+                  <Button size="sm" onClick={() => startNewAssessment()} className="mt-4 bg-[#2F5BEA] dark:bg-[#3B82F6] font-bold text-xs h-9">
                     <FilePlus className="mr-2 h-3.5 w-3.5" /> New Assessment
                   </Button>
                 </div>
@@ -245,57 +253,57 @@ export default function TeacherDashboard() {
           </Card>
 
           {/* Class Health Snapshot */}
-          <Card className="border-[#E5E7EB] shadow-sm overflow-hidden">
-            <CardHeader className="bg-white border-b border-[#F1F2F6] py-3 px-6">
+          <Card className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm overflow-hidden">
+            <CardHeader className="bg-white dark:bg-[#111827] border-b border-[#F1F2F6] dark:border-[#1F2937] py-3 px-6">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-[#2F5BEA]" />
-                <CardTitle className="text-base font-bold text-[#111827]">Class Health Snapshot</CardTitle>
+                <Activity className="h-4 w-4 text-[#2F5BEA] dark:text-[#3B82F6]" />
+                <CardTitle className="text-base font-bold text-[#111827] dark:text-[#E5E7EB]">Class Health Snapshot</CardTitle>
               </div>
-              <CardDescription className="text-[10px] text-slate-500">Real-time classroom engagement metrics.</CardDescription>
+              <CardDescription className="text-[10px] text-slate-500 dark:text-slate-500">Real-time classroom engagement metrics.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                     <GraduationCap className="h-3 w-3" />
                     <span className="text-[9px] font-bold uppercase tracking-wider">Avg Grade</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-[#111827]">78%</span>
-                    <span className="text-[9px] font-bold text-green-600">+2%</span>
+                    <span className="text-xl font-bold text-[#111827] dark:text-[#E5E7EB]">78%</span>
+                    <span className="text-[9px] font-bold text-green-600 dark:text-green-500">+2%</span>
                   </div>
-                  <Progress value={78} className="h-1" />
+                  <Progress value={78} className="h-1 bg-slate-100 dark:bg-[#1F2937]" />
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                     <CheckCircle2 className="h-3 w-3" />
                     <span className="text-[9px] font-bold uppercase tracking-wider">Completion</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-[#111827]">84%</span>
-                    <span className="text-[9px] font-bold text-slate-400">Tgt: 90%</span>
+                    <span className="text-xl font-bold text-[#111827] dark:text-[#E5E7EB]">84%</span>
+                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">Tgt: 90%</span>
                   </div>
-                  <Progress value={84} className="h-1" />
+                  <Progress value={84} className="h-1 bg-slate-100 dark:bg-[#1F2937]" />
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <AlertTriangle className="h-3 w-3 text-amber-500" />
+                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                    <AlertTriangle className="h-3 w-3 text-amber-500 dark:text-amber-600" />
                     <span className="text-[9px] font-bold uppercase tracking-wider">At Risk</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-destructive">4</span>
-                    <span className="text-[9px] font-bold text-slate-400">Students</span>
+                    <span className="text-xl font-bold text-destructive dark:text-amber-500">4</span>
+                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">Students</span>
                   </div>
-                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="bg-destructive h-full" style={{ width: '15%' }} />
+                  <div className="h-1 bg-slate-100 dark:bg-[#1F2937] rounded-full overflow-hidden">
+                    <div className="bg-destructive dark:bg-amber-600 h-full" style={{ width: '15%' }} />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-[10px] font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+                <h4 className="text-[10px] font-bold text-slate-900 dark:text-slate-400 flex items-center gap-2 uppercase tracking-wide">
                   Grade Distribution
                 </h4>
                 <div className="h-[160px] w-full">
@@ -309,7 +317,8 @@ export default function TeacherDashboard() {
                       />
                       <Tooltip 
                         cursor={{fill: 'transparent'}}
-                        contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', fontSize: '10px'}}
+                        contentStyle={{backgroundColor: '#111827', borderRadius: '8px', border: '1px solid #1F2937', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', fontSize: '10px'}}
+                        itemStyle={{color: '#E5E7EB'}}
                       />
                       <Bar 
                         dataKey="count" 
@@ -317,7 +326,7 @@ export default function TeacherDashboard() {
                         barSize={28}
                       >
                         {gradeDistData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                          <Cell key={`cell-${index}`} fill={entry.fill} className="dark:opacity-80" />
                         ))}
                       </Bar>
                     </BarChart>
@@ -330,44 +339,44 @@ export default function TeacherDashboard() {
 
         {/* Side Actions & Drafts */}
         <div className="lg:col-span-4 space-y-6">
-          <Card id="onboarding-quick-actions" className="bg-[#2F5BEA] text-white border-none shadow-lg shadow-blue-500/20 overflow-hidden relative">
-            <div className="absolute top-[-20px] right-[-20px] h-32 w-32 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <Card id="onboarding-quick-actions" className="bg-[#2F5BEA] dark:bg-[#1E293B] text-white border-none shadow-lg shadow-blue-500/20 overflow-hidden relative">
+            <div className="absolute top-[-20px] right-[-20px] h-32 w-32 bg-white/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
             <CardHeader className="py-4">
               <CardTitle className="text-base font-bold">Quick Actions</CardTitle>
-              <CardDescription className="text-blue-100 text-[10px]">Common tasks.</CardDescription>
+              <CardDescription className="text-blue-100 dark:text-slate-400 text-[10px]">Common tasks.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-2 relative z-10">
-              <Button size="sm" onClick={() => startNewAssessment()} className="w-full bg-white text-[#2F5BEA] hover:bg-blue-50 h-9 font-bold rounded-lg transition-all border-none text-[10px]">
+              <Button size="sm" onClick={() => startNewAssessment()} className="w-full bg-white dark:bg-[#3B82F6] text-[#2F5BEA] dark:text-white hover:bg-blue-50 dark:hover:bg-[#2563EB] h-9 font-bold rounded-lg transition-all border-none text-[10px]">
                 <FilePlus className="mr-2 h-3.5 w-3.5" /> New Assessment
               </Button>
-              <Button asChild size="sm" variant="outline" className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 h-9 font-bold rounded-lg text-[10px]">
+              <Button asChild size="sm" variant="outline" className="w-full bg-transparent border-white/20 dark:border-slate-700 text-white hover:bg-white/10 dark:hover:bg-slate-800 h-9 font-bold rounded-lg text-[10px]">
                 <Link href="/teacher/assessments"><PenSquare className="mr-2 h-3.5 w-3.5" /> All Assignments</Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-[#E5E7EB] shadow-sm">
+          <Card className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm">
             <CardHeader className="pb-3 pt-4 px-6">
               <div className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 text-slate-400" />
-                <CardTitle className="text-sm font-bold">Recent Drafts</CardTitle>
+                <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-600" />
+                <CardTitle className="text-sm font-bold text-[#111827] dark:text-[#E5E7EB]">Recent Drafts</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-2 px-4 pb-4">
               {draftsData?.items && draftsData.items.length > 0 ? (
                 draftsData.items.map((draft) => (
-                  <div key={draft.assessmentId} className="flex items-center justify-between group p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-slate-100">
+                  <div key={draft.assessmentId} className="flex items-center justify-between group p-2 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
                     <div className="min-w-0">
-                      <p className="text-[11px] font-bold text-[#111827] truncate">{draft.assessmentName}</p>
-                      <p className="text-[9px] text-slate-500 mt-0.5">{draft.studentName}</p>
+                      <p className="text-[11px] font-bold text-[#111827] dark:text-[#E5E7EB] truncate">{draft.assessmentName}</p>
+                      <p className="text-[9px] text-slate-500 dark:text-slate-500 mt-0.5">{draft.studentName}</p>
                     </div>
-                    <ChevronRight className="h-3 w-3 text-slate-300 group-hover:text-[#2F5BEA] transition-colors shrink-0" />
+                    <ChevronRight className="h-3 w-3 text-slate-300 dark:text-slate-700 group-hover:text-[#2F5BEA] dark:group-hover:text-[#3B82F6] transition-colors shrink-0" />
                   </div>
                 ))
               ) : (
-                <p className="text-[10px] text-slate-400 text-center py-4">No active drafts.</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-600 text-center py-4">No active drafts.</p>
               )}
-              <Button variant="ghost" className="w-full text-[#2F5BEA] font-bold hover:bg-blue-50 text-[9px] mt-1 h-8" asChild>
+              <Button variant="ghost" className="w-full text-[#2F5BEA] dark:text-[#3B82F6] font-bold hover:bg-blue-50 dark:hover:bg-blue-500/10 text-[9px] mt-1 h-8" asChild>
                 <Link href="/teacher/assessments?status=draft">View All Drafts</Link>
               </Button>
             </CardContent>
