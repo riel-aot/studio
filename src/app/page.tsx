@@ -1,88 +1,94 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { UserRole } from '@/lib/auth';
+import { Logo } from '@/components/logo';
 
-export default function AthΞnaLandingPage() {
+export default function AthenaIntroPage() {
+  const [stage, setStage] = useState<'intro' | 'transitioning' | 'login'>('intro');
+  const [role, setRole] = useState<UserRole>('teacher');
+  const { login } = useAuth();
+
+  useEffect(() => {
+    // Stage 1: Reveal central brand (Intro)
+    const timer1 = setTimeout(() => setStage('transitioning'), 2500);
+    // Stage 2: Move to side and reveal login
+    const timer2 = setTimeout(() => setStage('login'), 3200);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    login(role);
+  };
+
   // Animation variants for the "writing" effect
   const wordVariants = {
     hidden: { clipPath: 'inset(0 100% 0 0)' },
     visible: {
       clipPath: 'inset(0 0% 0 0)',
-      transition: { duration: 2, ease: [0.45, 0.05, 0.55, 0.95] }
+      transition: { duration: 1.5, ease: [0.45, 0.05, 0.55, 0.95] }
     }
   };
 
+  const isIntro = stage === 'intro';
+  const isLogin = stage === 'login' || stage === 'transitioning';
+
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFBF7]">
-      {/* Ambient Background Elements */}
+      {/* Background Ambience */}
       <div className="absolute inset-0 z-0">
         <motion.div
           animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.3, 0.2],
-            x: [0, 30, 0],
-            y: [0, -20, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut"
+            opacity: isLogin ? 0.4 : 0.2,
+            scale: isLogin ? 1.2 : 1,
           }}
           className="absolute -top-24 -left-24 w-[40rem] h-[40rem] rounded-full bg-blue-50/30 blur-[100px]"
         />
-        <motion.div
-          animate={{
-            scale: [1.1, 1, 1.1],
-            opacity: [0.15, 0.25, 0.15],
-            x: [0, -30, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute -bottom-24 -right-24 w-[35rem] h-[35rem] rounded-full bg-amber-50/40 blur-[100px]"
-        />
       </div>
 
-      {/* Hero Content */}
-      <div className="relative z-10 w-full max-w-4xl px-6 text-center md:text-left md:px-12">
-        <div className="flex flex-col gap-10 items-center md:items-start">
-          
-          <div className="space-y-0.5">
-            <div className="flex items-baseline justify-center md:justify-start">
+      <div className="relative z-10 w-full max-w-4xl px-6">
+        {/* The "AthΞna" Brand Component that moves */}
+        <div className="flex flex-col items-center justify-center">
+          <motion.div
+            layout
+            transition={{
+              layout: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+            }}
+            style={{
+              position: isIntro ? 'relative' : 'absolute',
+              top: isIntro ? 'auto' : '2.5rem',
+              left: isIntro ? 'auto' : '2.5rem',
+              transform: isIntro ? 'none' : 'none',
+            }}
+            className="flex flex-col items-center md:items-start"
+          >
+            <div className="flex items-baseline">
               <motion.span
                 initial="hidden"
                 animate="visible"
                 variants={wordVariants}
                 style={{ fontFamily: "'Pinyon Script', cursive" }}
-                className="text-7xl md:text-9xl text-slate-900 pr-2"
+                className={`${isIntro ? 'text-7xl md:text-9xl' : 'text-4xl md:text-5xl'} text-slate-900 pr-1 transition-all duration-700`}
               >
                 Ath
               </motion.span>
               
               <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1,
-                  textShadow: [
-                    "0 0 0px rgba(59, 130, 246, 0)",
-                    "0 0 20px rgba(59, 130, 246, 0.2)",
-                    "0 0 0px rgba(59, 130, 246, 0)"
-                  ]
-                }}
-                transition={{ 
-                  delay: 1.2, 
-                  duration: 1.5, 
-                  textShadow: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-                }}
-                className="text-6xl md:text-8xl text-blue-600/80 font-serif leading-none"
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className={`${isIntro ? 'text-6xl md:text-8xl' : 'text-3xl md:text-4xl'} text-blue-600/80 font-serif leading-none transition-all duration-700`}
               >
                 Ξ
               </motion.span>
@@ -94,56 +100,102 @@ export default function AthΞnaLandingPage() {
                   hidden: { clipPath: 'inset(0 100% 0 0)' },
                   visible: {
                     clipPath: 'inset(0 0% 0 0)',
-                    transition: { delay: 1.5, duration: 1.5, ease: [0.45, 0.05, 0.55, 0.95] }
+                    transition: { delay: 1, duration: 1, ease: [0.45, 0.05, 0.55, 0.95] }
                   }
                 }}
                 style={{ fontFamily: "'Pinyon Script', cursive" }}
-                className="text-7xl md:text-9xl text-slate-900 pl-1"
+                className={`${isIntro ? 'text-7xl md:text-9xl' : 'text-4xl md:text-5xl'} text-slate-900 pl-0.5 transition-all duration-700`}
               >
                 na
               </motion.span>
             </div>
+            
+            <AnimatePresence>
+              {isIntro && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ delay: 1.8 }}
+                  className="text-[10px] md:text-xs uppercase tracking-[0.5em] font-medium text-slate-400 mt-[-10px] md:mt-[-20px] ml-2"
+                >
+                  by ClassPulse
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 2.8, duration: 1.2 }}
-              className="text-[10px] md:text-xs uppercase tracking-[0.5em] font-medium text-slate-400 mt-[-10px] md:mt-[-20px] ml-2"
-            >
-              by ClassPulse
-            </motion.p>
-          </div>
-
+          {/* Login Content - Fades in after AthΞna moves */}
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 3.2, duration: 1 }}
-            className="space-y-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: isLogin ? 1 : 0, y: isLogin ? 0 : 20 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-full mt-24"
           >
-            <p className="text-lg md:text-xl text-slate-500 max-w-sm font-light leading-relaxed tracking-wide italic">
-              A calmer, smarter way to manage teaching.
-            </p>
+            {isLogin && (
+              <div className="grid w-full max-w-4xl gap-6 md:grid-cols-2 mx-auto">
+                <Card className="flex flex-col justify-center p-8 bg-white/50 backdrop-blur-sm border-slate-100">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <Logo className="opacity-50 grayscale" />
+                      <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">Portal</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
+                      Student progress. Clear communication.
+                    </h1>
+                    <p className="mt-2 text-muted-foreground">
+                      Built for schools, teachers, and families.
+                    </p>
+                  </CardContent>
+                </Card>
 
-            <motion.div
-              whileHover={{ x: 8 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            >
-              <Button 
-                asChild 
-                size="lg" 
-                className="bg-slate-900 hover:bg-slate-800 text-white px-10 py-7 text-lg rounded-full shadow-2xl shadow-slate-200 transition-all duration-500 group"
-              >
-                <Link href="/login" className="flex items-center">
-                  Enter Portal
-                  <motion.span
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <ArrowRight className="ml-3 h-5 w-5" />
-                  </motion.span>
-                </Link>
-              </Button>
-            </motion.div>
+                <Card className="p-2 sm:p-6 shadow-xl shadow-slate-200/50 border-slate-100">
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-2xl text-slate-800">Welcome back</CardTitle>
+                    <CardDescription>Sign in to continue</CardDescription>
+                  </CardHeader>
+                  <form onSubmit={handleLogin}>
+                    <CardContent className="grid gap-4">
+                      <RadioGroup
+                        defaultValue="teacher"
+                        className="grid grid-cols-2 gap-4"
+                        value={role}
+                        onValueChange={(value: UserRole) => setRole(value)}
+                      >
+                        <div>
+                          <RadioGroupItem value="teacher" id="teacher" className="peer sr-only" />
+                          <Label
+                            htmlFor="teacher"
+                            className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary transition-all cursor-pointer"
+                          >
+                            Teacher
+                          </Label>
+                        </div>
+                        <div>
+                          <RadioGroupItem value="parent" id="parent" className="peer sr-only" />
+                          <Label
+                            htmlFor="parent"
+                            className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary transition-all cursor-pointer"
+                          >
+                            Parent
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-2">
+                      <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 h-12 text-base rounded-full transition-all duration-300">
+                        Sign In as {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Demo access enabled.
+                      </p>
+                    </CardFooter>
+                  </form>
+                </Card>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
@@ -151,24 +203,10 @@ export default function AthΞnaLandingPage() {
       {/* Branded accent line */}
       <motion.div 
         initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 3.5, duration: 2, ease: "circOut" }}
+        animate={{ scaleX: isLogin ? 1 : 0 }}
+        transition={{ duration: 1.5 }}
         className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-blue-100 to-transparent opacity-30"
       />
-
-      {/* Quiet Footer */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.3 }}
-        transition={{ delay: 4, duration: 2 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0"
-      >
-        <div className="flex gap-10 text-[9px] uppercase tracking-[0.6em] text-slate-400 font-bold">
-          <span>Focus</span>
-          <span>Efficiency</span>
-          <span>Insight</span>
-        </div>
-      </motion.div>
     </main>
   );
 }
