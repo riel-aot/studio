@@ -13,29 +13,61 @@ import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
- * Brand component: ATHENA in modern semi-bold sans-serif (Inter).
+ * Brand component: ATHENA with intro animation.
  */
 function AthenaBrand({ isSmall = false }: { isSmall?: boolean }) {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 15, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+  };
+
   return (
-    <div className="flex flex-col">
-      <span
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-col"
+    >
+      <motion.span
+        variants={itemVariants}
         className={cn(
           isSmall ? 'text-lg' : 'text-3xl md:text-4xl',
           "font-semibold text-[#3b7ddd] tracking-tight leading-none font-sans"
         )}
       >
         ATHENA
-      </span>
-      <span className="text-slate-400 font-medium mt-1 text-[9px] md:text-[10px] font-sans uppercase tracking-widest">
+      </motion.span>
+      <motion.span
+        variants={itemVariants}
+        className="text-slate-400 font-medium mt-1 text-[9px] md:text-[10px] font-sans uppercase tracking-widest"
+      >
         by ClassPulse
-      </span>
-    </div>
+      </motion.span>
+    </motion.div>
   );
 }
 
 export default function AthenaLandingPage() {
   const [role, setRole] = useState<UserRole>('teacher');
-  const [rotation, setRotation] = useState(0);
   const { login } = useAuth();
 
   const handleLogin = (e: React.FormEvent) => {
@@ -45,13 +77,6 @@ export default function AthenaLandingPage() {
 
   const toggleRole = (newRole: UserRole) => {
     if (newRole === role) return;
-    
-    // Set rotation for the 3D vertical spin effect
-    if (newRole === 'parent') {
-      setRotation(prev => prev + 360);
-    } else {
-      setRotation(prev => prev - 360);
-    }
     setRole(newRole);
   };
 
@@ -106,10 +131,7 @@ export default function AthenaLandingPage() {
         </div>
 
         {/* Right Column: Login Card Area */}
-        <div 
-          className="bg-slate-50/50 p-8 md:p-16 flex flex-col items-center justify-center relative"
-          style={{ perspective: '1200px' }}
-        >
+        <div className="bg-slate-50/50 p-8 md:p-16 flex flex-col items-center justify-center relative">
           
           {/* Role Switcher Pill */}
           <div className="absolute top-12 flex bg-white p-1 rounded-full shadow-md border border-slate-200 z-10">
@@ -134,17 +156,21 @@ export default function AthenaLandingPage() {
           </div>
 
           <motion.div 
-            animate={{ rotateY: rotation }}
+            key={role}
+            initial={{ x: 0, scale: 0.98, opacity: 0.8 }}
+            animate={{ 
+              x: [0, -4, 4, -4, 0],
+              scale: 1,
+              opacity: 1
+            }}
             transition={{ 
-              type: "spring", 
-              stiffness: 70, 
-              damping: 18,
-              mass: 1.2
+              x: { duration: 0.4, ease: "easeInOut" },
+              scale: { type: "spring", stiffness: 300, damping: 20 },
+              opacity: { duration: 0.3 }
             }}
             className="w-full max-w-[460px] space-y-8 mt-12"
-            style={{ transformStyle: 'preserve-3d' }}
           >
-            <div className="bg-white p-10 rounded-[1.5rem] shadow-xl border border-slate-100/50" style={{ backfaceVisibility: 'hidden' }}>
+            <div className="bg-white p-10 rounded-[1.5rem] shadow-xl border border-slate-100/50">
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
                   Login as {role === 'teacher' ? 'Teacher' : 'Parent'}
