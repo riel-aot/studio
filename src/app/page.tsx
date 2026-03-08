@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -12,7 +11,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CheckCircle2 } from 'lucide-react';
 import type { UserRole } from '@/lib/auth';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
  * Reusable Brand component with a refined serif reveal animation
@@ -77,8 +75,6 @@ export default function AthenaIntroPage() {
   const [role, setRole] = useState<UserRole>('teacher');
   const { login } = useAuth();
 
-  const heroImage = PlaceHolderImages.find(img => img.id === 'login-hero');
-
   useEffect(() => {
     const timer = setTimeout(() => setStage('login'), 2200);
     return () => clearTimeout(timer);
@@ -113,92 +109,56 @@ export default function AthenaIntroPage() {
               className="bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden grid lg:grid-cols-2 min-h-[750px] border border-slate-100"
             >
               {/* Left Column: Branding & Info */}
-              <div className="p-8 md:p-16 flex flex-col justify-between bg-white relative overflow-hidden">
-                <div className="space-y-10 relative z-10">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2, duration: 0.6 }}
-                  >
+              <div className="p-8 md:p-16 flex flex-col justify-between bg-white">
+                <div className="space-y-10">
+                  <div>
                     <AthΞnaBrand isSmall />
                     <p className="text-slate-400 font-medium mt-1 ml-1 text-sm tracking-wide uppercase">
                       by ClassPulse
                     </p>
-                  </motion.div>
+                  </div>
 
                   <div className="space-y-6">
-                    <motion.h1 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4, duration: 0.6 }}
-                      className="text-4xl md:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight"
-                    >
+                    <h1 className="text-4xl md:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight">
                       Smarter grading <br />starts here.
-                    </motion.h1>
-                    <motion.p 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5, duration: 0.6 }}
-                      className="text-lg text-slate-500 max-w-md font-medium leading-relaxed"
-                    >
+                    </h1>
+                    <p className="text-lg text-slate-500 max-w-md font-medium leading-relaxed">
                       Athena provides high-end AI assistance to help teachers gain deeper insights from student work while saving hours every week.
-                    </motion.p>
+                    </p>
 
                     <ul className="space-y-5 pt-6">
                       {[
                         "Institutional-grade AI review",
                         "Visual student progress insights",
                         "Modern classroom orchestration"
-                      ].map((item, i) => (
-                        <motion.li 
-                          key={item}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.7 + i * 0.1, duration: 0.5 }}
-                          className="flex items-center gap-4 text-slate-700 font-semibold"
-                        >
+                      ].map((item) => (
+                        <li key={item} className="flex items-center gap-4 text-slate-700 font-semibold">
                           <div className="h-6 w-6 rounded-full bg-emerald-50 flex items-center justify-center">
                             <CheckCircle2 className="text-emerald-500 h-4 w-4" />
                           </div>
                           {item}
-                        </motion.li>
+                        </li>
                       ))}
                     </ul>
                   </div>
                 </div>
 
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.8, duration: 1 }}
-                  className="mt-12 relative h-72 md:h-96 w-full overflow-hidden rounded-3xl bg-slate-50 border border-slate-100 shadow-sm"
-                >
-                  <motion.div
-                    animate={{ scale: [1, 1.03, 1] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0"
-                  >
-                    <Image 
-                      src={heroImage?.imageUrl || ""} 
-                      alt="Classroom technology"
-                      fill
-                      className="object-cover"
-                      priority
-                      data-ai-hint="modern classroom"
-                    />
-                  </motion.div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
-                </motion.div>
+                <div className="mt-12 relative h-72 md:h-96 w-full overflow-hidden rounded-3xl bg-slate-50 border border-slate-100">
+                  <Image 
+                    src="https://picsum.photos/seed/athena-edu/800/1000" 
+                    alt="Classroom background"
+                    fill
+                    className="object-cover"
+                    priority
+                    data-ai-hint="modern classroom"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
+                </div>
               </div>
 
               {/* Right Column: Login Form */}
-              <div className="bg-[#FAFBFC] p-8 md:p-16 flex flex-col items-center justify-center relative">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4, duration: 0.6 }}
-                  className="w-full max-w-[460px]"
-                >
+              <div className="bg-[#FAFBFC] p-8 md:p-16 flex flex-col items-center justify-center">
+                <div className="w-full max-w-[460px]">
                   <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] bg-white p-10 md:p-12 rounded-[2.5rem]">
                     <div className="text-center mb-10">
                       <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome Back</h2>
@@ -250,14 +210,9 @@ export default function AthenaIntroPage() {
                         </div>
                       </div>
 
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 h-16 text-lg font-bold rounded-2xl transition-all shadow-xl shadow-slate-200">
-                          Sign In
-                        </Button>
-                      </motion.div>
+                      <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 h-16 text-lg font-bold rounded-2xl transition-all shadow-xl shadow-slate-200">
+                        Sign In
+                      </Button>
 
                       <div className="relative py-4">
                         <div className="absolute inset-0 flex items-center">
@@ -288,7 +243,7 @@ export default function AthenaIntroPage() {
                       </div>
                     </form>
                   </Card>
-                </motion.div>
+                </div>
 
                 <footer className="mt-12 text-[11px] text-slate-400 flex gap-6 font-bold uppercase tracking-widest">
                   <span>© 2026 AthΞna</span>
