@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Check } from 'lucide-react';
 import type { UserRole } from '@/lib/auth';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 /**
  * Brand component: ATHENA in bold blue sans-serif (Inter).
@@ -41,7 +42,8 @@ function AthenaBrand({ isSmall = false, layoutId = "brand" }: { isSmall?: boolea
 
 export default function AthenaLandingPage() {
   const [stage, setStage] = useState<'intro' | 'login'>('intro');
-  const [role] = useState<UserRole>('teacher');
+  const [role, setRole] = useState<UserRole>('teacher');
+  const [rotation, setRotation] = useState(0);
   const { login } = useAuth();
 
   useEffect(() => {
@@ -54,10 +56,22 @@ export default function AthenaLandingPage() {
     login(role);
   };
 
+  const toggleRole = (newRole: UserRole) => {
+    if (newRole === role) return;
+    
+    // Set rotation: +360 for Parent, -360 for Teacher (relative to current)
+    if (newRole === 'parent') {
+      setRotation(prev => prev + 360);
+    } else {
+      setRotation(prev => prev - 360);
+    }
+    setRole(newRole);
+  };
+
   const isIntro = stage === 'intro';
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center bg-[#e9ecef] p-4 md:p-8 font-sans">
+    <main className="min-h-screen w-full flex items-center justify-center bg-[#e9ecef] p-4 md:p-8 font-sans overflow-hidden">
       <AnimatePresence mode="wait">
         {isIntro ? (
           <motion.div
@@ -86,14 +100,14 @@ export default function AthenaLandingPage() {
                     Smarter grading starts here.
                   </h1>
                   <p className="text-slate-500 max-w-lg text-lg leading-relaxed font-medium">
-                    Athena helps teachers grade faster, track student progress, and gain insights from their classroom data.
+                    Athena helps {role === 'teacher' ? 'teachers' : 'parents'} {role === 'teacher' ? 'grade faster, track student progress,' : 'track their child\'s progress'} and gain insights from classroom data.
                   </p>
 
                   <ul className="space-y-4 pt-4">
                     {[
-                      "AI-assisted grading",
-                      "Student progress insights",
-                      "Simple classroom management"
+                      role === 'teacher' ? "AI-assisted grading" : "Real-time grade updates",
+                      role === 'teacher' ? "Student progress insights" : "Performance trends",
+                      role === 'teacher' ? "Simple classroom management" : "Direct teacher communication"
                     ].map((item) => (
                       <li key={item} className="flex items-center gap-3 text-slate-700 text-lg font-medium">
                         <div className="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
@@ -119,11 +133,46 @@ export default function AthenaLandingPage() {
             </div>
 
             {/* Right Column: Login Card Area */}
-            <div className="bg-slate-50/50 p-8 md:p-16 flex flex-col items-center justify-center">
-              <div className="w-full max-w-[460px] space-y-8">
+            <div className="bg-slate-50/50 p-8 md:p-16 flex flex-col items-center justify-center relative">
+              
+              {/* Role Switcher Pill */}
+              <div className="absolute top-12 flex bg-white p-1 rounded-full shadow-md border border-slate-200 z-10">
+                <button
+                  onClick={() => toggleRole('teacher')}
+                  className={cn(
+                    "px-6 py-2 rounded-full text-sm font-bold transition-all",
+                    role === 'teacher' ? "bg-[#3b7ddd] text-white" : "text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  Teacher
+                </button>
+                <button
+                  onClick={() => toggleRole('parent')}
+                  className={cn(
+                    "px-6 py-2 rounded-full text-sm font-bold transition-all",
+                    role === 'parent' ? "bg-[#3b7ddd] text-white" : "text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  Parent
+                </button>
+              </div>
+
+              <motion.div 
+                animate={{ rotate: rotation }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 120, 
+                  damping: 15,
+                  mass: 1
+                }}
+                className="w-full max-w-[460px] space-y-8 mt-12"
+              >
                 <div className="bg-white p-10 rounded-[1.5rem] shadow-xl border border-slate-100/50">
                   <div className="text-center mb-10">
-                    <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Welcome Back!</h2>
+                    <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
+                      Login as {role === 'teacher' ? 'Teacher' : 'Parent'}
+                    </h2>
+                    <p className="text-slate-400 text-sm mt-2 font-medium">Welcome back to Athena</p>
                   </div>
 
                   <form onSubmit={handleLogin} className="space-y-6">
@@ -133,7 +182,7 @@ export default function AthenaLandingPage() {
                         <Input 
                           id="email" 
                           type="email" 
-                          placeholder="Enter your email" 
+                          placeholder={role === 'teacher' ? "Teacher email" : "Parent email"}
                           className="h-14 rounded-xl bg-white border-slate-200 focus:border-[#3b7ddd] focus:ring-[#3b7ddd] transition-all px-4 text-base" 
                         />
                       </div>
@@ -142,7 +191,7 @@ export default function AthenaLandingPage() {
                         <Input 
                           id="password" 
                           type="password" 
-                          placeholder="Enter your password" 
+                          placeholder="••••••••" 
                           className="h-14 rounded-xl bg-white border-slate-200 focus:border-[#3b7ddd] focus:ring-[#3b7ddd] transition-all px-4 text-base" 
                         />
                       </div>
@@ -176,12 +225,6 @@ export default function AthenaLandingPage() {
                       </svg>
                       Sign in with Google
                     </Button>
-
-                    <div className="text-center space-y-1">
-                      <p className="text-[11px] text-slate-400 font-medium">
-                        Your data is protected and securely encrypted.
-                      </p>
-                    </div>
                   </form>
                 </div>
 
@@ -191,7 +234,7 @@ export default function AthenaLandingPage() {
                   <button className="hover:text-slate-600 transition-colors"> Terms</button> | 
                   <button className="hover:text-slate-600 transition-colors"> Support</button>
                 </footer>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}
