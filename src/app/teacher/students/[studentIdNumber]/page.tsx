@@ -2,8 +2,6 @@
 
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import type { StudentListItem } from "@/lib/events";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,9 +20,6 @@ const STUDENT_DETAIL_CACHE_KEY_PREFIX = 'n8n:student-detail:';
 function ProfilePageSkeleton() {
     return (
         <div>
-            <div className="mb-4">
-                <Skeleton className="h-9 w-36" />
-            </div>
             <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <Skeleton className="h-9 w-48 mb-3" />
@@ -234,11 +229,6 @@ export default function StudentDetailPage() {
   if (error) {
     return (
         <div>
-            <div className="mb-4">
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/teacher/students"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Students</Link>
-                </Button>
-            </div>
             <ErrorState onRetry={fetchStudent} />
         </div>
     )
@@ -246,23 +236,12 @@ export default function StudentDetailPage() {
 
   if (!student) {
     return <div>
-         <div className="mb-4">
-            <Button asChild variant="outline" size="sm">
-                <Link href="/teacher/students"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Students</Link>
-            </Button>
-        </div>
         <p>Student not found.</p>
     </div>;
   }
 
   return (
     <div className="w-full">
-      <div className="mb-4">
-        <Button asChild variant="outline" size="sm">
-            <Link href="/teacher/students"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Students</Link>
-        </Button>
-      </div>
-      
       <PageHeader
         title={student.name}
         description={

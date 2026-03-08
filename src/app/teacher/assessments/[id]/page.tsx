@@ -6,8 +6,7 @@ import { useWebhook } from '@/lib/hooks';
 import type { AssessmentWorkspaceData, AISuggestion, RubricListItem } from '@/lib/events';
 import { Button } from '@/components/ui/button';
 import { FileUploader } from '@/components/file-uploader';
-import { ArrowLeft, CheckCircle, FileCheck2, FileText, ImageIcon, Loader2, Lock, Sparkles, X } from 'lucide-react';
-import Link from 'next/link';
+import { CheckCircle, FileCheck2, FileText, ImageIcon, Loader2, Lock, Sparkles, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,11 +57,6 @@ function WorkspaceHeader({ data, onRunAI, onFinalize }: { data: AssessmentWorksp
             onConfirm={onFinalize}
         />
         <div className="mb-6">
-            <div className="mb-4">
-                <Button asChild variant="outline" size="sm">
-                    <Link href={`/teacher/students/${data.student.id}`}><ArrowLeft className="mr-2 h-4 w-4" /> Back to Student</Link>
-                </Button>
-            </div>
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{data.title}</h1>
@@ -612,11 +606,6 @@ export default function AssessmentWorkspacePage() {
   if (error || !assessmentData) {
     return (
          <div className="p-6">
-            <div className="mb-4">
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/teacher/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
-                </Button>
-            </div>
             <Alert variant="destructive">
                 <X className="h-4 w-4" />
                 <AlertTitle>Failed to load workspace</AlertTitle>

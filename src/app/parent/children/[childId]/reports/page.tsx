@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useWebhook } from "@/lib/hooks";
 import type { ParentReportsListResponse, ParentReportsListPayload } from "@/lib/events";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Download, ChevronRight, ArrowLeft } from "lucide-react";
+import { AlertCircle, Download, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
@@ -65,11 +65,6 @@ export default function ChildReportsPage() {
     if (isLoading) {
         return (
             <div>
-                 <div className="mb-4">
-                    <Button asChild variant="outline" size="sm">
-                        <Link href="/parent/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
-                    </Button>
-                </div>
                 <PageHeader title="Reports" description="Loading reports..." />
                 <ReportsSkeleton />
             </div>
@@ -79,11 +74,6 @@ export default function ChildReportsPage() {
     if (error) {
         return (
             <div>
-                <div className="mb-4">
-                    <Button asChild variant="outline" size="sm">
-                        <Link href="/parent/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
-                    </Button>
-                </div>
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
@@ -100,11 +90,6 @@ export default function ChildReportsPage() {
 
     return (
         <div>
-            <div className="mb-4">
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/parent/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
-                </Button>
-            </div>
              <PageHeader
                 title={`Reports for ${data?.studentName || 'your child'}`}
                 description="Here are the progress reports available for viewing."

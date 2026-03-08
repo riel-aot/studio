@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileCheck2, UploadCloud } from "lucide-react";
-import Link from "next/link";
+import { FileCheck2, UploadCloud } from "lucide-react";
 import { FileUploader } from '@/components/file-uploader';
 
 export default function ImportStudentsPage() {
@@ -21,11 +20,6 @@ export default function ImportStudentsPage() {
 
   return (
     <div>
-        <div className="mb-4">
-            <Button asChild variant="outline" size="sm">
-                <Link href="/teacher/students"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Students</Link>
-            </Button>
-        </div>
       <PageHeader
         title="Import Students"
         description="Bulk-add students to your classes using a CSV or Excel file."

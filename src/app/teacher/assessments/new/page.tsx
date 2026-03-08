@@ -10,8 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useWebhook } from "@/lib/hooks";
 import type { RubricListItem } from "@/lib/events";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
@@ -62,11 +60,6 @@ export default function NewAssessmentPage() {
 
     return (
     <div>
-        <div className="mb-4">
-            <Button asChild variant="outline" size="sm">
-                <Link href="/teacher/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
-            </Button>
-        </div>
       <PageHeader
         title="New Assignment"
         description="Create a new assignment that will apply to all students. It will be saved as a draft."

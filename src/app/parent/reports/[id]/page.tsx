@@ -3,8 +3,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Download, ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
-import Link from "next/link";
+import { Download, ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import type { ParentReportGetResponse } from "@/lib/events";
 import { useParams } from "next/navigation";
@@ -71,12 +70,6 @@ export default function ParentReportPage() {
 
   return (
     <div>
-        <div className="mb-4">
-            <Button asChild variant="outline" size="sm">
-                <Link href="/parent/dashboard"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
-            </Button>
-        </div>
-
         {isLoading && <ReportSkeleton />}
         {error && <p className="text-destructive">Failed to load report.</p>}
 
@@ -123,7 +116,6 @@ export default function ParentReportPage() {
                                     {report.sections.growthAreas.map((g,i) => <li key={i}>{g}</li>)}
                                 </ul>
                             </CardContent>
-                        </Card>
                          <Card>
                             <CardHeader><CardTitle>Rubric Snapshot</CardTitle></CardHeader>
                             <CardContent>
