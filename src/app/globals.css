@@ -8,18 +8,18 @@ body {
 
 @layer base {
   :root {
-    --background: 220 14% 96%; /* #F1F2F6 - Softer, low-glare background */
-    --foreground: 221 39% 11%; /* #111827 */
+    --background: 220 14% 96%;
+    --foreground: 221 39% 11%;
     --card: 0 0% 100%;
     --card-foreground: 221 39% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 221 39% 11%;
     --primary: 226 82% 55%; /* #2F5BEA */
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 32% 91%; /* #E5E7EB */
+    --secondary: 214 32% 91%;
     --secondary-foreground: 221 39% 11%;
     --muted: 214 32% 91%;
-    --muted-foreground: 215 16% 47%; /* #6B7280 */
+    --muted-foreground: 215 16% 47%;
     --accent: 226 82% 96%;
     --accent-foreground: 226 82% 55%;
     --destructive: 0 84.2% 60.2%;
@@ -27,15 +27,15 @@ body {
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 226 82% 55%;
-    --radius: 0.75rem; /* 12px */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 221 39% 11%;
-    --sidebar-primary: 226 82% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 226 82% 55%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 226 82% 55%;
+    --radius: 0.75rem;
+    --sidebar-background: 226 82% 55%; /* Match the blue sidebar */
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 226 82% 55%;
+    --sidebar-accent: 0 0% 100% / 0.1;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 226 82% 60%;
+    --sidebar-ring: 0 0% 100%;
   }
   .dark {
     --background: 221 39% 11%;

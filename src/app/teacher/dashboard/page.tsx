@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
-import { PageHeader } from '@/components/page-header';
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,14 +12,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
+import { useAuth } from '@/hooks/use-auth';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
 import { FilePlus, PenSquare, AlertCircle, Users, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, MessageSquare, Calendar, Sparkles, Clock } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
+import Image from 'next/image';
 
-// Mock data for the Class Health Snapshot
 const gradeDistData = [
   { range: 'A', count: 12, fill: '#2F5BEA' },
   { range: 'B', count: 18, fill: '#4F79F2' },
@@ -32,20 +32,12 @@ const gradeDistData = [
 function DashboardLoadingSkeleton() {
   return (
     <div className="space-y-8">
-      <PageHeader title="Dashboard" description="Review queue, drafts, and recent activity." />
+      <div className="h-48 w-full rounded-3xl bg-white animate-pulse" />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
-      </div>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="h-[400px] w-full rounded-2xl bg-white animate-pulse border border-slate-200" />
-        </div>
-        <div className="space-y-8">
-          <div className="h-[300px] w-full rounded-2xl bg-white animate-pulse border border-slate-200" />
-        </div>
       </div>
     </div>
   );
@@ -68,6 +60,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 
 export default function TeacherDashboard() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const { data: kpiData, isLoading: kpiLoading, error: kpiError, trigger: refetchKpis } = useWebhook<{ }, { kpis: DashboardKpis }>({
     eventName: 'GET_DASHBOARD_SUMMARY',
@@ -122,12 +115,31 @@ export default function TeacherDashboard() {
     <div className="space-y-10">
       <OnboardingTour />
       
-      <div className="flex flex-col gap-2">
-        <PageHeader 
-          title="Academic Pulse"
-          description="Your real-time grading queue and classroom performance summary."
-          hideBack
-        />
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden rounded-[2rem] bg-[#2F5BEA] p-1 pt-1">
+        <div className="relative overflow-hidden rounded-[1.9rem] bg-[#2F5BEA] px-10 py-12 flex items-center justify-between">
+          <div className="relative z-10 max-w-2xl space-y-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+              Welcome back, {user?.name || 'Teacher'}
+            </h1>
+            <p className="text-blue-100 text-lg font-medium leading-relaxed max-w-lg">
+              You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Please check your queue to provide feedback to your students.
+            </p>
+          </div>
+          <div className="hidden lg:block relative h-48 w-64 mr-10">
+            <Image 
+              src="https://picsum.photos/seed/athena-banner/600/400" 
+              alt="Classroom illustration"
+              fill
+              className="object-contain"
+              priority
+              data-ai-hint="classroom illustration"
+            />
+          </div>
+          {/* Decorative Background Shapes */}
+          <div className="absolute top-0 right-0 h-full w-1/2 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-0 h-1/2 w-1/3 bg-white/5 rounded-full blur-3xl -ml-20 -mb-20" />
+        </div>
       </div>
 
       {/* Today's Teacher Brief */}
@@ -245,7 +257,6 @@ export default function TeacherDashboard() {
               <CardDescription className="text-slate-500">Real-time aggregate performance and engagement metrics.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              {/* Primary Vitals */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400">
@@ -286,7 +297,6 @@ export default function TeacherDashboard() {
                 </div>
               </div>
 
-              {/* Grade Distribution Chart */}
               <div className="space-y-4">
                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   Grade Distribution
