@@ -151,7 +151,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         <FormItem>
                           <FormLabel className="text-slate-900 font-semibold">Full Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter student's legal full name" className="h-11" {...field} />
+                            <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-11" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

@@ -201,6 +201,9 @@ export function OnboardingTour() {
   const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 10000;
   const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 10000;
 
+  // Use a tighter padding (4px instead of 12px) to ensure the spotlight "fits" target elements precisely
+  const padding = 4;
+
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
       <svg className="absolute inset-0 w-full h-full pointer-events-auto">
@@ -211,11 +214,11 @@ export function OnboardingTour() {
               <motion.rect
                 initial={false}
                 animate={{
-                  x: Math.max(0, spotlightRect.left - 12),
-                  y: Math.max(0, spotlightRect.top - 12),
-                  width: Math.min(windowWidth - Math.max(0, spotlightRect.left - 12) - 12, spotlightRect.width + 24),
-                  height: Math.min(windowHeight - Math.max(0, spotlightRect.top - 12) - 12, spotlightRect.height + 24),
-                  rx: 16,
+                  x: Math.max(0, spotlightRect.left - padding),
+                  y: Math.max(0, spotlightRect.top - padding),
+                  width: Math.min(windowWidth - Math.max(0, spotlightRect.left - padding) - padding, spotlightRect.width + (padding * 2)),
+                  height: Math.min(windowHeight - Math.max(0, spotlightRect.top - padding) - padding, spotlightRect.height + (padding * 2)),
+                  rx: 8,
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 25 }}
                 fill="black"
