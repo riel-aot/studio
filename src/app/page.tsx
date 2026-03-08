@@ -127,7 +127,7 @@ export default function AthenaLandingPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center bg-[#F7F8FB] p-4 md:p-8 font-sans overflow-hidden">
+    <main className="min-h-screen w-full flex items-center justify-center bg-[#F1F2F6] p-4 md:p-8 font-sans overflow-hidden">
       <AnimatePresence mode="wait">
         {!isIntroComplete ? (
           <motion.div
@@ -192,7 +192,7 @@ export default function AthenaLandingPage() {
             </div>
 
             {/* Right Column: Login Card Area */}
-            <div className="bg-[#F7F8FB] p-8 md:p-16 flex flex-col items-center justify-center relative">
+            <div className="bg-[#F1F2F6] p-8 md:p-16 flex flex-col items-center justify-center relative">
               
               {/* Role Switcher Pill */}
               <div className="absolute top-12 flex bg-white p-1 rounded-full shadow-sm border border-[#E5E7EB] z-10">

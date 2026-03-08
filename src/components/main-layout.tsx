@@ -54,7 +54,7 @@ export function MainLayout({
               <div className="w-full flex-1" />
               <UserNav />
           </header>
-          <main className="flex-1 bg-[#F7F8FB]">
+          <main className="flex-1 bg-[#F1F2F6]">
             <div className="mx-auto w-full max-w-7xl p-6 sm:p-10">
               {children}
             </div>
