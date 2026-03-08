@@ -52,7 +52,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
         variants={itemVariants}
         className={cn(
           isSmall ? 'text-lg' : isCentered ? 'text-5xl md:text-6xl' : 'text-3xl md:text-4xl',
-          "font-bold text-[#2F5BEA] tracking-tight leading-none font-sans"
+          "font-semibold text-[#2F5BEA] tracking-tight leading-none font-sans"
         )}
       >
         ATHENA
@@ -88,7 +88,17 @@ export default function AthenaLandingPage() {
     setIsLoading(true);
     setIsError(false);
 
-    // Simulate validation
+    // Simulate validation error demo if email is "error@school.edu"
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    if (formData.get('email') === 'error@school.edu') {
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsError(true);
+      }, 800);
+      return;
+    }
+
+    // Normal login flow
     setTimeout(() => {
       login(role);
     }, 800);
@@ -102,7 +112,7 @@ export default function AthenaLandingPage() {
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'athena-classroom-hero');
 
-  // Animation variants for the card error state
+  // Animation variants for the card error state (the wobble)
   const cardVariants = {
     error: {
       x: [0, -8, 8, -8, 8, 0],
@@ -234,6 +244,7 @@ export default function AthenaLandingPage() {
                             <Label htmlFor="email" className="text-[#111827] font-bold text-sm">Email</Label>
                             <Input 
                               id="email" 
+                              name="email"
                               type="email" 
                               required
                               placeholder={role === 'teacher' ? "teacher@school.edu" : "parent@email.com"}
@@ -247,6 +258,7 @@ export default function AthenaLandingPage() {
                             <Label htmlFor="password" className="text-[#111827] font-bold text-sm">Password</Label>
                             <Input 
                               id="password" 
+                              name="password"
                               type="password" 
                               required
                               placeholder="••••••••" 
@@ -257,6 +269,12 @@ export default function AthenaLandingPage() {
                             />
                           </div>
                         </div>
+
+                        {isError && (
+                          <p className="text-sm font-medium text-destructive text-center">
+                            Invalid credentials. Please try again.
+                          </p>
+                        )}
 
                         <Button 
                           type="submit" 
