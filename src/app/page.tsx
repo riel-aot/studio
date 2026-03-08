@@ -122,7 +122,7 @@ export default function AthenaIntroPage() {
                 <Card className="flex flex-col justify-center p-8 bg-white/50 backdrop-blur-sm border-slate-100">
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">Portal</span>
+                      <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">Athena</span>
                     </div>
                   </CardHeader>
                   <CardContent>
