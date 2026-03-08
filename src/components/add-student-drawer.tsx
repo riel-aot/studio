@@ -105,7 +105,6 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
   const handleBulkUpload = async () => {
     if (bulkFiles.length === 0) return;
     setIsLoading(true);
-    // Simulation of bulk upload logic
     setTimeout(() => {
       toast({
         title: 'Processing File',
@@ -119,8 +118,8 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-xl border-l border-slate-200">
-        <div className="flex flex-col h-full">
+      <SheetContent className="w-full sm:max-w-xl border-l border-slate-200">
+        <div className="flex flex-col h-full overflow-hidden">
           <SheetHeader className="pb-6">
             <SheetTitle className="text-2xl font-bold flex items-center gap-2">
               <UserPlus className="h-6 w-6 text-[#2F5BEA]" />
@@ -131,8 +130,8 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
             </SheetDescription>
           </SheetHeader>
 
-          <Tabs defaultValue="manual" className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+          <Tabs defaultValue="manual" className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-2 mb-6 shrink-0">
               <TabsTrigger value="manual" className="flex items-center gap-2">
                 Manual Entry
               </TabsTrigger>
@@ -141,10 +140,10 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="manual" className="flex-1 flex flex-col m-0">
+            <TabsContent value="manual" className="flex-1 flex flex-col m-0 min-h-0">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onManualSubmit)} className="flex flex-col h-full">
-                  <div className="flex-1 space-y-5 overflow-y-auto pr-2 pb-6">
+                  <div className="flex-1 space-y-5 overflow-y-auto pr-2 pb-6 scrollbar-thin">
                     <FormField
                       control={form.control}
                       name="name"
@@ -158,7 +157,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="studentIdNumber"
@@ -215,7 +214,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                     />
                   </div>
                   
-                  <SheetFooter className="pt-6 border-t mt-auto">
+                  <SheetFooter className="pt-6 border-t mt-auto shrink-0">
                     <Button
                       type="button"
                       variant="ghost"
@@ -234,8 +233,8 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
               </Form>
             </TabsContent>
 
-            <TabsContent value="bulk" className="flex-1 flex flex-col m-0">
-              <div className="flex-1 space-y-6">
+            <TabsContent value="bulk" className="flex-1 flex flex-col m-0 min-h-0">
+              <div className="flex-1 space-y-6 overflow-y-auto pb-6 scrollbar-thin">
                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
                   <Info className="h-5 w-5 text-[#2F5BEA] shrink-0 mt-0.5" />
                   <div className="text-sm text-slate-700 leading-relaxed">
@@ -266,7 +265,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                 </div>
               </div>
 
-              <SheetFooter className="pt-6 border-t mt-auto">
+              <SheetFooter className="pt-6 border-t mt-auto shrink-0">
                 <Button
                   type="button"
                   variant="ghost"

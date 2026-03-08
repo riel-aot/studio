@@ -106,12 +106,10 @@ export function OnboardingTour() {
     setSpotlightRect(null);
   }, [currentStep, steps]);
 
-  // Handle initialization separately to prevent reset loops
   useEffect(() => {
     if (steps.length === 0) return;
     
     const hasSeenTour = localStorage.getItem(storageKey);
-    // Always show in dev for easy testing
     if (process.env.NODE_ENV === 'development' || !hasSeenTour) {
       const timer = setTimeout(() => {
         setIsVisible(true);
@@ -121,7 +119,6 @@ export function OnboardingTour() {
     }
   }, [pathname, storageKey, steps.length]);
 
-  // Handle spotlight sync whenever step changes
   useLayoutEffect(() => {
     if (isVisible) {
       updateSpotlight();
@@ -154,8 +151,8 @@ export function OnboardingTour() {
   };
 
   const getCardPosition = () => {
-    const cardWidth = 360;
-    const cardHeight = 240; // Conservative estimate
+    const cardWidth = Math.min(360, (typeof window !== 'undefined' ? window.innerWidth : 400) - 48);
+    const cardHeight = 240;
     const padding = 24;
     const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
     const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
@@ -174,24 +171,18 @@ export function OnboardingTour() {
     let cardLeft = left + width / 2 - cardWidth / 2;
     let cardTop = bottom + padding;
 
-    // Viewport clamping and intelligent flipping
-    
-    // If spotlight is on the left (e.g. sidebar), place to the right of it
     if (left < 300) {
       cardLeft = right + padding;
       cardTop = top;
     }
-    // If spotlight is on the far right, place to the left of it
     else if (right > windowWidth - 300) {
       cardLeft = left - cardWidth - padding;
       cardTop = top;
     }
-    // If the spotlight is at the bottom, flip card to top
     else if (cardTop + cardHeight > windowHeight - padding) {
       cardTop = top - cardHeight - padding;
     }
 
-    // Final safety clamping to keep card within viewport
     cardLeft = Math.max(padding, Math.min(cardLeft, windowWidth - cardWidth - padding));
     cardTop = Math.max(padding, Math.min(cardTop, windowHeight - cardHeight - padding));
 
@@ -207,6 +198,9 @@ export function OnboardingTour() {
 
   if (!isVisible || steps.length === 0) return null;
 
+  const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 10000;
+  const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 10000;
+
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
       <svg className="absolute inset-0 w-full h-full pointer-events-auto">
@@ -217,10 +211,10 @@ export function OnboardingTour() {
               <motion.rect
                 initial={false}
                 animate={{
-                  x: spotlightRect.left - 12,
-                  y: spotlightRect.top - 12,
-                  width: spotlightRect.width + 24,
-                  height: spotlightRect.height + 24,
+                  x: Math.max(0, spotlightRect.left - 12),
+                  y: Math.max(0, spotlightRect.top - 12),
+                  width: Math.min(windowWidth - Math.max(0, spotlightRect.left - 12) - 12, spotlightRect.width + 24),
+                  height: Math.min(windowHeight - Math.max(0, spotlightRect.top - 12) - 12, spotlightRect.height + 24),
                   rx: 16,
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 25 }}
@@ -248,7 +242,7 @@ export function OnboardingTour() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ type: 'spring', stiffness: 250, damping: 25 }}
-            className="w-full max-w-[360px] pointer-events-auto"
+            className="w-[calc(100vw-48px)] max-w-[360px] pointer-events-auto"
             style={getCardPosition()}
           >
             <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-none ring-1 ring-black/5 bg-white overflow-hidden">
