@@ -15,9 +15,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FilePlus, PenSquare, FileText, AlertCircle, Users, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, MessageSquare, Calendar, Sparkles, Clock } from 'lucide-react';
+import { FilePlus, PenSquare, AlertCircle, Users, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, MessageSquare, Calendar, Sparkles, Clock } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
-import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 
 // Mock data for the Class Health Snapshot
@@ -27,14 +27,6 @@ const gradeDistData = [
   { range: 'C', count: 8, fill: '#7F9CF5' },
   { range: 'D', count: 3, fill: '#A5B4FC' },
   { range: 'F', count: 1, fill: '#E5E7EB' },
-];
-
-const attendanceData = [
-  { day: 'Mon', rate: 98 },
-  { day: 'Tue', rate: 95 },
-  { day: 'Wed', rate: 99 },
-  { day: 'Thu', rate: 94 },
-  { day: 'Fri', rate: 92 },
 ];
 
 function DashboardLoadingSkeleton() {
@@ -149,7 +141,7 @@ export default function TeacherDashboard() {
             <p className="text-sm text-slate-500 font-medium">Daily action items for your classroom</p>
           </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
             title="Needs Grading" 
             value={kpiData?.kpis.pendingReview ?? 3} 
@@ -192,7 +184,7 @@ export default function TeacherDashboard() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
                 <Table>
                   <TableHeader className="bg-slate-50/50">
@@ -214,7 +206,7 @@ export default function TeacherDashboard() {
                         <TableCell className="font-semibold text-[#111827] py-4">{item.studentName}</TableCell>
                         <TableCell className="text-slate-600 py-4">{item.assessmentName}</TableCell>
                         <TableCell className="py-4">
-                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'destructive'} className="rounded-md font-bold uppercase text-[10px] tracking-wider px-2 py-0.5">
+                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'destructive'} className="rounded-md font-bold uppercase text-[10px] tracking-wider px-2 py-0.5 whitespace-nowrap">
                             {item.status === 'ai_draft_ready' ? 'AI READY' : 'REVIEW'}
                           </Badge>
                         </TableCell>
@@ -254,7 +246,7 @@ export default function TeacherDashboard() {
             </CardHeader>
             <CardContent className="p-6">
               {/* Primary Vitals */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400">
                     <GraduationCap className="h-4 w-4" />
@@ -294,75 +286,35 @@ export default function TeacherDashboard() {
                 </div>
               </div>
 
-              {/* Sub-charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Grade Distribution */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    Grade Distribution
-                  </h4>
-                  <div className="h-[180px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={gradeDistData}>
-                        <XAxis 
-                          dataKey="range" 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
-                        />
-                        <Tooltip 
-                          cursor={{fill: 'transparent'}}
-                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
-                        />
-                        <Bar 
-                          dataKey="count" 
-                          radius={[4, 4, 0, 0]}
-                          barSize={32}
-                        >
-                          {gradeDistData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Attendance Trend */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    Attendance Trend
-                  </h4>
-                  <div className="h-[180px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={attendanceData}>
-                        <defs>
-                          <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2F5BEA" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#2F5BEA" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis 
-                          dataKey="day" 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
-                        />
-                        <YAxis hide domain={[0, 100]} />
-                        <Tooltip 
-                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="rate" 
-                          stroke="#2F5BEA" 
-                          strokeWidth={3} 
-                          fillOpacity={1} 
-                          fill="url(#colorAttendance)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+              {/* Grade Distribution Chart */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  Grade Distribution
+                </h4>
+                <div className="h-[220px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={gradeDistData}>
+                      <XAxis 
+                        dataKey="range" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
+                      />
+                      <Tooltip 
+                        cursor={{fill: 'transparent'}}
+                        contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                      />
+                      <Bar 
+                        dataKey="count" 
+                        radius={[4, 4, 0, 0]}
+                        barSize={48}
+                      >
+                        {gradeDistData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </CardContent>
@@ -382,7 +334,7 @@ export default function TeacherDashboard() {
                 <FilePlus className="mr-2 h-5 w-5" /> New Assessment
               </Button>
               <Button asChild variant="outline" className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 h-12 font-bold rounded-xl">
-                <Link href="/teacher/assessments"><FileText className="mr-2 h-5 w-5" /> All Assignments</Link>
+                <Link href="/teacher/assessments"><PenSquare className="mr-2 h-5 w-5" /> All Assignments</Link>
               </Button>
             </CardContent>
           </Card>

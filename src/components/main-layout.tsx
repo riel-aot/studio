@@ -38,9 +38,6 @@ export function MainLayout({
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-slate-400 hover:text-slate-900" />
                 <div className="h-6 w-px bg-slate-200" />
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:inline-block">
-                  Athena Academic Portal
-                </span>
               </div>
               <div className="w-full flex-1" />
               <UserNav />
