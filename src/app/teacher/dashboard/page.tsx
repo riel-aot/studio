@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useCallback } from 'react';
@@ -18,6 +17,7 @@ import { useWebhook } from '@/lib/hooks';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
 import { FileEdit, FilePlus, PenSquare, FileText, AlertCircle, Users, ChevronRight } from 'lucide-react';
+import { OnboardingTour } from '@/components/onboarding-tour';
 
 function DashboardLoadingSkeleton() {
   return (
@@ -183,18 +183,19 @@ export default function TeacherDashboard() {
 
   return (
     <div>
+      <OnboardingTour />
       <PageHeader 
         title="Dashboard"
         description="Review queue, drafts, and recent activity."
       />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div id="onboarding-kpis" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <StatCard title="Pending Review" value={kpiData?.kpis.pendingReview ?? 0} icon={PenSquare} />
         <StatCard title="Drafts" value={kpiData?.kpis.drafts ?? 0} icon={FileEdit} />
         <StatCard title="Finalized This Week" value={kpiData?.kpis.finalizedThisWeek ?? 0} icon={Users} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div id="onboarding-review-queue" className="lg:col-span-2">
             <Card className="h-full">
             <CardHeader>
                 <CardTitle>To Review</CardTitle>
@@ -249,7 +250,7 @@ export default function TeacherDashboard() {
             </Card>
         </div>
 
-        <div className="space-y-6">
+        <div id="onboarding-quick-actions" className="space-y-6">
           <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
