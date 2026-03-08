@@ -29,11 +29,15 @@ export function MainLayout({
   
   if (!user) return null;
 
+  const dashboardLink = user.role === 'teacher' ? '/teacher/dashboard' : '/parent/dashboard';
+
   return (
     <SidebarProvider>
         <Sidebar collapsible="icon" className="border-none shadow-xl bg-[#2F5BEA]" id="onboarding-sidebar">
           <SidebarHeader className="h-24 flex items-start justify-center px-8 pt-8 transition-all duration-200 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:items-center">
-            <Logo light />
+            <Link href={dashboardLink} className="transition-transform hover:scale-[1.02] active:scale-[0.98]">
+              <Logo light />
+            </Link>
           </SidebarHeader>
           
           <div className="px-4 group-data-[state=collapsed]:px-2">

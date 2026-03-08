@@ -59,9 +59,9 @@ export default function TeacherLayout({
                   : "text-white/70 hover:bg-white/5 hover:text-white"
               )}
             >
-              <Link href={href} className="flex items-center gap-3 w-full">
+              <Link href={href} className="flex items-center gap-3 w-full group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0">
                 <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-white/60")} />
-                <span className="text-sm group-data-[state=collapsed]:hidden">{label}</span>
+                <span className="text-sm group-data-[state=collapsed]:hidden whitespace-nowrap">{label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
