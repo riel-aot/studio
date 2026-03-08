@@ -28,7 +28,7 @@ const mockJwt = (user: { id: string, role: UserRole, name: string }) => {
 
 const teacherUser: User = {
   id: 'teacher-01',
-  name: 'Dr. Evelyn Reed',
+  name: 'Evelyn Reed',
   email: 'e.reed@school.edu',
   avatarUrl: 'https://picsum.photos/seed/teacher1/100/100',
   role: 'teacher',
