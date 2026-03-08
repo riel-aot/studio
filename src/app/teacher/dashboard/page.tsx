@@ -120,7 +120,7 @@ export default function TeacherDashboard() {
       
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] p-px">
-        <div className="relative overflow-hidden rounded-[0.95rem] bg-[#2F5BEA] px-8 py-8 flex items-center justify-between">
+        <div className="relative overflow-hidden rounded-[0.95rem] bg-[#2F5BEA] px-8 py-10 flex items-center justify-between min-h-[200px]">
           <div className="relative z-10 max-w-xl space-y-2">
             <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
               Welcome back, {user?.name || 'Teacher'}
@@ -129,12 +129,12 @@ export default function TeacherDashboard() {
               You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
             </p>
           </div>
-          <div className="hidden lg:block relative h-32 w-48 mr-10">
+          <div className="hidden lg:block relative h-48 w-72 mr-4 overflow-visible">
             <Image 
-              src={bannerImage?.imageUrl || "https://picsum.photos/seed/athena-banner/600/400"} 
-              alt={bannerImage?.description || "Classroom illustration"}
+              src="/images/athena-classroom.png" 
+              alt="Classroom illustration"
               fill
-              className="object-contain scale-125 translate-y-4"
+              className="object-contain scale-[2.0] translate-y-6"
               priority
               data-ai-hint="classroom illustration"
             />
