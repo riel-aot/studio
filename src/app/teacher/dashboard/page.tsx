@@ -132,7 +132,7 @@ export default function TeacherDashboard() {
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
             fill
-            className="object-contain scale-[2.0] origin-bottom-right translate-x-[29px] translate-y-[68px]"
+            className="object-contain scale-[2.0] origin-bottom-right translate-x-[14px] translate-y-[73px]"
             priority
             data-ai-hint="classroom illustration"
           />
@@ -197,15 +197,13 @@ export default function TeacherDashboard() {
               {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
                 <Table>
                   <TableHeader className="bg-slate-50/50">
-                    <TableHeader className="bg-slate-50/50">
-                      <TableRow className="hover:bg-transparent border-b border-[#F1F2F6]">
-                        <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider pl-6">Student</TableHead>
-                        <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Assessment</TableHead>
-                        <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Status</TableHead>
-                        <TableHead className="hidden md:table-cell text-right font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Last Update</TableHead>
-                        <TableHead className="w-10"></TableHead>
-                      </TableRow>
-                    </TableHeader>
+                    <TableRow className="hover:bg-transparent border-b border-[#F1F2F6]">
+                      <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider pl-6">Student</TableHead>
+                      <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Assessment</TableHead>
+                      <TableHead className="font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="hidden md:table-cell text-right font-bold text-[#111827] h-10 text-[10px] uppercase tracking-wider">Last Update</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
                   </TableHeader>
                   <TableBody>
                     {reviewQueueData.items.map((item) => (
