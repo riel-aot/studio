@@ -146,7 +146,7 @@ export default function AthenaLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-white rounded-2xl shadow-xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-[#E5E7EB]"
+            className="bg-white rounded-[2rem] shadow-xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-[#E5E7EB]"
           >
             {/* Left Column: Value Proposition */}
             <div className="pt-10 md:pt-16 px-10 md:px-16 pb-10 md:pb-16 flex flex-col justify-between bg-white">
@@ -221,7 +221,7 @@ export default function AthenaLandingPage() {
                 animate={isError ? "error" : "idle"}
                 className="w-full max-w-[460px] space-y-8 mt-12"
               >
-                <div className="bg-white p-10 rounded-2xl shadow-lg border border-[#E5E7EB] min-h-[500px] flex flex-col">
+                <div className="bg-white p-10 rounded-[2rem] shadow-lg border border-[#E5E7EB] min-h-[500px] flex flex-col">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={role}
