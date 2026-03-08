@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileText, ChevronRight, Search } from 'lucide-react';
+import { PlusCircle, FileText, ChevronRight, Search, Users, School } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { StudentListItem } from '@/lib/events';
@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AddStudentDrawer } from '@/components/add-student-drawer';
 import { Input } from '@/components/ui/input';
 import { OnboardingTour } from '@/components/onboarding-tour';
+import { Badge } from '@/components/ui/badge';
 
 const N8N_STUDENT_LIST_WEBHOOK = 'https://n8n.srv1336679.hstgr.cloud/webhook/0889db3b-9b44-46a2-a5a2-0e1513fb884b';
 const STUDENT_LIST_CACHE_KEY = 'n8n:student-list';
@@ -47,8 +48,8 @@ function StudentListSkeleton() {
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle><Skeleton className="h-6 w-32" /></CardTitle>
-                <CardDescription><Skeleton className="h-4 w-48" /></CardDescription>
+                <Skeleton className="h-6 w-32 mb-2" />
+                <Skeleton className="h-4 w-48" />
             </CardHeader>
             <CardContent>
                 <Table>
@@ -78,12 +79,15 @@ function StudentListSkeleton() {
 
 function EmptyState({ onAddStudent }: { onAddStudent: () => void }) {
     return (
-        <div className="text-center py-16 border-dashed border-2 rounded-lg w-full">
-            <h3 className="text-xl font-semibold">No students yet</h3>
-            <p className="text-muted-foreground mt-2 mb-4">Add your first student to start creating assessments.</p>
-            <Button onClick={onAddStudent}>
-                <PlusCircle className="mr-2" />
-                Add Student
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-2xl border border-dashed border-slate-300 w-full shadow-sm">
+            <div className="h-20 w-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                <Users className="h-10 w-10 text-[#2F5BEA]" />
+            </div>
+            <h3 className="text-2xl font-bold text-[#111827]">Build Your Roster</h3>
+            <p className="text-slate-500 mt-2 mb-8 max-w-sm">No students found. Start by manually adding your first student or importing your class roster.</p>
+            <Button onClick={onAddStudent} size="lg" className="bg-[#2F5BEA] font-bold px-8 h-12 rounded-xl">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Enroll First Student
             </Button>
         </div>
     )
@@ -176,46 +180,30 @@ export default function StudentsPage() {
     };
 
     if (isLoading) return (
-        <div className="w-full">
+        <div className="space-y-8">
              <PageHeader
-                title="Students"
-                description="All students in your classes."
-                actions={
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href="/teacher/assessments"><FileText/> View Assessments</Link>
-                        </Button>
-                        <Button onClick={() => setIsDrawerOpen(true)}><PlusCircle/> Add Student</Button>
-                    </div>
-                }
+                title="Student Roster"
+                description="Manage enrollment and track performance for all students."
+                hideBack
             />
             <StudentListSkeleton />
         </div>
     );
     
     if (error) return (
-        <div className="w-full">
-            <PageHeader
-                title="Students"
-                description="All students in your classes."
-                actions={
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href="/teacher/assessments"><FileText/> View Assessments</Link>
-                        </Button>
-                        <Button onClick={() => setIsDrawerOpen(true)}><PlusCircle/> Add Student</Button>
-                    </div>
-                }
-            />
-            <div className="p-8 text-center bg-white rounded-xl border border-destructive/20">
-                <p className="text-destructive font-medium mb-4">Failed to load students: {error}</p>
-                <Button onClick={fetchStudents} variant="outline">Retry</Button>
+        <div className="space-y-8">
+            <PageHeader title="Student Roster" description="Manage enrollment." hideBack />
+            <div className="p-12 text-center bg-white rounded-2xl border border-destructive/20 shadow-sm">
+                <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4 opacity-20" />
+                <p className="text-destructive font-bold text-lg">Synchronization Offline</p>
+                <p className="text-slate-500 mb-6">{error}</p>
+                <Button onClick={fetchStudents} variant="outline" className="font-bold">Retry Sync</Button>
             </div>
         </div>
     );
 
     return (
-        <div className="w-full">
+        <div className="space-y-10">
             <OnboardingTour />
             <AddStudentDrawer
                 isOpen={isDrawerOpen}
@@ -225,36 +213,45 @@ export default function StudentsPage() {
                     fetchStudents();
                 }}
             />
-            <PageHeader
-                title="Students"
-                description="All students in your classes."
-                actions={
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href="/teacher/assessments"><FileText/> View Assessments</Link>
-                        </Button>
-                        <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)} className="bg-[#2F5BEA] hover:bg-[#2447C6] font-bold">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Student
-                        </Button>
-                    </div>
-                }
-            />
+            
+            <div className="flex flex-col gap-2">
+                <PageHeader
+                    title="Student Roster"
+                    description="The central directory for all students across your active classes."
+                    hideBack
+                    actions={
+                        <div className="flex gap-3">
+                            <Button variant="outline" className="h-11 rounded-xl font-bold text-slate-600 border-slate-200" asChild>
+                                <Link href="/teacher/assessments"><FileText className="mr-2 h-4 w-4" /> Assignments</Link>
+                            </Button>
+                            <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-11 rounded-xl font-bold px-6 shadow-md shadow-blue-500/20 transition-all">
+                                <PlusCircle className="mr-2 h-4 w-4 stroke-[3]" /> Add Student
+                            </Button>
+                        </div>
+                    }
+                />
+            </div>
 
             {students.length > 0 ? (
-                 <Card id="onboarding-student-list" className="w-full border-[#E5E7EB] shadow-sm overflow-hidden">
-                    <CardHeader className="bg-white pb-6 border-b border-[#F1F2F6]">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <CardTitle className="text-xl font-bold text-[#111827]">Roster</CardTitle>
-                                <CardDescription className="text-slate-500">
-                                    {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'} {searchQuery && 'matching your search'}
-                                </CardDescription>
+                 <Card id="onboarding-student-list" className="border-[#E5E7EB] shadow-sm overflow-hidden rounded-2xl">
+                    <CardHeader className="bg-white pb-8 border-b border-[#F1F2F6]">
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                                    <School className="h-6 w-6 text-[#2F5BEA]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-2xl font-bold text-[#111827]">Active Enrollment</CardTitle>
+                                    <CardDescription className="text-slate-500 font-medium">
+                                        {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'} tracked in the system
+                                    </CardDescription>
+                                </div>
                             </div>
                              <div className="relative w-full max-w-sm">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <Input
-                                    placeholder="Search student name..."
-                                    className="w-full rounded-xl bg-[#F1F2F6] border-none focus:ring-2 focus:ring-[#2F5BEA]/20 pl-10 h-11 text-base transition-all"
+                                    placeholder="Find student by name..."
+                                    className="w-full rounded-xl bg-[#F1F2F6] border-none focus:ring-2 focus:ring-[#2F5BEA]/20 pl-12 h-12 text-base transition-all placeholder:text-slate-400 font-medium"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -266,10 +263,10 @@ export default function StudentsPage() {
                             <Table>
                                 <TableHeader className="bg-slate-50/50">
                                     <TableRow className="hover:bg-transparent border-b border-[#F1F2F6]">
-                                        <TableHead className="font-bold text-[#111827] h-12">Name</TableHead>
-                                        <TableHead className="font-bold text-[#111827] h-12">Grade</TableHead>
-                                        <TableHead className="font-bold text-[#111827] h-12">Student ID</TableHead>
-                                        <TableHead className="text-right w-[50px] h-12"><span className="sr-only">View</span></TableHead>
+                                        <TableHead className="font-bold text-[#111827] h-14 pl-8">Name</TableHead>
+                                        <TableHead className="font-bold text-[#111827] h-14">Academic Level</TableHead>
+                                        <TableHead className="font-bold text-[#111827] h-14">Identifier</TableHead>
+                                        <TableHead className="text-right w-24 h-14 pr-8"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -282,27 +279,36 @@ export default function StudentsPage() {
                                             onClick={() => handleRowClick(student.studentIdNumber)}
                                             onKeyDown={(e) => handleKeyDown(e, student.studentIdNumber)}
                                         >
-                                            <TableCell className="font-semibold text-[#111827] py-4">{student.name}</TableCell>
-                                            <TableCell className="text-slate-600 py-4">{student.grade}</TableCell>
-                                            <TableCell className="font-mono text-xs text-slate-400 py-4 tracking-wider">{student.studentIdNumber}</TableCell>
-                                            <TableCell className="text-right py-4 pr-6">
-                                                <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#2F5BEA] group-hover:translate-x-0.5 transition-all" />
+                                            <TableCell className="font-bold text-[#111827] py-5 pl-8 text-lg">{student.name}</TableCell>
+                                            <TableCell className="py-5">
+                                                <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none font-bold rounded-md px-3 py-1">
+                                                    {student.grade.toUpperCase()}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="font-mono text-xs text-slate-400 py-5 tracking-widest uppercase">{student.studentIdNumber}</TableCell>
+                                            <TableCell className="text-right py-5 pr-8">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <span className="text-[10px] font-bold text-[#2F5BEA] opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">View Profile</span>
+                                                    <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#2F5BEA] group-hover:translate-x-1 transition-all" />
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         ) : (
-                            <div className="py-20 text-center">
-                                <Search className="mx-auto h-12 w-12 text-slate-200 mb-4" />
-                                <h3 className="text-lg font-bold text-[#111827]">No students found</h3>
-                                <p className="text-slate-500">We couldn't find anyone matching &quot;{searchQuery}&quot;</p>
+                            <div className="py-24 text-center px-6">
+                                <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Search className="h-8 w-8 text-slate-300" />
+                                </div>
+                                <h3 className="text-xl font-bold text-[#111827]">No results for &quot;{searchQuery}&quot;</h3>
+                                <p className="text-slate-500 mt-1">Check the spelling or try a broader search term.</p>
                                 <Button 
                                     variant="ghost" 
                                     onClick={() => setSearchQuery('')}
-                                    className="mt-4 text-[#2F5BEA] font-bold"
+                                    className="mt-6 text-[#2F5BEA] font-bold hover:bg-blue-50"
                                 >
-                                    Clear Search
+                                    Reset Filters
                                 </Button>
                             </div>
                         )}
