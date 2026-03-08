@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FileEdit, FilePlus, PenSquare, FileText, AlertCircle, Users, ChevronRight, BarChart3, Clock, Sparkles, Activity, GraduationCap, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { FilePlus, PenSquare, FileText, AlertCircle, Users, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, MessageSquare, Calendar, Sparkles, Clock } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
@@ -41,7 +41,8 @@ function DashboardLoadingSkeleton() {
   return (
     <div className="space-y-8">
       <PageHeader title="Dashboard" description="Review queue, drafts, and recent activity." />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
@@ -137,11 +138,43 @@ export default function TeacherDashboard() {
         />
       </div>
 
-      {/* KPI Section */}
-      <div id="onboarding-kpis" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard title="Action Required" value={kpiData?.kpis.pendingReview ?? 0} icon={PenSquare} description="Pending teacher review" />
-        <StatCard title="Drafts" value={kpiData?.kpis.drafts ?? 0} icon={FileEdit} description="In-progress assignments" />
-        <StatCard title="Week Finalized" value={kpiData?.kpis.finalizedThisWeek ?? 0} icon={Users} description="Assessments completed this week" />
+      {/* Today's Teacher Brief */}
+      <div id="onboarding-kpis" className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-[#2F5BEA]" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[#111827]">Today&apos;s Teacher Brief</h2>
+            <p className="text-sm text-slate-500 font-medium">Daily action items for your classroom</p>
+          </div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard 
+            title="Needs Grading" 
+            value={kpiData?.kpis.pendingReview ?? 3} 
+            icon={PenSquare} 
+            description="Assignments awaiting review" 
+          />
+          <StatCard 
+            title="Missing Work" 
+            value={2} 
+            icon={AlertCircle} 
+            description="Students missing homework" 
+          />
+          <StatCard 
+            title="Parent Messages" 
+            value={1} 
+            icon={MessageSquare} 
+            description="New message waiting" 
+          />
+          <StatCard 
+            title="Due Tomorrow" 
+            value={4} 
+            icon={Calendar} 
+            description="Assignments closing soon" 
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
