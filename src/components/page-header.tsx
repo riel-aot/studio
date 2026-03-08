@@ -29,9 +29,9 @@ export function PageHeader({ title, description, actions, className, hideBack = 
       
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex-1 space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#111827]">{title}</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#111827]">{title}</h1>
           {description && (
-            <div className="text-base text-[#6B7280] font-normal max-w-2xl leading-relaxed">{description}</div>
+            <div className="text-sm text-[#6B7280] font-normal max-w-2xl leading-relaxed">{description}</div>
           )}
         </div>
         {actions && <div className="flex shrink-0 items-center gap-3 py-1">{actions}</div>}

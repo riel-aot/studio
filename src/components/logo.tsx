@@ -11,7 +11,7 @@ export function Logo({ className, light = false }: { className?: string; light?:
         <GraduationCap className="h-5 w-5" />
       </div>
       <span className={cn(
-        "text-2xl font-bold tracking-tight",
+        "text-xl font-bold tracking-tight",
         light ? "text-white" : "text-[#2F5BEA]"
       )}>
         ATHΞNA
