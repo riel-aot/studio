@@ -20,7 +20,6 @@ import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const gradeDistData = [
   { range: 'A', count: 12, fill: '#2F5BEA' },
@@ -116,34 +115,24 @@ export default function TeacherDashboard() {
     <div className="space-y-8">
       <OnboardingTour />
       
-      {/* Welcome Banner - Redesigned to match reference */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] min-h-[280px] flex items-center shadow-lg">
-        {/* Organic White Background Shape */}
-        <div 
-          className="absolute top-0 right-[-10%] h-full w-[70%] bg-white pointer-events-none"
-          style={{
-            borderRadius: '100% 0 0 100% / 50% 0 0 50%',
-            transform: 'scaleX(1.1)'
-          }}
-        />
-        
-        {/* Welcome Text Content */}
-        <div className="relative z-10 px-10 py-12 max-w-xl space-y-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+      {/* Welcome Banner - Reset to clean blue card design */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] p-8 md:p-12 text-white shadow-lg min-h-[240px] flex items-center">
+        <div className="relative z-10 max-w-2xl space-y-4">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Welcome back, {user?.name || 'Teacher'}
           </h1>
-          <p className="text-blue-100 text-sm font-medium leading-relaxed max-w-sm">
+          <p className="text-blue-100 text-sm md:text-base font-medium leading-relaxed max-w-md">
             You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
           </p>
         </div>
 
-        {/* Large Integrated Illustration */}
-        <div className="absolute right-0 bottom-0 h-[115%] w-[60%] z-10 pointer-events-none">
+        {/* Large Illustration scaled to 2x */}
+        <div className="absolute right-[-40px] bottom-[-60px] h-64 w-96 opacity-90 pointer-events-none hidden lg:block">
           <Image 
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
             fill
-            className="object-contain object-right-bottom scale-[1.1] translate-y-4"
+            className="object-contain scale-[2.0]"
             priority
             data-ai-hint="classroom illustration"
           />
