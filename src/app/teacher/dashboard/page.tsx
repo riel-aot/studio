@@ -20,6 +20,7 @@ import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const gradeDistData = [
   { range: 'A', count: 12, fill: '#2F5BEA' },
@@ -108,6 +109,8 @@ export default function TeacherDashboard() {
     if (draftsError) refetchDrafts();
   };
 
+  const bannerImage = PlaceHolderImages.find(img => img.id === 'athena-classroom-hero');
+
   if (isLoading) return <DashboardLoadingSkeleton />;
   if (hasError) return <ErrorState onRetry={handleRetry} />;
 
@@ -128,10 +131,10 @@ export default function TeacherDashboard() {
           </div>
           <div className="hidden lg:block relative h-32 w-48 mr-10">
             <Image 
-              src="https://picsum.photos/seed/athena-banner/600/400" 
-              alt="Classroom illustration"
+              src={bannerImage?.imageUrl || "https://picsum.photos/seed/athena-banner/600/400"} 
+              alt={bannerImage?.description || "Classroom illustration"}
               fill
-              className="object-contain"
+              className="object-contain scale-125 translate-y-4"
               priority
               data-ai-hint="classroom illustration"
             />
