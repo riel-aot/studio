@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
@@ -12,7 +12,9 @@ import type { StudentListItem } from '@/lib/events';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddStudentDrawer } from '@/components/add-student-drawer';
 import { Input } from '@/components/ui/input';
+import { OnboardingTour } from '@/components/onboarding-tour';
 
+const N8N_STUDENT_LIST_WEBHOOK = 'https://n8n.srv1336679.hstgr.cloud/webhook/0889db3b-9b44-46a2-a5a2-0e1513fb884b';
 const STUDENT_LIST_CACHE_KEY = 'n8n:student-list';
 
 const readStudentsCache = (): { timestamp: number; data: StudentListItem[] } | null => {
@@ -53,10 +55,8 @@ function StudentListSkeleton() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead>Class</TableHead>
+                            <TableHead>Grade</TableHead>
                             <TableHead>Student ID</TableHead>
-                            <TableHead>Last Assessment</TableHead>
-                            <TableHead>Status</TableHead>
                             <TableHead className="text-right w-[50px]"><span className="sr-only">View</span></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -66,8 +66,6 @@ function StudentListSkeleton() {
                                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                <TableCell><Skeleton className="h-6 w-28" /></TableCell>
                                 <TableCell className="text-right"><Skeleton className="h-5 w-5" /></TableCell>
                             </TableRow>
                         ))}
@@ -95,6 +93,7 @@ export default function StudentsPage() {
     const router = useRouter();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [students, setStudents] = useState<StudentListItem[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     
@@ -103,13 +102,7 @@ export default function StudentsPage() {
         setError(null);
         
         try {
-            console.log('[StudentList] Fetching from n8n webhook...');
-            
-            const webhookUrl = getWebhookUrl('STUDENT_LIST');
-            let result: any;
-            
-            if (webhookUrl) {
-                const response = await fetch(webhookUrl, {
+            const response = await fetch(N8N_STUDENT_LIST_WEBHOOK, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,59 +110,37 @@ export default function StudentsPage() {
                 body: JSON.stringify({}),
             });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                result = await response.json();
-                console.log('[StudentList] Response from n8n:', result);
-            } else {
-                // Use mock data
-                console.warn('[StudentList] No webhook URL configured, using mock data');
-                const mockRequest = {
-                    eventName: 'STUDENT_LIST' as const,
-                    requestId: crypto.randomUUID(),
-                    timestamp: new Date().toISOString(),
-                    actor: { role: 'teacher' as const, userId: 'teacher-01' },
-                    payload: {},
-                };
-                const mockResponse = getMockResponse(mockRequest);
-                result = mockResponse?.success ? mockResponse.data?.students || [] : [];
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Handle array response from n8n with snake_case field mapping
+            const result = await response.json();
+
             if (Array.isArray(result)) {
-                const mappedStudents = result
-                    .filter((item: any) => item.name && item.student_id) // Filter out index/metadata entries
-                    .map((student: any) => ({
-                        name: student.name,
-                        studentIdNumber: student.student_id,
-                        grade: student.grade,
-                        studentEmail: student.student_email,
-                        parentEmail: student.parent_email,
-                    }));
+                const mappedStudents = result.map((student: any) => ({
+                    name: student.name,
+                    studentIdNumber: student.student_id,
+                    grade: student.grade,
+                    studentEmail: student.student_email,
+                    parentEmail: student.parent_email,
+                }));
                 setStudents(mappedStudents);
                 writeStudentsCache(mappedStudents);
             } else if (result.success && result.data?.students) {
-                // Handle wrapped format if n8n changes to that
-                const mappedStudents = result.data.students
-                    .filter((item: any) => item.name && item.student_id) // Filter out index/metadata entries
-                    .map((student: any) => ({
-                        name: student.name,
-                        studentIdNumber: student.student_id,
-                        grade: student.grade,
-                        studentEmail: student.student_email,
-                        parentEmail: student.parent_email,
-                    }));
+                const mappedStudents = result.data.students.map((student: any) => ({
+                    name: student.name,
+                    studentIdNumber: student.student_id,
+                    grade: student.grade,
+                    studentEmail: student.student_email,
+                    parentEmail: student.parent_email,
+                }));
                 setStudents(mappedStudents);
                 writeStudentsCache(mappedStudents);
             } else {
-                console.warn('[StudentList] Unexpected response format:', result);
                 setStudents([]);
             }
             
         } catch (err) {
-            console.error('[StudentList] Error:', err);
             const cached = readStudentsCache();
             if (cached?.data?.length) {
                 setStudents(cached.data);
@@ -186,6 +157,14 @@ export default function StudentsPage() {
         fetchStudents();
     }, []);
 
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery.trim()) return students;
+        const lowQuery = searchQuery.toLowerCase();
+        return students.filter(student => 
+            student.name.toLowerCase().includes(lowQuery)
+        );
+    }, [students, searchQuery]);
+
     const handleRowClick = (studentIdNumber: string) => {
         router.push(`/teacher/students/${encodeURIComponent(studentIdNumber)}`);
     };
@@ -196,7 +175,6 @@ export default function StudentsPage() {
         }
     };
 
-    
     if (isLoading) return (
         <div className="w-full">
              <PageHeader
@@ -229,8 +207,10 @@ export default function StudentsPage() {
                     </div>
                 }
             />
-            <p className="text-destructive">Failed to load students: {error}</p>
-            <Button onClick={fetchStudents} className="mt-4">Retry</Button>
+            <div className="p-8 text-center bg-white rounded-xl border border-destructive/20">
+                <p className="text-destructive font-medium mb-4">Failed to load students: {error}</p>
+                <Button onClick={fetchStudents} variant="outline">Retry</Button>
+            </div>
         </div>
     );
 
@@ -253,57 +233,79 @@ export default function StudentsPage() {
                         <Button variant="outline" asChild>
                             <Link href="/teacher/assessments"><FileText/> View Assessments</Link>
                         </Button>
-                        <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)}><PlusCircle/> Add Student</Button>
+                        <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)} className="bg-[#2F5BEA] hover:bg-[#2447C6] font-bold">
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Student
+                        </Button>
                     </div>
                 }
             />
 
             {students.length > 0 ? (
-                 <Card id="onboarding-student-list" className="w-full">
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
+                 <Card id="onboarding-student-list" className="w-full border-[#E5E7EB] shadow-sm overflow-hidden">
+                    <CardHeader className="bg-white pb-6 border-b border-[#F1F2F6]">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <CardTitle>All Students ({students.length})</CardTitle>
+                                <CardTitle className="text-xl font-bold text-[#111827]">Roster</CardTitle>
+                                <CardDescription className="text-slate-500">
+                                    {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'} {searchQuery && 'matching your search'}
+                                </CardDescription>
                             </div>
                              <div className="relative w-full max-w-sm">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
                                     placeholder="Search student name..."
-                                    className="w-full rounded-lg bg-secondary pl-8 h-9"
+                                    className="w-full rounded-xl bg-[#F1F2F6] border-none focus:ring-2 focus:ring-[#2F5BEA]/20 pl-10 h-11 text-base transition-all"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Grade</TableHead>
-                                    <TableHead>Student ID</TableHead>
-                                    <TableHead className="text-right w-[50px]"><span className="sr-only">View</span></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {students.map((student: StudentListItem) => (
-                                    <TableRow 
-                                        key={student.studentIdNumber}
-                                        role="link"
-                                        tabIndex={0}
-                                        className="cursor-pointer"
-                                        onClick={() => handleRowClick(student.studentIdNumber)}
-                                        onKeyDown={(e) => handleKeyDown(e, student.studentIdNumber)}
-                                    >
-                                        <TableCell className="font-medium">{student.name}</TableCell>
-                                        <TableCell>{student.grade}</TableCell>
-                                        <TableCell className="font-mono text-xs text-muted-foreground">{student.studentIdNumber}</TableCell>
-                                        <TableCell className="text-right">
-                                            <ChevronRight className="h-4 w-4 text-muted-foreground inline-block opacity-50 group-hover:opacity-100 transition-opacity" />
-                                        </TableCell>
+                    <CardContent className="p-0">
+                        {filteredStudents.length > 0 ? (
+                            <Table>
+                                <TableHeader className="bg-slate-50/50">
+                                    <TableRow className="hover:bg-transparent border-b border-[#F1F2F6]">
+                                        <TableHead className="font-bold text-[#111827] h-12">Name</TableHead>
+                                        <TableHead className="font-bold text-[#111827] h-12">Grade</TableHead>
+                                        <TableHead className="font-bold text-[#111827] h-12">Student ID</TableHead>
+                                        <TableHead className="text-right w-[50px] h-12"><span className="sr-only">View</span></TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredStudents.map((student: StudentListItem) => (
+                                        <TableRow 
+                                            key={student.studentIdNumber}
+                                            role="link"
+                                            tabIndex={0}
+                                            className="group cursor-pointer hover:bg-slate-50/80 transition-colors border-b border-[#F1F2F6] last:border-0"
+                                            onClick={() => handleRowClick(student.studentIdNumber)}
+                                            onKeyDown={(e) => handleKeyDown(e, student.studentIdNumber)}
+                                        >
+                                            <TableCell className="font-semibold text-[#111827] py-4">{student.name}</TableCell>
+                                            <TableCell className="text-slate-600 py-4">{student.grade}</TableCell>
+                                            <TableCell className="font-mono text-xs text-slate-400 py-4 tracking-wider">{student.studentIdNumber}</TableCell>
+                                            <TableCell className="text-right py-4 pr-6">
+                                                <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#2F5BEA] group-hover:translate-x-0.5 transition-all" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <div className="py-20 text-center">
+                                <Search className="mx-auto h-12 w-12 text-slate-200 mb-4" />
+                                <h3 className="text-lg font-bold text-[#111827]">No students found</h3>
+                                <p className="text-slate-500">We couldn't find anyone matching &quot;{searchQuery}&quot;</p>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setSearchQuery('')}
+                                    className="mt-4 text-[#2F5BEA] font-bold"
+                                >
+                                    Clear Search
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             ) : (
