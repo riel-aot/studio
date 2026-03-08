@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useCallback } from 'react';
@@ -126,13 +127,13 @@ export default function TeacherDashboard() {
           </p>
         </div>
 
-        {/* Classroom Illustration - Anchored bottom-right with 2x scale */}
+        {/* Classroom Illustration - Anchored bottom-right with 3x scale */}
         <div className="absolute right-0 bottom-0 h-48 w-72 pointer-events-none">
           <Image 
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
             fill
-            className="object-contain scale-[2.0] origin-bottom-right translate-x-[39px] translate-y-[78px]"
+            className="object-contain scale-[3.0] origin-bottom-right translate-x-[39px] translate-y-[78px]"
             priority
             data-ai-hint="classroom illustration"
           />
