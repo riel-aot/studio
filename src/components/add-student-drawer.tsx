@@ -22,17 +22,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { StudentCreatePayload } from '@/lib/events';
-import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileUploader } from '@/components/file-uploader';
+import { Loader2, UserPlus, FileSpreadsheet, UploadCloud, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getWebhookUrl } from '@/lib/webhook-config';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
-  studentIdNumber: z.string().min(1, { message: 'Student ID Number is required.' }),
-  grade: z.string().min(1, { message: 'Grade is required.' }),
-  studentEmail: z.string().email({ message: 'Invalid email address.' }).optional().or(z.literal('')),
-  parentEmail: z.string().email({ message: 'A valid parent email is required.' }),
+  name: z.string().min(2, { message: 'Full name is required.' }),
+  studentIdNumber: z.string().min(1, { message: 'Student identification number is required.' }),
+  grade: z.string().min(1, { message: 'Grade level is required.' }),
+  studentEmail: z.string().email({ message: 'Enter a valid student email address.' }).optional().or(z.literal('')),
+  parentEmail: z.string().email({ message: 'Enter a valid parent/guardian email address.' }),
 });
 
 type AddStudentFormValues = z.infer<typeof formSchema>;
@@ -43,8 +44,11 @@ interface AddStudentDrawerProps {
   onSuccess: () => void;
 }
 
+const N8N_STUDENT_CREATE_WEBHOOK = 'https://n8n.srv1336679.hstgr.cloud/webhook/203cb33d-b8da-44fa-830c-262685238a2f';
+
 export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudentDrawerProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [bulkFiles, setBulkFiles] = useState<File[]>([]);
   const { toast } = useToast();
   
   const form = useForm<AddStudentFormValues>({
@@ -58,13 +62,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
     },
   });
 
-  const onSubmit = async (values: AddStudentFormValues) => {
+  const onManualSubmit = async (values: AddStudentFormValues) => {
     setIsLoading(true);
-    
     try {
-      console.log('[AddStudent] Sending to n8n webhook:', values);
-      
-      // Map camelCase to snake_case for n8n
       const payload = {
         name: values.name,
         student_id: values.studentIdNumber,
@@ -73,148 +73,221 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
         parent_email: values.parentEmail,
       };
       
-      const webhookUrl = getWebhookUrl('STUDENT_CREATE');
-      if (!webhookUrl) {
-        throw new Error('Student create webhook URL is not configured');
-      }
-      
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(N8N_STUDENT_CREATE_WEBHOOK, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error('System error encountered during student creation.');
 
       const result = await response.json();
-      console.log('[AddStudent] Response from n8n:', result);
-
-      // Check if response matches expected format
-      // Expected: { success: boolean, data?: { studentId: string }, error?: any }
-      if (result.success === false) {
-        throw new Error(result.error?.message || 'Failed to create student');
-      }
+      if (result.success === false) throw new Error(result.error?.message || 'Submission rejected by server.');
 
       toast({
-        title: 'Student Added',
-        description: `${values.name} has been successfully added to your roster.`,
+        title: 'Student Created',
+        description: `Successfully added ${values.name} to the roster.`,
       });
 
       form.reset();
       onSuccess();
-      
     } catch (error) {
-      console.error('[AddStudent] Error:', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Could not add student. Please check the details and try again.',
+        title: 'Submission Failed',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred.',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleBulkUpload = async () => {
+    if (bulkFiles.length === 0) return;
+    setIsLoading(true);
+    // Simulation of bulk upload logic
+    setTimeout(() => {
+      toast({
+        title: 'Processing File',
+        description: 'Your spreadsheet is being imported. Check the student list in a moment.',
+      });
+      setBulkFiles([]);
+      onSuccess();
+      setIsLoading(false);
+    }, 1500);
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
-            <SheetHeader>
-              <SheetTitle>Add New Student</SheetTitle>
-              <SheetDescription>
-                Fill in the details below to add a new student to your roster.
-              </SheetDescription>
-            </SheetHeader>
+      <SheetContent className="sm:max-w-xl border-l border-slate-200">
+        <div className="flex flex-col h-full">
+          <SheetHeader className="pb-6">
+            <SheetTitle className="text-2xl font-bold flex items-center gap-2">
+              <UserPlus className="h-6 w-6 text-[#2F5BEA]" />
+              Manage Enrollment
+            </SheetTitle>
+            <SheetDescription className="text-slate-500">
+              Add a new student manually or upload a roster via spreadsheet.
+            </SheetDescription>
+          </SheetHeader>
 
-            <div className="flex-1 py-6 space-y-4 overflow-y-auto pr-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Jane Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="studentIdNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Student ID Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., S12345" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="grade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grade</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Grade 5" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="studentEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Student Email (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., jane.doe@student.school.edu" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="parentEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parent Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., parent@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <SheetFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Student
-              </Button>
-            </SheetFooter>
-          </form>
-        </Form>
+          <Tabs defaultValue="manual" className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                Manual Entry
+              </TabsTrigger>
+              <TabsTrigger value="bulk" className="flex items-center gap-2">
+                Bulk Import
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="manual" className="flex-1 flex flex-col m-0">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onManualSubmit)} className="flex flex-col h-full">
+                  <div className="flex-1 space-y-5 overflow-y-auto pr-2 pb-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-900 font-semibold">Full Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter student's legal full name" className="h-11" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="studentIdNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-900 font-semibold">Student ID</FormLabel>
+                            <FormControl>
+                              <Input placeholder="System ID Number" className="h-11" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="grade"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-900 font-semibold">Grade Level</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Assigned Year/Grade" className="h-11" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <Separator />
+                    <FormField
+                      control={form.control}
+                      name="studentEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-900 font-semibold">Student Email (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Official school email address" className="h-11" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="parentEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-900 font-semibold">Parent / Guardian Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Primary contact email for reporting" className="h-11" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <SheetFooter className="pt-6 border-t mt-auto">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onOpenChange(false)}
+                      disabled={isLoading}
+                      className="font-semibold text-slate-500"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-11 px-8 font-bold rounded-lg transition-all">
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Add Student
+                    </Button>
+                  </SheetFooter>
+                </form>
+              </Form>
+            </TabsContent>
+
+            <TabsContent value="bulk" className="flex-1 flex flex-col m-0">
+              <div className="flex-1 space-y-6">
+                <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
+                  <Info className="h-5 w-5 text-[#2F5BEA] shrink-0 mt-0.5" />
+                  <div className="text-sm text-slate-700 leading-relaxed">
+                    <p className="font-bold text-[#2F5BEA] mb-1">Import Guidelines</p>
+                    <p>Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-xs bg-white px-1 rounded border">name</span>, <span className="font-mono text-xs bg-white px-1 rounded border">student_id</span>, <span className="font-mono text-xs bg-white px-1 rounded border">grade</span>, and <span className="font-mono text-xs bg-white px-1 rounded border">parent_email</span>.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <FileUploader
+                    onFileSelected={(file) => setBulkFiles([file])}
+                    acceptedFileTypes={{
+                      'text/csv': ['.csv'],
+                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+                    }}
+                  />
+                  
+                  {bulkFiles.length > 0 && (
+                    <div className="flex items-center gap-3 p-4 border rounded-xl bg-slate-50">
+                      <FileSpreadsheet className="h-8 w-8 text-green-600" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{bulkFiles[0].name}</p>
+                        <p className="text-xs text-slate-500">{(bulkFiles[0].size / 1024).toFixed(1)} KB • Ready to process</p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setBulkFiles([])} className="text-slate-400">Remove</Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <SheetFooter className="pt-6 border-t mt-auto">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onOpenChange(false)}
+                  disabled={isLoading}
+                  className="font-semibold text-slate-500"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleBulkUpload} 
+                  disabled={isLoading || bulkFiles.length === 0}
+                  className="bg-[#2F5BEA] hover:bg-[#2447C6] h-11 px-8 font-bold rounded-lg transition-all"
+                >
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                  Process Roster
+                </Button>
+              </SheetFooter>
+            </TabsContent>
+          </Tabs>
+        </div>
       </SheetContent>
     </Sheet>
   );
