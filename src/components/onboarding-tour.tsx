@@ -106,6 +106,7 @@ export function OnboardingTour() {
     setSpotlightRect(null);
   }, [currentStep, steps]);
 
+  // Handle initialization separately to prevent reset loops
   useEffect(() => {
     if (steps.length === 0) return;
     
@@ -115,12 +116,12 @@ export function OnboardingTour() {
       const timer = setTimeout(() => {
         setIsVisible(true);
         setCurrentStep(0);
-        updateSpotlight();
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [pathname, steps, storageKey, updateSpotlight]);
+  }, [pathname, storageKey, steps.length]);
 
+  // Handle spotlight sync whenever step changes
   useLayoutEffect(() => {
     if (isVisible) {
       updateSpotlight();
@@ -131,11 +132,11 @@ export function OnboardingTour() {
         window.removeEventListener('scroll', updateSpotlight);
       };
     }
-  }, [isVisible, updateSpotlight]);
+  }, [isVisible, currentStep, updateSpotlight]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(prev => prev + 1);
     } else {
       completeTour();
     }
@@ -143,7 +144,7 @@ export function OnboardingTour() {
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep(prev => prev - 1);
     }
   };
 
@@ -154,7 +155,7 @@ export function OnboardingTour() {
 
   const getCardPosition = () => {
     const cardWidth = 360;
-    const cardHeight = 220; // Estimated
+    const cardHeight = 240; // Conservative estimate
     const padding = 24;
     const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
     const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
@@ -175,23 +176,22 @@ export function OnboardingTour() {
 
     // Viewport clamping and intelligent flipping
     
-    // If too low, put above
-    if (cardTop + cardHeight > windowHeight - padding) {
-      cardTop = top - cardHeight - padding;
-    }
-
-    // If spotlight is on the left (sidebar), shift right
+    // If spotlight is on the left (e.g. sidebar), place to the right of it
     if (left < 300) {
       cardLeft = right + padding;
       cardTop = top;
     }
-    // If spotlight is on the right, shift left
+    // If spotlight is on the far right, place to the left of it
     else if (right > windowWidth - 300) {
       cardLeft = left - cardWidth - padding;
       cardTop = top;
     }
+    // If the spotlight is at the bottom, flip card to top
+    else if (cardTop + cardHeight > windowHeight - padding) {
+      cardTop = top - cardHeight - padding;
+    }
 
-    // Final safety clamping
+    // Final safety clamping to keep card within viewport
     cardLeft = Math.max(padding, Math.min(cardLeft, windowWidth - cardWidth - padding));
     cardTop = Math.max(padding, Math.min(cardTop, windowHeight - cardHeight - padding));
 
