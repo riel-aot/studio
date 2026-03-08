@@ -115,37 +115,27 @@ export default function TeacherDashboard() {
     <div className="space-y-8">
       <OnboardingTour />
       
-      {/* Welcome Banner - Split Design */}
-      <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg min-h-[240px] flex items-stretch border border-[#E5E7EB]">
-        {/* Left: Blue Content Area */}
-        <div className="bg-[#2F5BEA] text-white p-8 md:p-12 flex-1 flex items-center relative z-10">
-          <div className="max-w-md space-y-4">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Welcome back, {user?.name || 'Teacher'}
-            </h1>
-            <p className="text-blue-100 text-sm md:text-base font-medium leading-relaxed">
-              You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
-            </p>
-          </div>
+      {/* Welcome Banner - Solid Blue Layout */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] text-white p-8 md:p-12 shadow-lg min-h-[240px] flex items-center border border-[#E5E7EB]">
+        <div className="max-w-md space-y-4 relative z-10">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Welcome back, {user?.name || 'Teacher'}
+          </h1>
+          <p className="text-blue-100 text-sm md:text-base font-medium leading-relaxed">
+            You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
+          </p>
         </div>
 
-        {/* Right: Illustration Area with Organic Shape Overlay */}
-        <div className="relative w-1/3 lg:w-[45%] bg-white hidden md:block">
-          {/* Custom shape overlays */}
-          <div className="absolute inset-0 bg-[#2F5BEA] [clip-path:polygon(0_0,100%_0,100%_100%,20%_100%)] z-0" />
-          <div className="absolute inset-0 bg-white [clip-path:polygon(20%_0,100%_0,100%_100%,0_100%)] z-10" />
-          
-          {/* Large Illustration scaled to 2x */}
-          <div className="absolute right-[-20px] bottom-[-40px] h-full w-full z-20">
-            <Image 
-              src="/images/athena-classroom.png" 
-              alt="Classroom illustration"
-              fill
-              className="object-contain scale-[1.8] origin-bottom-right"
-              priority
-              data-ai-hint="classroom illustration"
-            />
-          </div>
+        {/* Large Illustration scaled to 2x */}
+        <div className="absolute right-0 bottom-0 h-48 w-72 pointer-events-none">
+          <Image 
+            src="/images/athena-classroom.png" 
+            alt="Classroom illustration"
+            fill
+            className="object-contain scale-[2.0] origin-bottom-right translate-x-4 translate-y-4"
+            priority
+            data-ai-hint="classroom illustration"
+          />
         </div>
       </div>
 
