@@ -15,19 +15,26 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FileEdit, FilePlus, PenSquare, FileText, AlertCircle, Users, ChevronRight, BarChart3, Clock, Sparkles } from 'lucide-react';
+import { FileEdit, FilePlus, PenSquare, FileText, AlertCircle, Users, ChevronRight, BarChart3, Clock, Sparkles, Activity, GraduationCap, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { Progress } from '@/components/ui/progress';
 
-// Mock data for the activity pulse chart
-const pulseData = [
-  { day: 'Mon', count: 4 },
-  { day: 'Tue', count: 7 },
-  { day: 'Wed', count: 5 },
-  { day: 'Thu', count: 12 },
-  { day: 'Fri', count: 8 },
-  { day: 'Sat', count: 2 },
-  { day: 'Sun', count: 3 },
+// Mock data for the Class Health Snapshot
+const gradeDistData = [
+  { range: 'A', count: 12, fill: '#2F5BEA' },
+  { range: 'B', count: 18, fill: '#4F79F2' },
+  { range: 'C', count: 8, fill: '#7F9CF5' },
+  { range: 'D', count: 3, fill: '#A5B4FC' },
+  { range: 'F', count: 1, fill: '#E5E7EB' },
+];
+
+const attendanceData = [
+  { day: 'Mon', rate: 98 },
+  { day: 'Tue', rate: 95 },
+  { day: 'Wed', rate: 99 },
+  { day: 'Thu', rate: 94 },
+  { day: 'Fri', rate: 92 },
 ];
 
 function DashboardLoadingSkeleton() {
@@ -203,44 +210,128 @@ export default function TeacherDashboard() {
             </CardContent>
           </Card>
 
-          {/* Activity Chart: Weekly Grading Pulse */}
-          <Card className="border-[#E5E7EB] shadow-sm">
-            <CardHeader className="pb-2">
+          {/* Class Health Snapshot */}
+          <Card className="border-[#E5E7EB] shadow-sm overflow-hidden">
+            <CardHeader className="bg-white border-b border-[#F1F2F6] pb-6">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-[#2F5BEA]" />
-                <CardTitle className="text-lg font-bold">Grading Velocity</CardTitle>
+                <Activity className="h-5 w-5 text-[#2F5BEA]" />
+                <CardTitle className="text-xl font-bold text-[#111827]">Class Health Snapshot</CardTitle>
               </div>
-              <CardDescription>Finalized assessments over the last 7 days.</CardDescription>
+              <CardDescription className="text-slate-500">Real-time aggregate performance and engagement metrics.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-4 h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={pulseData}>
-                  <defs>
-                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2F5BEA" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#2F5BEA" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: '#94a3b8', fontSize: 12}}
-                    dy={10}
-                  />
-                  <Tooltip 
-                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke="#2F5BEA" 
-                    strokeWidth={3} 
-                    fillOpacity={1} 
-                    fill="url(#colorCount)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+            <CardContent className="p-6">
+              {/* Primary Vitals */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <GraduationCap className="h-4 w-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Average Grade</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-[#111827]">78%</span>
+                    <span className="text-xs font-bold text-green-600">+2% vs last month</span>
+                  </div>
+                  <Progress value={78} className="h-1.5" />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Completion Rate</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-[#111827]">84%</span>
+                    <span className="text-xs font-bold text-slate-400">Target: 90%</span>
+                  </div>
+                  <Progress value={84} className="h-1.5" />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Students at Risk</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-destructive">4</span>
+                    <span className="text-xs font-bold text-slate-400">Action recommended</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="bg-destructive h-full" style={{ width: '15%' }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Grade Distribution */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    Grade Distribution
+                  </h4>
+                  <div className="h-[180px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={gradeDistData}>
+                        <XAxis 
+                          dataKey="range" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
+                        />
+                        <Tooltip 
+                          cursor={{fill: 'transparent'}}
+                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                        />
+                        <Bar 
+                          dataKey="count" 
+                          radius={[4, 4, 0, 0]}
+                          barSize={32}
+                        >
+                          {gradeDistData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Attendance Trend */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    Attendance Trend
+                  </h4>
+                  <div className="h-[180px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={attendanceData}>
+                        <defs>
+                          <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2F5BEA" stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor="#2F5BEA" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis 
+                          dataKey="day" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
+                        />
+                        <YAxis hide domain={[0, 100]} />
+                        <Tooltip 
+                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="rate" 
+                          stroke="#2F5BEA" 
+                          strokeWidth={3} 
+                          fillOpacity={1} 
+                          fill="url(#colorAttendance)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
