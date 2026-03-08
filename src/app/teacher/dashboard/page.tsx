@@ -126,13 +126,13 @@ export default function TeacherDashboard() {
           </p>
         </div>
 
-        {/* Large Illustration scaled to 2x - Shifted down by 10px extra */}
+        {/* Large Illustration scaled to 2x - Positioned down and to the right */}
         <div className="absolute right-0 bottom-0 h-48 w-72 pointer-events-none">
           <Image 
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
             fill
-            className="object-contain scale-[2.0] origin-bottom-right translate-x-4 translate-y-[58px]"
+            className="object-contain scale-[2.0] origin-bottom-right translate-x-[29px] translate-y-[68px]"
             priority
             data-ai-hint="classroom illustration"
           />
