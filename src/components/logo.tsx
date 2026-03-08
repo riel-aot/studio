@@ -2,21 +2,9 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-baseline gap-0.5", className)}>
-      <span 
-        style={{ fontFamily: "'Playfair Display', serif" }} 
-        className="text-2xl font-bold text-slate-900 tracking-tight"
-      >
-        Ath
-      </span>
-      <span className="text-xl text-blue-600/80 font-serif leading-none">
-        Ξ
-      </span>
-      <span 
-        style={{ fontFamily: "'Playfair Display', serif" }} 
-        className="text-2xl font-bold text-slate-900 tracking-tight"
-      >
-        na
+    <div className={cn("flex items-baseline gap-0.5 font-sans", className)}>
+      <span className="text-2xl font-black text-[#3b7ddd] tracking-tighter">
+        ATHENA
       </span>
     </div>
   );
