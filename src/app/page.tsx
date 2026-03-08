@@ -63,7 +63,7 @@ export default function AthenaLandingPage() {
         className="bg-white rounded-[2rem] shadow-2xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-slate-100"
       >
         {/* Left Column: Value Proposition */}
-        <div className="pt-10 md:pt-16 px-10 md:px-16 pb-0 flex flex-col justify-between">
+        <div className="pt-10 md:pt-16 px-10 md:px-16 pb-10 md:pb-16 flex flex-col justify-between">
           <div className="space-y-8">
             <AthenaBrand />
 
@@ -92,13 +92,13 @@ export default function AthenaLandingPage() {
             </div>
           </div>
 
-          {/* Image Container flush with bottom */}
-          <div className="relative h-72 md:h-96 w-full mt-auto flex items-end">
+          {/* Image Container */}
+          <div className="relative h-72 md:h-96 w-full mt-auto">
             <Image 
               src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1000&auto=format&fit=crop"} 
               alt={heroImage?.description || "Athena Education"}
               fill
-              className="object-contain object-bottom scale-[1.8] origin-bottom"
+              className="object-contain scale-150"
               priority
               data-ai-hint="classroom data"
             />
