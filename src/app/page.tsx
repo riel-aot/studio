@@ -7,52 +7,65 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
 export default function AthΞnaLandingPage() {
+  // Animation variants for the "writing" effect
+  const wordVariants = {
+    hidden: { clipPath: 'inset(0 100% 0 0)' },
+    visible: {
+      clipPath: 'inset(0 0% 0 0)',
+      transition: { duration: 2, ease: [0.45, 0.05, 0.55, 0.95] }
+    }
+  };
+
   return (
     <main className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#FDFBF7]">
       {/* Ambient Background Elements */}
       <div className="absolute inset-0 z-0">
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.3, 0.2],
+            x: [0, 30, 0],
+            y: [0, -20, 0],
           }}
           transition={{
-            duration: 20,
+            duration: 15,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-blue-100/40 blur-3xl"
+          className="absolute -top-24 -left-24 w-[40rem] h-[40rem] rounded-full bg-blue-50/30 blur-[100px]"
         />
         <motion.div
           animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.2, 0.4, 0.2],
-            x: [0, -40, 0],
-            y: [0, 60, 0],
+            scale: [1.1, 1, 1.1],
+            opacity: [0.15, 0.25, 0.15],
+            x: [0, -30, 0],
+            y: [0, 40, 0],
           }}
           transition={{
-            duration: 25,
+            duration: 18,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute -bottom-24 -right-24 w-[30rem] h-[30rem] rounded-full bg-amber-50/50 blur-3xl"
+          className="absolute -bottom-24 -right-24 w-[35rem] h-[35rem] rounded-full bg-amber-50/40 blur-[100px]"
         />
       </div>
 
       {/* Hero Content */}
       <div className="relative z-10 w-full max-w-4xl px-6 text-center md:text-left md:px-12">
-        <div className="flex flex-col gap-8 items-center md:items-start">
+        <div className="flex flex-col gap-10 items-center md:items-start">
           
-          <div className="space-y-1">
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="text-7xl md:text-8xl font-serif tracking-tight text-slate-900 flex items-baseline justify-center md:justify-start"
-            >
-              <span>Ath</span>
+          <div className="space-y-0.5">
+            <div className="flex items-baseline justify-center md:justify-start">
+              <motion.span
+                initial="hidden"
+                animate="visible"
+                variants={wordVariants}
+                style={{ fontFamily: "'Pinyon Script', cursive" }}
+                className="text-7xl md:text-9xl text-slate-900 pr-2"
+              >
+                Ath
+              </motion.span>
+              
               <motion.span
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ 
@@ -60,54 +73,74 @@ export default function AthΞnaLandingPage() {
                   scale: 1,
                   textShadow: [
                     "0 0 0px rgba(59, 130, 246, 0)",
-                    "0 0 15px rgba(59, 130, 246, 0.3)",
+                    "0 0 20px rgba(59, 130, 246, 0.2)",
                     "0 0 0px rgba(59, 130, 246, 0)"
                   ]
                 }}
                 transition={{ 
-                  delay: 0.5, 
-                  duration: 2, 
-                  textShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                  delay: 1.2, 
+                  duration: 1.5, 
+                  textShadow: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                 }}
-                className="text-blue-600/90 inline-block mx-1"
+                className="text-6xl md:text-8xl text-blue-600/80 font-serif leading-none"
               >
                 Ξ
               </motion.span>
-              <span>na</span>
-            </motion.h1>
+
+              <motion.span
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { clipPath: 'inset(0 100% 0 0)' },
+                  visible: {
+                    clipPath: 'inset(0 0% 0 0)',
+                    transition: { delay: 1.5, duration: 1.5, ease: [0.45, 0.05, 0.55, 0.95] }
+                  }
+                }}
+                style={{ fontFamily: "'Pinyon Script', cursive" }}
+                className="text-7xl md:text-9xl text-slate-900 pl-1"
+              >
+                na
+              </motion.span>
+            </div>
 
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 1 }}
-              className="text-sm uppercase tracking-[0.3em] font-medium text-slate-500 ml-1"
+              transition={{ delay: 2.8, duration: 1.2 }}
+              className="text-[10px] md:text-xs uppercase tracking-[0.5em] font-medium text-slate-400 mt-[-10px] md:mt-[-20px] ml-2"
             >
               by ClassPulse
             </motion.p>
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.8, duration: 0.8 }}
-            className="space-y-8"
+            transition={{ delay: 3.2, duration: 1 }}
+            className="space-y-10"
           >
-            <p className="text-xl md:text-2xl text-slate-600 max-w-md font-light leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-500 max-w-sm font-light leading-relaxed tracking-wide italic">
               A calmer, smarter way to manage teaching.
             </p>
 
             <motion.div
-              whileHover={{ x: 5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              whileHover={{ x: 8 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
             >
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-slate-200 transition-all duration-300"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-10 py-7 text-lg rounded-full shadow-2xl shadow-slate-200 transition-all duration-500 group"
               >
-                <Link href="/login">
+                <Link href="/login" className="flex items-center">
                   Enter Portal
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <motion.span
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <ArrowRight className="ml-3 h-5 w-5" />
+                  </motion.span>
                 </Link>
               </Button>
             </motion.div>
@@ -115,14 +148,22 @@ export default function AthΞnaLandingPage() {
         </div>
       </div>
 
-      {/* Decorative footer element */}
+      {/* Branded accent line */}
+      <motion.div 
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 3.5, duration: 2, ease: "circOut" }}
+        className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-blue-100 to-transparent opacity-30"
+      />
+
+      {/* Quiet Footer */}
       <motion.div 
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.4 }}
-        transition={{ delay: 2.5, duration: 1.5 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0"
+        animate={{ opacity: 0.3 }}
+        transition={{ delay: 4, duration: 2 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0"
       >
-        <div className="flex gap-8 text-[10px] uppercase tracking-[0.4em] text-slate-400 font-semibold">
+        <div className="flex gap-10 text-[9px] uppercase tracking-[0.6em] text-slate-400 font-bold">
           <span>Focus</span>
           <span>Efficiency</span>
           <span>Insight</span>
