@@ -53,17 +53,15 @@ export default function TeacherLayout({
               isActive={isActive}
               tooltip={label}
               className={cn(
-                "h-11 px-4 rounded-xl transition-all duration-200",
+                "h-11 px-4 rounded-xl transition-all duration-200 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center",
                 isActive 
                   ? "bg-white/10 text-white font-bold shadow-sm" 
                   : "text-white/70 hover:bg-white/5 hover:text-white"
               )}
             >
-              <Link href={href} className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-white/60")} />
-                  <span className="text-sm">{label}</span>
-                </div>
+              <Link href={href} className="flex items-center gap-3 w-full">
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-white/60")} />
+                <span className="text-sm group-data-[state=collapsed]:hidden">{label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

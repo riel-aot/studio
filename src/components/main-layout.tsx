@@ -12,6 +12,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarTrigger,
+  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Button } from './ui/button';
 import { LogOut, Bell, Sun, Settings } from 'lucide-react';
@@ -25,22 +26,27 @@ export function MainLayout({
   navItems: React.ReactNode;
 }) {
   const { user, logout } = useAuth();
-  const router = useRouter();
   
   if (!user) return null;
 
   return (
     <SidebarProvider>
         <Sidebar collapsible="icon" className="border-none shadow-xl bg-[#2F5BEA]" id="onboarding-sidebar">
-          <SidebarHeader className="h-24 flex items-start justify-center px-8 pt-8 transition-all duration-200 group-data-[state=collapsed]:px-2 group-data-[state=collapsed]:items-center">
+          <SidebarHeader className="h-24 flex items-start justify-center px-8 pt-8 transition-all duration-200 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:items-center">
             <Logo light />
           </SidebarHeader>
-          <SidebarContent className="px-4 py-6">
+          
+          <div className="px-4 group-data-[state=collapsed]:px-2">
+            <div className="h-px w-full bg-white/10" />
+          </div>
+
+          <SidebarContent className="px-4 py-6 group-data-[state=collapsed]:px-2">
             {navItems}
           </SidebarContent>
+
           <SidebarFooter className="p-8 mt-auto border-none transition-all duration-200 group-data-[state=collapsed]:p-2 group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:items-center">
             <button 
-              className="flex items-center gap-3 text-orange-400 hover:text-orange-300 transition-colors font-bold text-sm group-data-[state=collapsed]:justify-center"
+              className="flex items-center gap-3 text-orange-400 hover:text-orange-300 transition-colors font-bold text-sm group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:w-full"
               onClick={logout}
             >
               <LogOut className="h-5 w-5 shrink-0" />
