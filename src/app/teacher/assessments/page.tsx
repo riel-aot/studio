@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -18,6 +17,7 @@ import { useWebhook } from '@/lib/hooks';
 import type { AssessmentListItem, AssessmentListPayload, AssessmentListResponse, AssessmentStatus, RubricListItem } from '@/lib/events';
 import { AlertCircle, ChevronRight, FilePlus, Search } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { OnboardingTour } from '@/components/onboarding-tour';
 
 const statusMap: Record<AssessmentStatus, string> = {
   draft: 'Draft',
@@ -257,17 +257,18 @@ export default function AssessmentsPage() {
 
   return (
     <div className="w-full">
+      <OnboardingTour />
       <PageHeader
         title="Assignments"
         description="Select an assignment and choose which student's work to grade."
         actions={
-          <Button asChild>
+          <Button id="onboarding-new-assessment" asChild>
             <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4" /> New Assignment</Link>
           </Button>
         }
       />
       
-      <Card>
+      <Card id="onboarding-assessment-list">
         <CardHeader>
             {/* Filter Bar */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

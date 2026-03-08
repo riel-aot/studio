@@ -11,6 +11,7 @@ import { useWebhook } from "@/lib/hooks";
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
+import { OnboardingTour } from '@/components/onboarding-tour';
 
 function ReportsPageSkeleton() {
     return (
@@ -109,13 +110,14 @@ export default function ReportsPage() {
 
     return (
         <div>
+            <OnboardingTour />
             <PageHeader
                 title="Reports"
                 description="View finalized assessment reports."
             />
             
             {reports && reports.length > 0 ? (
-                <Card>
+                <Card id="onboarding-report-history">
                     <CardHeader>
                         <CardTitle>Finalized Reports</CardTitle>
                         <CardDescription>Assessment reports that have been finalized.</CardDescription>

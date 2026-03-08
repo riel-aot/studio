@@ -12,8 +12,6 @@ import type { StudentListItem } from '@/lib/events';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddStudentDrawer } from '@/components/add-student-drawer';
 import { Input } from '@/components/ui/input';
-import { getWebhookUrl } from '@/lib/webhook-config';
-import { getMockResponse } from '@/lib/mock-api';
 
 const STUDENT_LIST_CACHE_KEY = 'n8n:student-list';
 
@@ -238,6 +236,7 @@ export default function StudentsPage() {
 
     return (
         <div className="w-full">
+            <OnboardingTour />
             <AddStudentDrawer
                 isOpen={isDrawerOpen}
                 onOpenChange={setIsDrawerOpen}
@@ -254,13 +253,13 @@ export default function StudentsPage() {
                         <Button variant="outline" asChild>
                             <Link href="/teacher/assessments"><FileText/> View Assessments</Link>
                         </Button>
-                        <Button onClick={() => setIsDrawerOpen(true)}><PlusCircle/> Add Student</Button>
+                        <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)}><PlusCircle/> Add Student</Button>
                     </div>
                 }
             />
 
             {students.length > 0 ? (
-                 <Card className="w-full">
+                 <Card id="onboarding-student-list" className="w-full">
                     <CardHeader>
                         <div className="flex justify-between items-center">
                             <div>

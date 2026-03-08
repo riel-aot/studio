@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, ChevronRight, ChevronLeft, LayoutDashboard, Users, FileText, Sparkles } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, LayoutDashboard, Users, FileText, Sparkles, PlusCircle, BarChart3 } from 'lucide-react';
 
 interface Step {
   title: string;
@@ -13,44 +14,87 @@ interface Step {
   targetId?: string;
 }
 
-const steps: Step[] = [
-  {
-    title: "Welcome to Athena",
-    description: "Your academic command center. Let's briefly walk through your new workflow.",
-    icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
-  },
-  {
-    title: "The Athena Pulse",
-    description: "Monitor real-time progress and pending reviews across all your classes instantly.",
-    icon: <LayoutDashboard className="h-6 w-6 text-[#2F5BEA]" />,
-    targetId: "onboarding-kpis",
-  },
-  {
-    title: "Action Queue",
-    description: "Your high-priority list. Review submissions and provide AI-assisted feedback here.",
-    icon: <FileText className="h-6 w-6 text-[#2F5BEA]" />,
-    targetId: "onboarding-review-queue",
-  },
-  {
-    title: "Instant Creation",
-    description: "Ready to grade? Launch new assignments and distribute them to students in seconds.",
-    icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
-    targetId: "onboarding-quick-actions",
-  },
-  {
-    title: "Seamless Navigation",
-    description: "Effortless access to your student roster, academic reports, and system settings.",
-    icon: <Users className="h-6 w-6 text-[#2F5BEA]" />,
-    targetId: "onboarding-sidebar",
-  },
-];
+const TOUR_CONFIG: Record<string, Step[]> = {
+  '/teacher/dashboard': [
+    {
+      title: "Welcome to Athena",
+      description: "Your academic command center. Let's briefly walk through your new workflow.",
+      icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
+    },
+    {
+      title: "The Athena Pulse",
+      description: "Monitor real-time progress and pending reviews across all your classes instantly.",
+      icon: <LayoutDashboard className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-kpis",
+    },
+    {
+      title: "Action Queue",
+      description: "Your high-priority list. Review submissions and provide AI-assisted feedback here.",
+      icon: <FileText className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-review-queue",
+    },
+    {
+      title: "Quick Actions",
+      description: "Ready to grade? Launch new assignments and distribute them to students in seconds.",
+      icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-quick-actions",
+    },
+    {
+      title: "Navigation Hub",
+      description: "Effortless access to your student roster, academic reports, and system settings.",
+      icon: <Users className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-sidebar",
+    },
+  ],
+  '/teacher/students': [
+    {
+      title: "Student Roster",
+      description: "Manage your entire class list here. Click any student to view their individual progress.",
+      icon: <Users className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-student-list",
+    },
+    {
+      title: "Enrollment",
+      description: "Add new students manually or use the import tool to sync your entire classroom at once.",
+      icon: <PlusCircle className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-add-student",
+    }
+  ],
+  '/teacher/assessments': [
+    {
+      title: "Assignments Inbox",
+      description: "Track all active and past assignments. Filter by status to see what needs your attention.",
+      icon: <FileText className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-assessment-list",
+    },
+    {
+      title: "New Assignment",
+      description: "Create a new learning objective or test. You can assign it to specific students or the whole class.",
+      icon: <PlusCircle className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-new-assessment",
+    }
+  ],
+  '/teacher/reports': [
+    {
+      title: "Academic Reports",
+      description: "Generate comprehensive progress reports for parents. Athena synthesizes past performance into clear insights.",
+      icon: <BarChart3 className="h-6 w-6 text-[#2F5BEA]" />,
+      targetId: "onboarding-report-history",
+    }
+  ]
+};
 
 export function OnboardingTour() {
+  const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
 
+  const steps = useMemo(() => TOUR_CONFIG[pathname] || [], [pathname]);
+  const storageKey = `athena_tour_seen_${pathname.replace(/\//g, '_')}`;
+
   const updateSpotlight = useCallback(() => {
+    if (!steps[currentStep]) return;
     const targetId = steps[currentStep].targetId;
     if (targetId) {
       const el = document.getElementById(targetId);
@@ -60,18 +104,22 @@ export function OnboardingTour() {
       }
     }
     setSpotlightRect(null);
-  }, [currentStep]);
+  }, [currentStep, steps]);
 
   useEffect(() => {
-    const hasSeenTour = localStorage.getItem('athena_onboarding_complete');
+    if (steps.length === 0) return;
+    
+    const hasSeenTour = localStorage.getItem(storageKey);
+    // Always show in dev for easy testing
     if (process.env.NODE_ENV === 'development' || !hasSeenTour) {
       const timer = setTimeout(() => {
         setIsVisible(true);
+        setCurrentStep(0);
         updateSpotlight();
-      }, 1000);
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, [updateSpotlight]);
+  }, [pathname, steps, storageKey, updateSpotlight]);
 
   useLayoutEffect(() => {
     if (isVisible) {
@@ -101,48 +149,63 @@ export function OnboardingTour() {
 
   const completeTour = () => {
     setIsVisible(false);
-    localStorage.setItem('athena_onboarding_complete', 'true');
+    localStorage.setItem(storageKey, 'true');
   };
 
   const getCardPosition = () => {
-    if (!spotlightRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
-
+    const cardWidth = 360;
+    const cardHeight = 220; // Estimated
     const padding = 24;
-    const { top, bottom, left, right, width } = spotlightRect;
     const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
     const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
 
-    // Default: Center relative to the target
-    let cardLeft = left + width / 2;
-    let cardTop = bottom + padding;
-
-    // If spotlight is low, put card above
-    if (bottom > windowHeight * 0.6) {
-      cardTop = top - padding - 200; // Estimated height
+    if (!spotlightRect) {
+      return { 
+        top: '50%', 
+        left: '50%', 
+        transform: 'translate(-50%, -50%)',
+        position: 'fixed' as const
+      };
     }
 
-    // If spotlight is on the right, shift left
-    if (right > windowWidth - 300) {
-      cardLeft = left - 320;
-      cardTop = top + padding;
+    const { top, bottom, left, right, width } = spotlightRect;
+    
+    let cardLeft = left + width / 2 - cardWidth / 2;
+    let cardTop = bottom + padding;
+
+    // Viewport clamping and intelligent flipping
+    
+    // If too low, put above
+    if (cardTop + cardHeight > windowHeight - padding) {
+      cardTop = top - cardHeight - padding;
     }
 
     // If spotlight is on the left (sidebar), shift right
     if (left < 300) {
       cardLeft = right + padding;
-      cardTop = top + padding;
+      cardTop = top;
+    }
+    // If spotlight is on the right, shift left
+    else if (right > windowWidth - 300) {
+      cardLeft = left - cardWidth - padding;
+      cardTop = top;
     }
 
+    // Final safety clamping
+    cardLeft = Math.max(padding, Math.min(cardLeft, windowWidth - cardWidth - padding));
+    cardTop = Math.max(padding, Math.min(cardTop, windowHeight - cardHeight - padding));
+
     return {
-      position: 'absolute' as const,
+      position: 'fixed' as const,
       top: cardTop,
       left: cardLeft,
       transform: 'none',
+      zIndex: 110,
       transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
     };
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || steps.length === 0) return null;
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
@@ -180,7 +243,7 @@ export function OnboardingTour() {
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentStep}
+            key={pathname + currentStep}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -188,7 +251,7 @@ export function OnboardingTour() {
             className="w-full max-w-[360px] pointer-events-auto"
             style={getCardPosition()}
           >
-            <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-none ring-1 ring-black/5 bg-white overflow-hidden">
+            <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-none ring-1 ring-black/5 bg-white overflow-hidden">
               <CardHeader className="flex flex-row items-center gap-4 pb-2 space-y-0 bg-slate-50/50">
                 <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100">
                   {steps[currentStep].icon}
@@ -249,7 +312,7 @@ export function OnboardingTour() {
                     onClick={handleNext} 
                     className="h-8 bg-[#2F5BEA] hover:bg-[#2447C6] text-xs font-bold px-4 shadow-md shadow-blue-500/20"
                   >
-                    {currentStep === steps.length - 1 ? 'Get Started' : 'Continue'}
+                    {currentStep === steps.length - 1 ? 'Finish' : 'Continue'}
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Button>
                 </div>
