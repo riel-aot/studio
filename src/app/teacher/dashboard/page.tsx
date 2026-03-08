@@ -33,7 +33,7 @@ const gradeDistData = [
 function DashboardLoadingSkeleton() {
   return (
     <div className="space-y-8">
-      <div className="h-40 w-full rounded-2xl bg-white animate-pulse" />
+      <div className="h-64 w-full rounded-2xl bg-white animate-pulse" />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCardSkeleton />
         <StatCardSkeleton />
@@ -109,8 +109,6 @@ export default function TeacherDashboard() {
     if (draftsError) refetchDrafts();
   };
 
-  const bannerImage = PlaceHolderImages.find(img => img.id === 'athena-classroom-hero');
-
   if (isLoading) return <DashboardLoadingSkeleton />;
   if (hasError) return <ErrorState onRetry={handleRetry} />;
 
@@ -118,28 +116,37 @@ export default function TeacherDashboard() {
     <div className="space-y-8">
       <OnboardingTour />
       
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] p-px">
-        <div className="relative overflow-hidden rounded-[0.95rem] bg-[#2F5BEA] px-8 py-10 flex items-center justify-between min-h-[200px]">
-          <div className="relative z-10 max-w-xl space-y-2">
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
-              Welcome back, {user?.name || 'Teacher'}
-            </h1>
-            <p className="text-blue-100 text-sm font-medium leading-relaxed max-w-sm">
-              You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
-            </p>
-          </div>
-          <div className="hidden lg:block relative h-48 w-72 mr-4 overflow-visible">
-            <Image 
-              src="/images/athena-classroom.png" 
-              alt="Classroom illustration"
-              fill
-              className="object-contain scale-[2.0] translate-y-6"
-              priority
-              data-ai-hint="classroom illustration"
-            />
-          </div>
-          <div className="absolute top-0 right-0 h-full w-1/2 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20" />
+      {/* Welcome Banner - Redesigned to match reference */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#2F5BEA] min-h-[280px] flex items-center shadow-lg">
+        {/* Organic White Background Shape */}
+        <div 
+          className="absolute top-0 right-[-10%] h-full w-[70%] bg-white pointer-events-none"
+          style={{
+            borderRadius: '100% 0 0 100% / 50% 0 0 50%',
+            transform: 'scaleX(1.1)'
+          }}
+        />
+        
+        {/* Welcome Text Content */}
+        <div className="relative z-10 px-10 py-12 max-w-xl space-y-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+            Welcome back, {user?.name || 'Teacher'}
+          </h1>
+          <p className="text-blue-100 text-sm font-medium leading-relaxed max-w-sm">
+            You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
+          </p>
+        </div>
+
+        {/* Large Integrated Illustration */}
+        <div className="absolute right-0 bottom-0 h-[115%] w-[60%] z-10 pointer-events-none">
+          <Image 
+            src="/images/athena-classroom.png" 
+            alt="Classroom illustration"
+            fill
+            className="object-contain object-right-bottom scale-[1.1] translate-y-4"
+            priority
+            data-ai-hint="classroom illustration"
+          />
         </div>
       </div>
 

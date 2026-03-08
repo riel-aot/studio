@@ -41,7 +41,7 @@ export function MainLayout({
           </SidebarHeader>
           
           <div className="px-4 group-data-[state=collapsed]:px-2">
-            <div className="h-px w-full bg-white/10" />
+            <SidebarSeparator className="bg-white/10" />
           </div>
 
           <SidebarContent className="px-4 py-6 group-data-[state=collapsed]:px-2">
