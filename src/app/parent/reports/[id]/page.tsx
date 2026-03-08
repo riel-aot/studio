@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
-
 function ReportSkeleton() {
     return (
         <div className="space-y-8">
@@ -44,7 +43,6 @@ const trendIcons = {
     down: <ArrowDown className="h-4 w-4 text-destructive" />,
     stable: <ArrowRight className="h-4 w-4 text-muted-foreground" />,
 }
-
 
 export default function ParentReportPage() {
     const params = useParams();
@@ -125,7 +123,7 @@ export default function ParentReportPage() {
                                         <div key={index} className={`flex items-center justify-between p-3 text-sm ${index < report.sections.rubricSnapshot.length -1 ? 'border-b' : ''}`}>
                                             <span className='font-medium'>{item.criterion}</span>
                                             <div className='flex items-center gap-2'>
-                                                <span>{trendIcons[item.trend]}</span>
+                                                <span>{trendIcons[item.trend as keyof typeof trendIcons] || trendIcons.stable}</span>
                                                 <Badge variant="secondary">Avg. {item.averageScore.toFixed(1)}</Badge>
                                             </div>
                                         </div>

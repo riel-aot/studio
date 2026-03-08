@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { UserNav } from './user-nav';
 import { Logo } from './logo';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import {
   SidebarProvider,
   Sidebar,
@@ -40,16 +38,9 @@ export function MainLayout({
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-slate-400 hover:text-slate-900" />
                 <div className="h-6 w-px bg-slate-200" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.back()}
-                  aria-label="Go back"
-                  className="text-slate-500 hover:text-slate-900 font-medium"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:inline-block">
+                  Athena Academic Portal
+                </span>
               </div>
               <div className="w-full flex-1" />
               <UserNav />
