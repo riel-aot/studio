@@ -93,12 +93,12 @@ export default function AthenaLandingPage() {
           </div>
 
           {/* Image Container flush with bottom */}
-          <div className="relative h-72 md:h-96 w-full mt-auto">
+          <div className="relative h-72 md:h-96 w-full mt-auto flex items-end">
             <Image 
               src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1000&auto=format&fit=crop"} 
               alt={heroImage?.description || "Athena Education"}
               fill
-              className="object-contain rounded-b-2xl scale-[1.8] origin-bottom"
+              className="object-contain object-bottom scale-[1.8] origin-bottom"
               priority
               data-ai-hint="classroom data"
             />
