@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { UserRole } from '@/lib/auth';
-import { Logo } from '@/components/logo';
 
 export default function AthenaIntroPage() {
   const [stage, setStage] = useState<'intro' | 'transitioning' | 'login'>('intro');
@@ -58,8 +57,8 @@ export default function AthenaIntroPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-4xl px-6">
-        {/* The "AthΞna" Brand Component that moves */}
         <div className="flex flex-col items-center justify-center">
+          {/* The "AthΞna" Brand Component that moves */}
           <motion.div
             layout
             transition={{
@@ -67,8 +66,8 @@ export default function AthenaIntroPage() {
             }}
             style={{
               position: isIntro ? 'relative' : 'absolute',
-              top: isIntro ? 'auto' : '2.5rem',
-              left: isIntro ? 'auto' : '2.5rem',
+              top: isIntro ? 'auto' : '2rem',
+              left: isIntro ? 'auto' : '2rem',
               transform: isIntro ? 'none' : 'none',
             }}
             className="flex flex-col items-center md:items-start"
@@ -79,7 +78,7 @@ export default function AthenaIntroPage() {
                 animate="visible"
                 variants={wordVariants}
                 style={{ fontFamily: "'Pinyon Script', cursive" }}
-                className={`${isIntro ? 'text-7xl md:text-9xl' : 'text-4xl md:text-5xl'} text-slate-900 pr-1 transition-all duration-700`}
+                className={`${isIntro ? 'text-7xl md:text-9xl' : 'text-3xl md:text-4xl'} text-slate-900 pr-1 transition-all duration-700`}
               >
                 Ath
               </motion.span>
@@ -88,7 +87,7 @@ export default function AthenaIntroPage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
-                className={`${isIntro ? 'text-6xl md:text-8xl' : 'text-3xl md:text-4xl'} text-blue-600/80 font-serif leading-none transition-all duration-700`}
+                className={`${isIntro ? 'text-6xl md:text-8xl' : 'text-2xl md:text-3xl'} text-blue-600/80 font-serif leading-none transition-all duration-700`}
               >
                 Ξ
               </motion.span>
@@ -104,25 +103,11 @@ export default function AthenaIntroPage() {
                   }
                 }}
                 style={{ fontFamily: "'Pinyon Script', cursive" }}
-                className={`${isIntro ? 'text-7xl md:text-9xl' : 'text-4xl md:text-5xl'} text-slate-900 pl-0.5 transition-all duration-700`}
+                className={`${isIntro ? 'text-7xl md:text-9xl' : 'text-3xl md:text-4xl'} text-slate-900 pl-0.5 transition-all duration-700`}
               >
                 na
               </motion.span>
             </div>
-            
-            <AnimatePresence>
-              {isIntro && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ delay: 1.8 }}
-                  className="text-[10px] md:text-xs uppercase tracking-[0.5em] font-medium text-slate-400 mt-[-10px] md:mt-[-20px] ml-2"
-                >
-                  by ClassPulse
-                </motion.p>
-              )}
-            </AnimatePresence>
           </motion.div>
 
           {/* Login Content - Fades in after AthΞna moves */}
@@ -137,7 +122,6 @@ export default function AthenaIntroPage() {
                 <Card className="flex flex-col justify-center p-8 bg-white/50 backdrop-blur-sm border-slate-100">
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <Logo className="opacity-50 grayscale" />
                       <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">Portal</span>
                     </div>
                   </CardHeader>

@@ -30,7 +30,7 @@ export function MainLayout({
   return (
     <SidebarProvider>
         <Sidebar collapsible="icon">
-          <SidebarHeader>
+          <SidebarHeader className="h-14 flex items-center justify-center border-b">
             <Logo />
           </SidebarHeader>
           <SidebarContent>{navItems}</SidebarContent>
