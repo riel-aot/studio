@@ -10,14 +10,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { UserRole } from '@/lib/auth';
 
 /**
- * Reusable Brand component with writing animation
+ * Reusable Brand component with a refined serif reveal animation
  */
 function AthΞnaBrand({ isSmall = false, layoutId = "brand" }: { isSmall?: boolean; layoutId?: string }) {
   const wordVariants = {
-    hidden: { clipPath: 'inset(0 100% 0 0)' },
+    hidden: { opacity: 0, x: -10 },
     visible: {
-      clipPath: 'inset(0 0% 0 0)',
-      transition: { duration: 1.2, ease: [0.45, 0.05, 0.55, 0.95] }
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] }
     }
   };
 
@@ -31,8 +32,8 @@ function AthΞnaBrand({ isSmall = false, layoutId = "brand" }: { isSmall?: boole
         initial="hidden"
         animate="visible"
         variants={wordVariants}
-        style={{ fontFamily: "'Pinyon Script', cursive" }}
-        className={`${isSmall ? 'text-2xl md:text-3xl' : 'text-7xl md:text-9xl'} text-slate-900 pr-1`}
+        style={{ fontFamily: "'Playfair Display', serif" }}
+        className={`${isSmall ? 'text-2xl md:text-3xl' : 'text-7xl md:text-9xl'} font-bold text-slate-900 tracking-tight`}
       >
         Ath
       </motion.span>
@@ -40,8 +41,8 @@ function AthΞnaBrand({ isSmall = false, layoutId = "brand" }: { isSmall?: boole
       <motion.span
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-        className={`${isSmall ? 'text-xl md:text-2xl' : 'text-6xl md:text-8xl'} text-blue-600/80 font-serif leading-none`}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className={`${isSmall ? 'text-xl md:text-2xl' : 'text-6xl md:text-8xl'} text-blue-600/80 font-serif leading-none mx-0.5`}
       >
         Ξ
       </motion.span>
@@ -50,14 +51,15 @@ function AthΞnaBrand({ isSmall = false, layoutId = "brand" }: { isSmall?: boole
         initial="hidden"
         animate="visible"
         variants={{
-          hidden: { clipPath: 'inset(0 100% 0 0)' },
+          hidden: { opacity: 0, x: 10 },
           visible: {
-            clipPath: 'inset(0 0% 0 0)',
-            transition: { delay: 0.8, duration: 0.8, ease: [0.45, 0.05, 0.55, 0.95] }
+            opacity: 1,
+            x: 0,
+            transition: { delay: 0.6, duration: 0.8, ease: [0.4, 0, 0.2, 1] }
           }
         }}
-        style={{ fontFamily: "'Pinyon Script', cursive" }}
-        className={`${isSmall ? 'text-2xl md:text-3xl' : 'text-7xl md:text-9xl'} text-slate-900 pl-0.5`}
+        style={{ fontFamily: "'Playfair Display', serif" }}
+        className={`${isSmall ? 'text-2xl md:text-3xl' : 'text-7xl md:text-9xl'} font-bold text-slate-900 tracking-tight`}
       >
         na
       </motion.span>
@@ -72,7 +74,7 @@ export default function AthenaIntroPage() {
 
   useEffect(() => {
     // Reveal central brand first, then transition to login layout
-    const timer = setTimeout(() => setStage('login'), 2800);
+    const timer = setTimeout(() => setStage('login'), 2200);
     return () => clearTimeout(timer);
   }, []);
 

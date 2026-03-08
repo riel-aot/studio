@@ -4,8 +4,8 @@ export function Logo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-baseline gap-0.5", className)}>
       <span 
-        style={{ fontFamily: "'Pinyon Script', cursive" }} 
-        className="text-2xl text-slate-900"
+        style={{ fontFamily: "'Playfair Display', serif" }} 
+        className="text-2xl font-bold text-slate-900 tracking-tight"
       >
         Ath
       </span>
@@ -13,8 +13,8 @@ export function Logo({ className }: { className?: string }) {
         Ξ
       </span>
       <span 
-        style={{ fontFamily: "'Pinyon Script', cursive" }} 
-        className="text-2xl text-slate-900"
+        style={{ fontFamily: "'Playfair Display', serif" }} 
+        className="text-2xl font-bold text-slate-900 tracking-tight"
       >
         na
       </span>
