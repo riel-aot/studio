@@ -15,14 +15,13 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
  * Brand component: ATHENA in modern semi-bold sans-serif (Inter).
- * Updated to be thinner and slightly smaller.
  */
 function AthenaBrand({ isSmall = false }: { isSmall?: boolean }) {
   return (
     <div className="flex flex-col">
       <span
         className={cn(
-          isSmall ? 'text-xl' : 'text-3xl md:text-4xl',
+          isSmall ? 'text-lg' : 'text-3xl md:text-4xl',
           "font-semibold text-[#3b7ddd] tracking-tight leading-none font-sans"
         )}
       >
@@ -96,12 +95,12 @@ export default function AthenaLandingPage() {
 
           <div className="mt-12 relative h-72 md:h-96 w-full">
             <Image 
-              src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"} 
+              src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1000&auto=format&fit=crop"} 
               alt={heroImage?.description || "Athena Education"}
               fill
               className="object-cover rounded-2xl"
               priority
-              data-ai-hint={heroImage?.imageHint || "teacher classroom analytics"}
+              data-ai-hint="classroom technology"
             />
           </div>
         </div>

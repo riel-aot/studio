@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "athena-classroom-hero",
-      "description": "Teacher explaining analytics dashboard to students",
-      "imageUrl": "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop",
-      "imageHint": "teacher classroom analytics"
+      "description": "Modern classroom with digital learning tools",
+      "imageUrl": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1000&auto=format&fit=crop",
+      "imageHint": "classroom technology"
     },
     {
       "id": "teacher-avatar-1",
