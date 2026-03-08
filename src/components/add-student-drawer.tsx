@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUploader } from '@/components/file-uploader';
 import { Loader2, UserPlus, FileSpreadsheet, UploadCloud, Info } from 'lucide-react';
@@ -118,9 +118,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl border-l border-slate-200">
+      <SheetContent className="w-full sm:max-w-xl border-l border-slate-200 px-8">
         <div className="flex flex-col h-full overflow-hidden">
-          <SheetHeader className="pb-6">
+          <SheetHeader className="pb-6 pt-2">
             <SheetTitle className="text-2xl font-bold flex items-center gap-2">
               <UserPlus className="h-6 w-6 text-[#2F5BEA]" />
               Manage Enrollment
@@ -131,11 +131,11 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
           </SheetHeader>
 
           <Tabs defaultValue="manual" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-2 mb-6 shrink-0">
-              <TabsTrigger value="manual" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-2 mb-6 shrink-0 bg-slate-100 p-1 rounded-xl">
+              <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider">
                 Manual Entry
               </TabsTrigger>
-              <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider">
                 Bulk Import
               </TabsTrigger>
             </TabsList>
@@ -143,29 +143,29 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
             <TabsContent value="manual" className="flex-1 flex flex-col m-0 min-h-0">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onManualSubmit)} className="flex flex-col h-full">
-                  <div className="flex-1 space-y-5 overflow-y-auto pr-2 pb-6 scrollbar-thin">
+                  <div className="flex-1 space-y-6 overflow-y-auto pr-2 pb-6 scrollbar-thin">
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-900 font-semibold">Full Name</FormLabel>
+                          <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
                           <FormControl>
-                            <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-11" {...field} />
+                            <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-slate-200 focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA]" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
                         name="studentIdNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-semibold">Student ID</FormLabel>
+                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student ID</FormLabel>
                             <FormControl>
-                              <Input placeholder="System ID Number" className="h-11" {...field} />
+                              <Input placeholder="System ID Number" className="h-12 rounded-xl border-slate-200" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -176,24 +176,24 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         name="grade"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-semibold">Grade Level</FormLabel>
+                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Academic Level</FormLabel>
                             <FormControl>
-                              <Input placeholder="Assigned Year/Grade" className="h-11" {...field} />
+                              <Input placeholder="e.g., Grade 5" className="h-12 rounded-xl border-slate-200" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-                    <Separator />
+                    <Separator className="bg-slate-100" />
                     <FormField
                       control={form.control}
                       name="studentEmail"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-900 font-semibold">Student Email (Optional)</FormLabel>
+                          <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student Email (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="Official school email address" className="h-11" {...field} />
+                            <Input placeholder="Official school email address" className="h-12 rounded-xl border-slate-200" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -204,9 +204,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                       name="parentEmail"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-900 font-semibold">Parent / Guardian Email</FormLabel>
+                          <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Parent / Guardian Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="Primary contact email for reporting" className="h-11" {...field} />
+                            <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-slate-200" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -214,17 +214,17 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                     />
                   </div>
                   
-                  <SheetFooter className="pt-6 border-t mt-auto shrink-0">
+                  <SheetFooter className="pt-6 border-t mt-auto shrink-0 flex items-center gap-3">
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => onOpenChange(false)}
                       disabled={isLoading}
-                      className="font-semibold text-slate-500"
+                      className="font-bold text-slate-400 hover:text-slate-900 h-12"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-11 px-8 font-bold rounded-lg transition-all">
+                    <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20">
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Add Student
                     </Button>
@@ -235,11 +235,13 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
 
             <TabsContent value="bulk" className="flex-1 flex flex-col m-0 min-h-0">
               <div className="flex-1 space-y-6 overflow-y-auto pb-6 scrollbar-thin">
-                <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-                  <Info className="h-5 w-5 text-[#2F5BEA] shrink-0 mt-0.5" />
-                  <div className="text-sm text-slate-700 leading-relaxed">
-                    <p className="font-bold text-[#2F5BEA] mb-1">Import Guidelines</p>
-                    <p>Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-xs bg-white px-1 rounded border">name</span>, <span className="font-mono text-xs bg-white px-1 rounded border">student_id</span>, <span className="font-mono text-xs bg-white px-1 rounded border">grade</span>, and <span className="font-mono text-xs bg-white px-1 rounded border">parent_email</span>.</p>
+                <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl flex gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                    <Info className="h-5 w-5 text-[#2F5BEA]" />
+                  </div>
+                  <div className="text-sm text-slate-700 leading-relaxed pt-1">
+                    <p className="font-bold text-[#2F5BEA] mb-1 uppercase tracking-wider text-[10px]">Import Guidelines</p>
+                    <p className="text-xs font-medium">Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">name</span>, <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">student_id</span>, <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">grade</span>, and <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">parent_email</span>.</p>
                   </div>
                 </div>
 
@@ -253,32 +255,34 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                   />
                   
                   {bulkFiles.length > 0 && (
-                    <div className="flex items-center gap-3 p-4 border rounded-xl bg-slate-50">
-                      <FileSpreadsheet className="h-8 w-8 text-green-600" />
+                    <div className="flex items-center gap-4 p-5 border border-slate-200 rounded-2xl bg-white shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                      <div className="h-12 w-12 rounded-xl bg-green-50 flex items-center justify-center">
+                        <FileSpreadsheet className="h-6 w-6 text-green-600" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-slate-900 truncate">{bulkFiles[0].name}</p>
-                        <p className="text-xs text-slate-500">{(bulkFiles[0].size / 1024).toFixed(1)} KB • Ready to process</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{(bulkFiles[0].size / 1024).toFixed(1)} KB • Ready to process</p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => setBulkFiles([])} className="text-slate-400">Remove</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setBulkFiles([])} className="text-slate-400 hover:text-destructive font-bold text-xs uppercase tracking-wider">Remove</Button>
                     </div>
                   )}
                 </div>
               </div>
 
-              <SheetFooter className="pt-6 border-t mt-auto shrink-0">
+              <SheetFooter className="pt-6 border-t mt-auto shrink-0 flex items-center gap-3">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => onOpenChange(false)}
                   disabled={isLoading}
-                  className="font-semibold text-slate-500"
+                  className="font-bold text-slate-400 hover:text-slate-900 h-12"
                 >
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleBulkUpload} 
                   disabled={isLoading || bulkFiles.length === 0}
-                  className="bg-[#2F5BEA] hover:bg-[#2447C6] h-11 px-8 font-bold rounded-lg transition-all"
+                  className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20"
                 >
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                   Process Roster

@@ -201,8 +201,8 @@ export function OnboardingTour() {
   const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 10000;
   const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 10000;
 
-  // Use a tighter padding (4px instead of 12px) to ensure the spotlight "fits" target elements precisely
-  const padding = 4;
+  // Use tighter padding to ensure spotlight stays within its parent container bounds
+  const spotlightPadding = 2;
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
@@ -214,11 +214,17 @@ export function OnboardingTour() {
               <motion.rect
                 initial={false}
                 animate={{
-                  x: Math.max(0, spotlightRect.left - padding),
-                  y: Math.max(0, spotlightRect.top - padding),
-                  width: Math.min(windowWidth - Math.max(0, spotlightRect.left - padding) - padding, spotlightRect.width + (padding * 2)),
-                  height: Math.min(windowHeight - Math.max(0, spotlightRect.top - padding) - padding, spotlightRect.height + (padding * 2)),
-                  rx: 8,
+                  x: Math.max(0, spotlightRect.left - spotlightPadding),
+                  y: Math.max(0, spotlightRect.top - spotlightPadding),
+                  width: Math.min(
+                    windowWidth - Math.max(0, spotlightRect.left - spotlightPadding),
+                    spotlightRect.width + (spotlightPadding * 2)
+                  ),
+                  height: Math.min(
+                    windowHeight - Math.max(0, spotlightRect.top - spotlightPadding),
+                    spotlightRect.height + (spotlightPadding * 2)
+                  ),
+                  rx: 6,
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 25 }}
                 fill="black"
@@ -233,7 +239,7 @@ export function OnboardingTour() {
           height="100%"
           fill="rgba(15, 23, 42, 0.6)"
           mask="url(#spotlight-mask)"
-          className="backdrop-blur-[3px]"
+          className="backdrop-blur-[2px]"
         />
       </svg>
 
