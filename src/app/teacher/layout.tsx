@@ -37,7 +37,7 @@ export default function TeacherLayout({
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'teacher')) {
-      router.replace('/login');
+      router.replace('/');
     }
   }, [isLoading, isAuthenticated, user, router]);
 

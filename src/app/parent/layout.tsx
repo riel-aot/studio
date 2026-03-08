@@ -25,7 +25,7 @@ export default function ParentLayout({
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'parent')) {
-      router.replace('/login');
+      router.replace('/');
     }
   }, [isLoading, isAuthenticated, user, router]);
 

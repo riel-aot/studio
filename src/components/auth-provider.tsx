@@ -24,17 +24,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const handleAuthRedirect = useCallback((currentUser: User | null) => {
-    const isAuthPage = pathname === '/login';
+    const isEntryPage = pathname === '/login' || pathname === '/';
     
     if (currentUser) {
-        if (isAuthPage) {
-            // If logged in and on login page, redirect to appropriate dashboard
+        if (isEntryPage) {
+            // If logged in and on an entry/login page, redirect to appropriate dashboard
             router.replace(currentUser.role === 'teacher' ? '/teacher/dashboard' : '/parent/dashboard');
         }
     } else {
-        if (!isAuthPage) {
-            // If not logged in and not on login page, redirect to login
-            router.replace('/login');
+        if (!isEntryPage) {
+            // If not logged in and not on an entry page, redirect to the animated home/login
+            router.replace('/');
         }
     }
     setIsLoading(false);
@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // This effect simulates checking for an existing session on component mount.
-    // In a real app, you would check for a cookie or do a silent refresh here.
     try {
         const storedUser = sessionStorage.getItem('classpulse_user');
         const storedToken = sessionStorage.getItem('classpulse_token');
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     sessionStorage.removeItem('classpulse_user');
     sessionStorage.removeItem('classpulse_token');
-    router.push('/login');
+    router.push('/');
   };
 
   const value = {
@@ -90,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {isLoading ? <LoadingSpinner fullScreen /> : children}
+      {children}
     </AuthContext.Provider>
   );
 }
