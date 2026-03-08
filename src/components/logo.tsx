@@ -14,7 +14,7 @@ export function Logo({ className, light = false }: { className?: string; light?:
         "text-xl font-bold tracking-tight",
         light ? "text-white" : "text-[#2F5BEA]"
       )}>
-        ATHENA
+        ATHΞNA
       </span>
     </div>
   );

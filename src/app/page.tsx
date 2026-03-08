@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
- * Brand component: ATHENA with refined typography and reveal logic.
+ * Brand component: ATHΞNA with refined typography and reveal logic.
  * Primary brand color: #2F5BEA
  */
 function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolean; isCentered?: boolean }) {
@@ -55,7 +55,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
           "font-semibold text-[#2F5BEA] tracking-tight leading-none font-sans"
         )}
       >
-        ATHENA
+        ATHΞNA
       </motion.span>
       <motion.span
         variants={itemVariants}
@@ -235,7 +235,7 @@ export default function AthenaLandingPage() {
                         <h2 className="text-3xl font-bold text-[#111827] tracking-tight">
                           Login as {role === 'teacher' ? 'Teacher' : 'Parent'}
                         </h2>
-                        <p className="text-[#6B7280] text-sm mt-2 font-normal">Welcome back to Athena</p>
+                        <p className="text-[#6B7280] text-sm mt-2 font-normal">Welcome back to ATHΞNA</p>
                       </div>
 
                       <form onSubmit={handleLogin} className="space-y-6 flex-1 flex flex-col">
@@ -314,7 +314,7 @@ export default function AthenaLandingPage() {
                 </div>
 
                 <footer className="text-center text-xs text-[#6B7280] font-medium">
-                  <span>© 2026 Athena | </span>
+                  <span>© 2026 ATHΞNA | </span>
                   <button className="hover:text-[#111827] transition-colors">Privacy</button> | 
                   <button className="hover:text-[#111827] transition-colors"> Terms</button> | 
                   <button className="hover:text-[#111827] transition-colors"> Support</button>
