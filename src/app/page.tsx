@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import type { UserRole } from '@/lib/auth';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -68,24 +68,58 @@ function AthenaBrand({ isSmall = false }: { isSmall?: boolean }) {
 
 export default function AthenaLandingPage() {
   const [role, setRole] = useState<UserRole>('teacher');
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(role);
+    setIsLoading(true);
+    setIsError(false);
+
+    // Simulate a brief check to demonstrate the potential for error feedback
+    setTimeout(() => {
+      // For demo purposes, we login directly, but if we wanted to show the wobble:
+      // setIsError(true); setIsLoading(false);
+      login(role);
+    }, 800);
   };
 
   const toggleRole = (newRole: UserRole) => {
     if (newRole === role) return;
     setRole(newRole);
+    setIsError(false); // Reset error on role switch
   };
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'athena-classroom-hero');
+
+  // Animation variants for the login card
+  const cardVariants = {
+    flip: {
+      rotateY: [0, 180, 360],
+      transition: {
+        duration: 0.7,
+        ease: "easeInOut",
+      }
+    },
+    error: {
+      x: [0, -10, 10, -10, 10, 0],
+      transition: {
+        duration: 0.4,
+        ease: "linear"
+      }
+    },
+    idle: {
+      rotateY: 0,
+      x: 0
+    }
+  };
 
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-[#e9ecef] p-4 md:p-8 font-sans overflow-hidden">
       <div
         className="bg-white rounded-[2rem] shadow-2xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-slate-100"
+        style={{ perspective: '1200px' }}
       >
         {/* Left Column: Value Proposition */}
         <div className="pt-10 md:pt-16 px-10 md:px-16 pb-10 md:pb-16 flex flex-col justify-between">
@@ -157,17 +191,9 @@ export default function AthenaLandingPage() {
 
           <motion.div 
             key={role}
-            initial={{ x: 0, scale: 0.98, opacity: 0.8 }}
-            animate={{ 
-              x: [0, -4, 4, -4, 0],
-              scale: 1,
-              opacity: 1
-            }}
-            transition={{ 
-              x: { duration: 0.4, ease: "easeInOut" },
-              scale: { type: "spring", stiffness: 300, damping: 20 },
-              opacity: { duration: 0.3 }
-            }}
+            variants={cardVariants}
+            initial="flip" // Soft flip on role change
+            animate={isError ? "error" : "idle"}
             className="w-full max-w-[460px] space-y-8 mt-12"
           >
             <div className="bg-white p-10 rounded-[1.5rem] shadow-xl border border-slate-100/50">
@@ -185,8 +211,12 @@ export default function AthenaLandingPage() {
                     <Input 
                       id="email" 
                       type="email" 
+                      required
                       placeholder={role === 'teacher' ? "Teacher email" : "Parent email"}
-                      className="h-14 rounded-xl bg-white border-slate-200 focus:border-[#3b7ddd] focus:ring-[#3b7ddd] transition-all px-4 text-base" 
+                      className={cn(
+                        "h-14 rounded-xl bg-white border-slate-200 focus:border-[#3b7ddd] focus:ring-[#3b7ddd] transition-all px-4 text-base",
+                        isError && "border-destructive focus:border-destructive focus:ring-destructive"
+                      )} 
                     />
                   </div>
                   <div className="space-y-2">
@@ -194,14 +224,22 @@ export default function AthenaLandingPage() {
                     <Input 
                       id="password" 
                       type="password" 
+                      required
                       placeholder="••••••••" 
-                      className="h-14 rounded-xl bg-white border-slate-200 focus:border-[#3b7ddd] focus:ring-[#3b7ddd] transition-all px-4 text-base" 
+                      className={cn(
+                        "h-14 rounded-xl bg-white border-slate-200 focus:border-[#3b7ddd] focus:ring-[#3b7ddd] transition-all px-4 text-base",
+                        isError && "border-destructive focus:border-destructive focus:ring-destructive"
+                      )} 
                     />
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full bg-[#3b7ddd] hover:bg-[#326abf] h-14 text-lg font-bold rounded-xl transition-all shadow-md">
-                  Sign In
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full bg-[#3b7ddd] hover:bg-[#326abf] h-14 text-lg font-bold rounded-xl transition-all shadow-md"
+                >
+                  {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
                 </Button>
 
                 <div className="text-center">
