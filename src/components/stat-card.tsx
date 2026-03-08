@@ -11,14 +11,16 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, description }: StatCardProps) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card className="border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-sm font-bold text-[#6B7280] uppercase tracking-wider">{title}</CardTitle>
+        <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center">
+          <Icon className="h-4 w-4 text-[#2F5BEA]" />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        <div className="text-3xl font-bold text-[#111827] tracking-tight">{value}</div>
+        {description && <p className="text-xs text-[#6B7280] mt-1 font-medium">{description}</p>}
       </CardContent>
     </Card>
   );
@@ -26,14 +28,14 @@ export function StatCard({ title, value, icon: Icon, description }: StatCardProp
 
 export function StatCardSkeleton() {
     return (
-        <Card>
+        <Card className="border-[#E5E7EB]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-4 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
             </CardHeader>
             <CardContent>
-                <Skeleton className="h-7 w-12" />
-                <Skeleton className="mt-1 h-3 w-32" />
+                <Skeleton className="h-9 w-16" />
+                <Skeleton className="mt-2 h-3 w-32" />
             </CardContent>
         </Card>
     )
