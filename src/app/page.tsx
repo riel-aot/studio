@@ -14,21 +14,21 @@ import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
- * Brand component: ATHENA in bold blue sans-serif (Inter).
- * Updated to be thinner and slightly smaller as requested.
+ * Brand component: ATHENA in modern semi-bold sans-serif (Inter).
+ * Updated to be thinner and slightly smaller.
  */
 function AthenaBrand({ isSmall = false }: { isSmall?: boolean }) {
   return (
     <div className="flex flex-col">
       <span
         className={cn(
-          isSmall ? 'text-2xl' : 'text-4xl md:text-5xl',
-          "font-bold text-[#3b7ddd] tracking-tight leading-none font-sans"
+          isSmall ? 'text-xl' : 'text-3xl md:text-4xl',
+          "font-semibold text-[#3b7ddd] tracking-tight leading-none font-sans"
         )}
       >
         ATHENA
       </span>
-      <span className="text-slate-400 font-medium mt-1 text-[10px] md:text-xs font-sans uppercase tracking-widest">
+      <span className="text-slate-400 font-medium mt-1 text-[9px] md:text-[10px] font-sans uppercase tracking-widest">
         by ClassPulse
       </span>
     </div>
@@ -96,12 +96,12 @@ export default function AthenaLandingPage() {
 
           <div className="mt-12 relative h-72 md:h-96 w-full">
             <Image 
-              src={heroImage?.imageUrl || "https://picsum.photos/seed/athena-classroom/1000/800"} 
-              alt={heroImage?.description || "Athena Education Illustration"}
+              src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"} 
+              alt={heroImage?.description || "Athena Education"}
               fill
-              className="object-contain"
+              className="object-cover rounded-2xl"
               priority
-              data-ai-hint={heroImage?.imageHint || "classroom illustration"}
+              data-ai-hint={heroImage?.imageHint || "teacher classroom analytics"}
             />
           </div>
         </div>
