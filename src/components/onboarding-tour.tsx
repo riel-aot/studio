@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, ChevronRight, ChevronLeft, LayoutDashboard, Users, FileText, Sparkles, PlusCircle, BarChart3 } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, LayoutDashboard, Users, FileText, Sparkles, PlusCircle, Database, Settings } from 'lucide-react';
 
 interface Step {
   title: string;
@@ -18,44 +18,44 @@ const TOUR_CONFIG: Record<string, Step[]> = {
   '/teacher/dashboard': [
     {
       title: "Welcome to Athena",
-      description: "Your academic command center. Let's briefly walk through your new workflow.",
+      description: "Your academic command center has been upgraded. Let's explore your new streamlined workflow.",
       icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
     },
     {
-      title: "The Athena Pulse",
-      description: "Monitor real-time progress and pending reviews across all your classes instantly.",
-      icon: <LayoutDashboard className="h-6 w-6 text-[#2F5BEA]" />,
+      title: "Teacher Brief",
+      description: "Monitor your key performance indicators and action items at a glance.",
+      icon: <Database className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-kpis",
     },
     {
-      title: "Action Queue",
-      description: "Your high-priority list. Review submissions and provide AI-assisted feedback here.",
+      title: "Grading Priority",
+      description: "Manage your review queue here. Submissions appear as they arrive from your students.",
       icon: <FileText className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-review-queue",
     },
     {
       title: "Quick Actions",
-      description: "Ready to grade? Launch new assignments and distribute them to students in seconds.",
-      icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
+      description: "Start new assignments or navigate your history with ease from any page.",
+      icon: <PlusCircle className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-quick-actions",
     },
     {
-      title: "Navigation Hub",
-      description: "Effortless access to your student roster, academic reports, and system settings.",
-      icon: <Users className="h-6 w-6 text-[#2F5BEA]" />,
+      title: "Navigation Sidebar",
+      description: "Quickly switch between Students, Assignments, and Reports. Athena features a premium Slate and Blue design system.",
+      icon: <LayoutDashboard className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-sidebar",
     },
   ],
   '/teacher/students': [
     {
       title: "Student Roster",
-      description: "Manage your entire class list here. Click any student to view their individual progress.",
+      description: "The central directory for all student data. Search and find students instantly with live database queries.",
       icon: <Users className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-student-list",
     },
     {
-      title: "Enrollment",
-      description: "Add new students manually or use the import tool to sync your entire classroom at once.",
+      title: "Add New Student",
+      description: "Enroll a new student manually or use the bulk import tools.",
       icon: <PlusCircle className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-add-student",
     }
@@ -63,23 +63,15 @@ const TOUR_CONFIG: Record<string, Step[]> = {
   '/teacher/assessments': [
     {
       title: "Assignments Inbox",
-      description: "Track all active and past assignments. Filter by status to see what needs your attention.",
+      description: "Manage all current and past learning objectives here. Use the search bar to filter by assignment title.",
       icon: <FileText className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-assessment-list",
     },
     {
-      title: "New Assignment",
-      description: "Create a new learning objective or test. You can assign it to specific students or the whole class.",
-      icon: <PlusCircle className="h-6 w-6 text-[#2F5BEA]" />,
+      title: "Create Assignment",
+      description: "Launch a new assignment for your classroom with a single click.",
+      icon: <Sparkles className="h-6 w-6 text-[#2F5BEA]" />,
       targetId: "onboarding-new-assessment",
-    }
-  ],
-  '/teacher/reports': [
-    {
-      title: "Academic Reports",
-      description: "Generate comprehensive progress reports for parents. Athena synthesizes past performance into clear insights.",
-      icon: <BarChart3 className="h-6 w-6 text-[#2F5BEA]" />,
-      targetId: "onboarding-report-history",
     }
   ]
 };
@@ -198,11 +190,7 @@ export function OnboardingTour() {
 
   if (!isVisible || steps.length === 0) return null;
 
-  const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 10000;
-  const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 10000;
-
-  // Use tighter padding to ensure spotlight stays within its parent container bounds
-  const spotlightPadding = 2;
+  const spotlightPadding = 4;
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
@@ -214,17 +202,11 @@ export function OnboardingTour() {
               <motion.rect
                 initial={false}
                 animate={{
-                  x: Math.max(0, spotlightRect.left - spotlightPadding),
-                  y: Math.max(0, spotlightRect.top - spotlightPadding),
-                  width: Math.min(
-                    windowWidth - Math.max(0, spotlightRect.left - spotlightPadding),
-                    spotlightRect.width + (spotlightPadding * 2)
-                  ),
-                  height: Math.min(
-                    windowHeight - Math.max(0, spotlightRect.top - spotlightPadding),
-                    spotlightRect.height + (spotlightPadding * 2)
-                  ),
-                  rx: 6,
+                  x: spotlightRect.left - spotlightPadding,
+                  y: spotlightRect.top - spotlightPadding,
+                  width: spotlightRect.width + (spotlightPadding * 2),
+                  height: spotlightRect.height + (spotlightPadding * 2),
+                  rx: 12,
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 25 }}
                 fill="black"
@@ -237,7 +219,7 @@ export function OnboardingTour() {
           y="0"
           width="100%"
           height="100%"
-          fill="rgba(15, 23, 42, 0.6)"
+          fill="rgba(15, 23, 42, 0.65)"
           mask="url(#spotlight-mask)"
           className="backdrop-blur-[2px]"
         />
@@ -254,28 +236,28 @@ export function OnboardingTour() {
             className="w-[calc(100vw-48px)] max-w-[360px] pointer-events-auto"
             style={getCardPosition()}
           >
-            <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-none ring-1 ring-black/5 bg-white overflow-hidden">
-              <CardHeader className="flex flex-row items-center gap-4 pb-2 space-y-0 bg-slate-50/50">
-                <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100">
+            <Card className="shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-none ring-1 ring-black/5 bg-white dark:bg-slate-900 overflow-hidden">
+              <CardHeader className="flex flex-row items-center gap-4 pb-2 space-y-0 bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
                   {steps[currentStep].icon}
                 </div>
                 <div className="flex-1">
-                  <p className="text-[10px] font-bold text-[#2F5BEA] uppercase tracking-[0.15em] mb-0.5">
+                  <p className="text-[10px] font-bold text-[#2F5BEA] dark:text-blue-400 uppercase tracking-[0.15em] mb-0.5">
                     Step {currentStep + 1} of {steps.length}
                   </p>
-                  <CardTitle className="text-base font-bold text-slate-900 leading-tight">
+                  <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">
                     {steps[currentStep].title}
                   </CardTitle>
                 </div>
                 <button 
                   onClick={completeTour}
-                  className="p-1 hover:bg-slate-100 rounded-full transition-colors self-start"
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors self-start"
                 >
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               </CardHeader>
               <CardContent className="pt-4">
-                <p className="text-slate-600 text-sm leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                   {steps[currentStep].description}
                 </p>
                 
@@ -284,18 +266,18 @@ export function OnboardingTour() {
                     <div 
                       key={i} 
                       className={`h-1 rounded-full transition-all duration-500 ${
-                        i === currentStep ? 'w-8 bg-[#2F5BEA]' : 'w-1.5 bg-slate-200'
+                        i === currentStep ? 'w-8 bg-[#2F5BEA]' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
                       }`} 
                     />
                   ))}
                 </div>
               </CardContent>
-              <CardFooter className="flex items-center justify-between pt-2 border-t border-slate-50">
+              <CardFooter className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-800">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={completeTour} 
-                  className="text-slate-400 hover:text-slate-900 text-xs font-semibold px-0 hover:bg-transparent"
+                  className="text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-xs font-semibold px-0 hover:bg-transparent"
                 >
                   Skip
                 </Button>
@@ -305,7 +287,7 @@ export function OnboardingTour() {
                       variant="outline" 
                       size="sm" 
                       onClick={handleBack} 
-                      className="h-8 border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold"
+                      className="h-8 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold"
                     >
                       <ChevronLeft className="mr-1 h-3 w-3" /> Back
                     </Button>
@@ -313,9 +295,9 @@ export function OnboardingTour() {
                   <Button 
                     size="sm" 
                     onClick={handleNext} 
-                    className="h-8 bg-[#2F5BEA] hover:bg-[#2447C6] text-xs font-bold px-4 shadow-md shadow-blue-500/20"
+                    className="h-8 bg-[#2F5BEA] hover:bg-[#2447C6] dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs font-bold px-4 shadow-md shadow-blue-500/20"
                   >
-                    {currentStep === steps.length - 1 ? 'Finish' : 'Continue'}
+                    {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Button>
                 </div>
