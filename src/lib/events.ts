@@ -5,6 +5,7 @@ export type EventName =
   | 'GET_DASHBOARD_SUMMARY'
   | 'GET_REVIEW_QUEUE'
   | 'GET_DRAFTS'
+  | 'GET_RECENT_ACTIVITY'
   | 'REVIEW_OPEN'
   | 'DRAFT_OPEN'
   
@@ -104,6 +105,21 @@ export interface GetDraftsRequest {
 export interface GetDraftsResponse {
   success: boolean;
   data?: { items: DraftItem[] };
+  error?: ErrorResponse;
+  correlationId: string;
+}
+
+export interface GetRecentActivityRequest {
+  eventName: 'GET_RECENT_ACTIVITY';
+  requestId: string;
+  timestamp: string;
+  actor: { role: UserRole; userId: string };
+  payload: { limit?: number };
+}
+
+export interface GetRecentActivityResponse {
+  success: boolean;
+  data?: { items: ActivityItem[] };
   error?: ErrorResponse;
   correlationId: string;
 }
@@ -504,6 +520,7 @@ export type WebhookRequestUnion =
   | GetDashboardSummaryRequest
   | GetReviewQueueRequest
   | GetDraftsRequest
+  | GetRecentActivityRequest
   | ReviewOpenRequest
   | DraftOpenRequest
   | AssessmentCreateDraftRequest
@@ -533,6 +550,7 @@ export type WebhookResponseUnion =
   | GetDashboardSummaryResponse
   | GetReviewQueueResponse
   | GetDraftsResponse
+  | GetRecentActivityResponse
   | ReviewOpenResponse
   | DraftOpenResponse
   | AssessmentCreateDraftResponse
@@ -610,6 +628,15 @@ export type DraftItem = {
   assessmentId: string;
   assessmentName: string;
   studentName: string;
+  updatedAt: string;
+};
+
+// GET_RECENT_ACTIVITY
+export type ActivityItem = {
+  id: string;
+  type: 'assessment_created' | 'assessment_finalized' | 'student_added' | 'draft_updated' | 'report_generated';
+  title: string;
+  subtitle: string;
   updatedAt: string;
 };
 

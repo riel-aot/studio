@@ -117,7 +117,8 @@ export function useWebhook<P, R>({
       });
 
       const rawResponse = await response.text();
-      console.log(`[useWebhook] ${eventName} - Raw response status=${response.status}, body=${rawResponse.substring(0, 500)}`);
+      console.log(`[useWebhook] ${eventName} - Raw response status=${response.status}`);
+      
       let responseData: WebhookResponse<R>;
 
       const normalizeValue = (value: any): any => {
@@ -152,42 +153,41 @@ export function useWebhook<P, R>({
             correlationId: requestBody.requestId,
           };
         } else {
-        try {
-          const parsedResponse = JSON.parse(rawResponse);
-          console.log(`[useWebhook] ${eventName} - Parsed JSON response:`, parsedResponse);
-          if (allowEchoResponse && response.ok && isEchoResponse(parsedResponse)) {
-            responseData = {
-              success: true,
-              data: undefined,
-              correlationId: requestBody.requestId,
-            };
-          } else if (response.ok && (Array.isArray(parsedResponse) || parsedResponse?.success === undefined)) {
-            responseData = {
-              success: true,
-              data: parsedResponse as R,
-              correlationId: requestBody.requestId,
-            };
-          } else if (allowRawResponse && response.ok && !parsedResponse?.success) {
-            responseData = {
-              success: true,
-              data: parsedResponse as R,
-              correlationId: requestBody.requestId,
-            };
-          } else {
-            responseData = parsedResponse as WebhookResponse<R>;
+          try {
+            const parsedResponse = JSON.parse(rawResponse);
+            if (allowEchoResponse && response.ok && isEchoResponse(parsedResponse)) {
+              responseData = {
+                success: true,
+                data: undefined,
+                correlationId: requestBody.requestId,
+              };
+            } else if (response.ok && (Array.isArray(parsedResponse) || parsedResponse?.success === undefined)) {
+              responseData = {
+                success: true,
+                data: parsedResponse as R,
+                correlationId: requestBody.requestId,
+              };
+            } else if (allowRawResponse && response.ok && !parsedResponse?.success) {
+              responseData = {
+                success: true,
+                data: parsedResponse as R,
+                correlationId: requestBody.requestId,
+              };
+            } else {
+              responseData = parsedResponse as WebhookResponse<R>;
+            }
+          } catch (parseError) {
+            console.error(`[useWebhook] ${eventName} - JSON parse error:`, parseError);
+            if (allowEmptyResponse && response.ok) {
+              responseData = {
+                success: true,
+                data: undefined,
+                correlationId: requestBody.requestId,
+              };
+            } else {
+              throw parseError;
+            }
           }
-        } catch (parseError) {
-          console.error(`[useWebhook] ${eventName} - JSON parse error:`, parseError, 'Raw response:', rawResponse.substring(0, 500));
-          if (allowEmptyResponse && response.ok) {
-            responseData = {
-              success: true,
-              data: undefined,
-              correlationId: requestBody.requestId,
-            };
-          } else {
-            throw parseError;
-          }
-        }
         }
       } else if (allowEmptyResponse && response.ok) {
         responseData = {
@@ -199,8 +199,6 @@ export function useWebhook<P, R>({
         throw new Error('Empty response body.');
       }
       
-      console.log(`[useWebhook] ${eventName} - Parsed responseData:`, responseData);
-      
       devLogger.log({
           timestamp: new Date().toISOString(),
           eventName,
@@ -211,12 +209,31 @@ export function useWebhook<P, R>({
       });
 
       if (!response.ok || !responseData.success) {
-        const errMessage = responseData.error?.message || 'An unknown error occurred';
-        console.log(`[useWebhook] ${eventName} - Error response:`, { status: response.status, success: responseData.success, error: responseData.error, data: responseData.data });
-        throw new Error(errMessage);
+        const errMessage = responseData.error?.message || `Backend returned error ${response.status}`;
+        console.error(`[useWebhook] ${eventName} - Webhook failure:`, { 
+          status: response.status, 
+          success: responseData.success, 
+          error: responseData.error 
+        });
+        
+        const error = new Error(errMessage);
+        setError(error);
+        
+        if (onError) {
+          onError(error);
+        }
+        
+        if (!suppressErrorToast) {
+          toast({
+            variant: 'destructive',
+            title: 'Sync Error',
+            description: errorMessage || errMessage,
+          });
+        }
+        return responseData;
       }
 
-      console.log(`[useWebhook] ${eventName} - Success. Data:`, responseData.data);
+      console.log(`[useWebhook] ${eventName} - Success`);
       setData(responseData.data as R);
       if (resolvedCacheKey && typeof window !== 'undefined') {
         const storage = cacheStorage === 'local' ? window.localStorage : window.sessionStorage;
@@ -227,11 +244,11 @@ export function useWebhook<P, R>({
       }
       return responseData;
     } catch (err: any) {
-      console.error(`[useWebhook] ${eventName} - Error caught:`, err);
+      console.error(`[useWebhook] ${eventName} - Exception:`, err);
       if (fallbackToCacheOnError) {
         const latestCache = readCache();
         if (latestCache && isCacheFresh(latestCache)) {
-          console.log(`[useWebhook] ${eventName} - Using cached data as fallback`, latestCache.data);
+          console.log(`[useWebhook] ${eventName} - Using cached data as fallback`);
           setData(latestCache.data);
           setError(null);
           setIsLoading(false);
@@ -245,11 +262,11 @@ export function useWebhook<P, R>({
       if (!suppressErrorToast) {
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: errorMessage || err.message,
+          title: 'Connection Error',
+          description: errorMessage || err.message || 'Could not connect to the server.',
         });
       }
-      return Promise.reject(err);
+      // We don't reject here to avoid unhandled rejections in background effects
     } finally {
       setIsLoading(false);
     }
@@ -273,18 +290,15 @@ export function useWebhook<P, R>({
     cacheStorage
   ]);
 
-  const shouldSkipAutoFetch = manual;
-
   useEffect(() => {
-    if (!manual && !shouldSkipAutoFetch) {
-      console.log(`[useWebhook] ${eventName} - Triggering fetch. forceRefreshOnMount=${forceRefreshOnMount}, manual=${manual}, shouldSkipAutoFetch=${shouldSkipAutoFetch}`);
+    if (!manual) {
       callWebhook();
-    } else {
-      console.log(`[useWebhook] ${eventName} - Skipping fetch. manual=${manual}, shouldSkipAutoFetch=${shouldSkipAutoFetch}, forceRefreshOnMount=${forceRefreshOnMount}`);
     }
-  }, [manual, shouldSkipAutoFetch, callWebhook, eventName, forceRefreshOnMount]);
+  }, [manual, callWebhook]);
 
-  const trigger = useCallback(async (triggerPayload?: P) => callWebhook(triggerPayload), [callWebhook]);
+  const trigger = useCallback(async (triggerPayload?: P) => {
+    return await callWebhook(triggerPayload);
+  }, [callWebhook]);
 
   return { data, error, isLoading, trigger };
 }

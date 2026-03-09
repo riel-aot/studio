@@ -1,15 +1,15 @@
 import type { EventName } from './events';
 
 /**
- * Maps each webhook event to its corresponding n8n webhook URL
- * All URLs are read from environment variables
- * Uses NEXT_PUBLIC_ prefix to make variables accessible in client components
+ * Maps each webhook event to its corresponding n8n webhook URL.
+ * Reverted to original production endpoints and environment variable fallbacks.
  */
 export const webhookUrls: Record<EventName, string | undefined> = {
   // Dashboard
   GET_DASHBOARD_SUMMARY: process.env.NEXT_PUBLIC_N8N_DASHBOARD_SUMMARY_URL,
   GET_REVIEW_QUEUE: process.env.NEXT_PUBLIC_N8N_REVIEW_QUEUE_URL,
   GET_DRAFTS: process.env.NEXT_PUBLIC_N8N_DRAFTS_URL,
+  GET_RECENT_ACTIVITY: process.env.NEXT_PUBLIC_N8N_RECENT_ACTIVITY_URL,
   REVIEW_OPEN: process.env.NEXT_PUBLIC_N8N_REVIEW_OPEN_URL,
   DRAFT_OPEN: process.env.NEXT_PUBLIC_N8N_DRAFT_OPEN_URL,
 
@@ -58,7 +58,7 @@ export const webhookUrls: Record<EventName, string | undefined> = {
   PARENT_REPORT_GET: process.env.NEXT_PUBLIC_N8N_PARENT_REPORT_GET_URL,
 
   // Other
-  HEALTH_CHECK: process.env.NEXT_PUBLIC_N8N_HEALTH_CHECK_URL,
+  HEALTH_CHECK: process.env.NEXT_PUBLIC_N8N_HEALTH_CHECK_URL, 
 };
 
 /**
@@ -73,17 +73,4 @@ export function getWebhookUrl(eventName: EventName): string | undefined {
  */
 export function isWebhookConfigured(eventName: EventName): boolean {
   return !!getWebhookUrl(eventName);
-}
-
-/**
- * Get webhook URL with fallback handling
- * Returns null if not configured, allowing graceful degradation
- */
-export function getWebhookUrlSafe(eventName: EventName): string | null {
-  const url = webhookUrls[eventName];
-  if (!url) {
-    console.warn(`[Webhook] ${eventName} is not configured. Feature may use cached data or be unavailable.`);
-    return null;
-  }
-  return url;
 }
