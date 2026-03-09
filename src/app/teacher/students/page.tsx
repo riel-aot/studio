@@ -71,7 +71,6 @@ export default function StudentsPage() {
     const [displaySearch, setDisplaySearch] = useState('');
     const [dbSearch, setDbSearch] = useState('');
 
-    // Debounce search input to avoid spamming the database
     useEffect(() => {
         const timer = setTimeout(() => {
             setDbSearch(displaySearch);
@@ -79,7 +78,7 @@ export default function StudentsPage() {
         return () => clearTimeout(timer);
     }, [displaySearch]);
 
-    const { data, isLoading, error, trigger: refetch } = useWebhook<{ search?: string }, StudentListResponse | StudentListItem[]>({
+    const { data, isLoading, error, trigger: refetch } = useWebhook<{ search?: string }, any>({
         eventName: 'STUDENT_LIST',
         payload: { search: dbSearch },
         allowRawResponse: true,
@@ -90,6 +89,8 @@ export default function StudentsPage() {
 
     const students = useMemo(() => {
         if (!data) return [];
+        
+        // Handle array responses
         if (Array.isArray(data)) {
             return data.map((student: any) => ({
                 name: student.name,
@@ -99,8 +100,11 @@ export default function StudentsPage() {
                 parentEmail: student.parent_email ?? student.parentEmail,
             }));
         }
-        if (data.success && data.data?.students) {
-            return data.data.students.map((student: any) => ({
+
+        // Handle wrapped responses from WebhookResponse.data
+        const rawItems = data.students || data.items || data.data?.students;
+        if (Array.isArray(rawItems)) {
+            return rawItems.map((student: any) => ({
                 name: student.name,
                 studentIdNumber: student.student_id ?? student.studentIdNumber,
                 grade: student.grade,
@@ -108,17 +112,12 @@ export default function StudentsPage() {
                 parentEmail: student.parent_email ?? student.parentEmail,
             }));
         }
+
         return [];
     }, [data]);
 
     const handleRowClick = (studentIdNumber: string) => {
         router.push(`/teacher/students/${encodeURIComponent(studentIdNumber)}`);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, studentIdNumber: string) => {
-        if (e.key === 'Enter') {
-            handleRowClick(studentIdNumber);
-        }
     };
 
     if (isLoading && !data) return (
@@ -215,11 +214,8 @@ export default function StudentsPage() {
                                     {students.map((student: StudentListItem) => (
                                         <TableRow 
                                             key={student.studentIdNumber}
-                                            role="link"
-                                            tabIndex={0}
                                             className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0"
                                             onClick={() => handleRowClick(student.studentIdNumber)}
-                                            onKeyDown={(e) => handleKeyDown(e, student.studentIdNumber)}
                                         >
                                             <TableCell className="font-bold text-foreground py-5 pl-8 text-lg">{student.name}</TableCell>
                                             <TableCell className="py-5">

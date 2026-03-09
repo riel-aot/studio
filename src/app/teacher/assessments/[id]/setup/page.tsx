@@ -7,16 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { FileUploader } from '@/components/file-uploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Textarea } from '@/components/ui/textarea';
 import type { StudentListItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { getWebhookUrl } from '@/lib/webhook-config';
-
-const STUDENT_LIST_CACHE_KEY = 'n8n:student-list';
 
 export default function SetupPage() {
   const params = useParams<{ id: string }>();
@@ -26,351 +23,168 @@ export default function SetupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialize selectedStudent from URL query param
   const [selectedStudent, setSelectedStudentState] = React.useState<string | null>(null);
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
 
-  const handleStudentChange = useCallback((studentIdNumber: string) => {
-    setSelectedStudentState(studentIdNumber);
-    if (typeof window !== 'undefined') {
-      const matched = students.find((student) => student.studentIdNumber === studentIdNumber);
-      sessionStorage.setItem('currentStudentId', studentIdNumber);
-      if (matched?.name) {
-        sessionStorage.setItem('currentStudentName', matched.name);
-      }
-    }
-  }, [students]);
-  
-  useEffect(() => {
-    const studentIdFromUrl = searchParams.get('studentId');
-    if (studentIdFromUrl) {
-      setSelectedStudentState(studentIdFromUrl);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const fetchStudents = async () => {
-      setLoadingStudents(true);
-      
-      try {
-        const webhookUrl = getWebhookUrl('STUDENT_LIST');
-        if (!webhookUrl) {
-          throw new Error('Student list webhook URL is not configured');
-        }
-        
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({}),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        // Handle array response from n8n with snake_case field mapping
-        if (Array.isArray(result)) {
-          const mappedStudents = result.map((student: any) => ({
-            name: student.name,
-            studentIdNumber: student.student_id,
-            grade: student.grade,
-            studentEmail: student.student_email,
-            parentEmail: student.parent_email,
-          }));
-          setStudents(mappedStudents);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(
-              STUDENT_LIST_CACHE_KEY,
-              JSON.stringify({ timestamp: Date.now(), data: mappedStudents })
-            );
-          }
-        } else if (result.success && result.data?.students) {
-          const mappedStudents = result.data.students.map((student: any) => ({
-            name: student.name,
-            studentIdNumber: student.student_id,
-            grade: student.grade,
-            studentEmail: student.student_email,
-            parentEmail: student.parent_email,
-          }));
-          setStudents(mappedStudents);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(
-              STUDENT_LIST_CACHE_KEY,
-              JSON.stringify({ timestamp: Date.now(), data: mappedStudents })
-            );
-          }
-        } else {
-          console.warn('[Setup] Unexpected response format:', result);
-          setStudents([]);
-        }
-      } catch (err) {
-        console.error('[Setup] Error fetching students:', err);
-        if (typeof window !== 'undefined') {
-          const rawValue = window.localStorage.getItem(STUDENT_LIST_CACHE_KEY);
-          if (rawValue) {
-            try {
-              const cached = JSON.parse(rawValue) as { timestamp: number; data: StudentListItem[] };
-              if (cached?.data?.length) {
-                setStudents(cached.data);
-                return;
-              }
-            } catch {
-              window.localStorage.removeItem(STUDENT_LIST_CACHE_KEY);
-            }
-          }
-        }
-        toast({
-          variant: 'destructive',
-          title: 'Failed to load students',
-          description: 'Could not fetch student list. Please refresh the page.',
-        });
-      } finally {
-        setLoadingStudents(false);
-      }
-    };
-
-    fetchStudents();
-  }, [toast]);
-
-  const { data: assessmentData, isLoading: loadingAssessment } = useWebhook<{ assessmentId: string }, { assessment: any }>({
-    eventName: 'ASSESSMENT_GET',
-    payload: { assessmentId: normalizedAssessmentId },
+  const { data: studentListData } = useWebhook<{}, any>({
+    eventName: 'STUDENT_LIST',
+    payload: {},
   });
 
+  useEffect(() => {
+    if (studentListData) {
+      const raw = Array.isArray(studentListData) ? studentListData : studentListData.students || studentListData.items || [];
+      const mapped = raw.map((s: any) => ({
+        name: s.name,
+        studentIdNumber: s.student_id ?? s.studentIdNumber,
+        grade: s.grade,
+        studentEmail: s.student_email ?? s.studentEmail,
+        parentEmail: s.parent_email ?? s.parentEmail,
+      }));
+      setStudents(mapped);
+      setLoadingStudents(false);
+    }
+  }, [studentListData]);
 
+  useEffect(() => {
+    const idFromUrl = searchParams.get('studentId');
+    if (idFromUrl) setSelectedStudentState(idFromUrl);
+  }, [searchParams]);
 
   const [activeTab, setActiveTab] = React.useState<'document' | 'image'>('document');
-  const [docUploadStatus, setDocUploadStatus] = React.useState<'idle' | 'uploaded' | 'analyzing' | 'done' | 'error'>('idle');
-  const [imgUploadStatus, setImgUploadStatus] = React.useState<'idle' | 'uploaded' | 'analyzing' | 'done' | 'error'>('idle');
-  const [lastDocFile, setLastDocFile] = React.useState<File | null>(null);
-  const [lastImgFile, setLastImgFile] = React.useState<File | null>(null);
+  const [status, setStatus] = useState<'idle' | 'uploaded' | 'analyzing' | 'done' | 'error'>('idle');
+  const [file, setFile] = useState<File | null>(null);
 
-  // On file selection we only record the file reference; analysis runs when the user clicks Analyze
-  const handleTypedFile = useCallback((file: File) => {
-    setLastDocFile(file);
-    setDocUploadStatus('uploaded');
-  }, []);
+  const analyzeSelected = useCallback(async () => {
+    if (!file) return;
+    setStatus('analyzing');
 
-  const handleImageFile = useCallback((file: File) => {
-    setLastImgFile(file);
-    setImgUploadStatus('uploaded');
-  }, []);
-
-  const analyzeSelected = React.useCallback(async () => {
-    // Only analyze the currently selected tab
-    if (activeTab === 'document') {
-      if (!(docUploadStatus === 'uploaded' || docUploadStatus === 'done' || docUploadStatus === 'error')) {
-        toast({ variant: 'destructive', title: 'No file uploaded', description: 'Please upload a document first.' });
-        return;
-      }
-
-      setDocUploadStatus('analyzing');
-      try {
-        // Extract text from TXT file
-        const formData = new FormData();
-        formData.append('file', lastDocFile!);
-
-        const response = await fetch('/api/extract-text', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to extract text');
-        }
-
+    try {
+      const formData = new FormData();
+      
+      if (activeTab === 'document') {
+        formData.append('file', file);
+        const response = await fetch('/api/extract-text', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Failed to extract text');
         const result = await response.json();
         
-        // Store extracted text and studentId in sessionStorage for the document page
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('extractedText', result.text);
           if (selectedStudent) {
             sessionStorage.setItem('currentStudentId', selectedStudent);
-            const matched = students.find((student) => student.studentIdNumber === selectedStudent);
-            if (matched?.name) {
-              sessionStorage.setItem('currentStudentName', matched.name);
-            }
+            const matched = students.find(s => s.studentIdNumber === selectedStudent);
+            if (matched) sessionStorage.setItem('currentStudentName', matched.name);
           }
         }
-
-        setDocUploadStatus('done');
-        toast({ title: 'Text extracted', description: 'Redirecting to document editor...' });
-        setTimeout(() => router.push(`/teacher/assessments/${assessmentId}/document`), 500);
-      } catch (e) {
-        console.error(e);
-        setDocUploadStatus('error');
-        toast({ variant: 'destructive', title: 'Extraction failed', description: 'Failed to extract text from file.' });
-      }
-    } else {
-      // Image tab
-      if (!(imgUploadStatus === 'uploaded' || imgUploadStatus === 'done' || imgUploadStatus === 'error')) {
-        toast({ variant: 'destructive', title: 'No file uploaded', description: 'Please upload an image first.' });
-        return;
-      }
-
-      setImgUploadStatus('analyzing');
-      try {
-        // Send image to n8n webhook in binary format
-        const fileBuffer = await lastImgFile!.arrayBuffer();
-        
-        const formData = new FormData();
-        formData.append('data', new Blob([fileBuffer], { type: lastImgFile!.type }));
-
-        const webhookUrl = getWebhookUrl('ASSESSMENT_IMAGE_EXTRACT');
-        if (!webhookUrl) {
-          throw new Error('Image extract webhook URL is not configured');
-        }
-
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          body: formData,
-        });
-
+      } else {
+        // Use local proxy to avoid CORS errors with external n8n binary nodes
+        formData.append('data', file);
+        const response = await fetch('/api/proxy-image', { method: 'POST', body: formData });
         if (!response.ok) {
-          throw new Error('Failed to process image');
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to process image');
         }
-
+        
         const result = await response.json();
         
-        // Store extracted text and studentId in sessionStorage for the document page
-        if (typeof window !== 'undefined') {
-          // Handle different possible response formats from n8n
-          let extractedText = '';
+        // Deep recursive search for extracted text in complex AI response structures
+        const findExtractedText = (obj: any): string => {
+          if (!obj) return '';
+          if (typeof obj === 'string') return obj;
+          if (Array.isArray(obj)) return obj.map(findExtractedText).join('\n');
           
-          // Check if result is an array
-          if (Array.isArray(result) && result.length > 0) {
-            const firstElement = result[0];
-            // Check for Message property in the first element
-            extractedText = firstElement.Message || firstElement.text || firstElement.extractedText || JSON.stringify(result);
-          } else {
-            // Handle object response
-            extractedText = result.text || result.extractedText || result.extracted_text || result.Message || JSON.stringify(result);
-          }
-          
-          sessionStorage.setItem('extractedText', extractedText);
-          if (selectedStudent) {
-            sessionStorage.setItem('currentStudentId', selectedStudent);
-            const matched = students.find((student) => student.studentIdNumber === selectedStudent);
-            if (matched?.name) {
-              sessionStorage.setItem('currentStudentName', matched.name);
+          let text = '';
+          const keysToTry = ['output', 'text', 'Message', 'extractedText', 'content'];
+          for (const key of keysToTry) {
+            if (obj[key]) {
+              const val = typeof obj[key] === 'object' ? findExtractedText(obj[key]) : obj[key];
+              if (val.length > text.length) text = val;
             }
           }
+          
+          if (!text && obj.parts) text = findExtractedText(obj.parts);
+          return text;
+        };
+
+        const extracted = findExtractedText(result);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('extractedText', extracted);
+          if (selectedStudent) {
+            sessionStorage.setItem('currentStudentId', selectedStudent);
+            const matched = students.find(s => s.studentIdNumber === selectedStudent);
+            if (matched) sessionStorage.setItem('currentStudentName', matched.name);
+          }
         }
-
-        setImgUploadStatus('done');
-        toast({ title: 'Image processed', description: 'Redirecting to document editor...' });
-        setTimeout(() => router.push(`/teacher/assessments/${assessmentId}/document`), 500);
-      } catch (e) {
-        console.error(e);
-        setImgUploadStatus('error');
-        toast({ variant: 'destructive', title: 'Processing failed', description: 'Failed to process image.' });
       }
+
+      setStatus('done');
+      toast({ title: 'Success', description: 'Student work processed. Redirecting...' });
+      setTimeout(() => router.push(`/teacher/assessments/${assessmentId}/document`), 600);
+    } catch (e: any) {
+      console.error(e);
+      setStatus('error');
+      toast({ variant: 'destructive', title: 'Analysis Failed', description: e.message });
     }
-  }, [activeTab, lastDocFile, lastImgFile, docUploadStatus, imgUploadStatus, assessmentId, selectedStudent, toast, router]);
-
-  const anyUploaded = (
-    (activeTab === 'document' && (docUploadStatus === 'uploaded' || docUploadStatus === 'done' || docUploadStatus === 'analyzing' || docUploadStatus === 'error')) ||
-    (activeTab === 'image' && (imgUploadStatus === 'uploaded' || imgUploadStatus === 'done' || imgUploadStatus === 'analyzing' || imgUploadStatus === 'error'))
-  );
-
-  const isAnalyzing = activeTab === 'document' ? docUploadStatus === 'analyzing' : imgUploadStatus === 'analyzing';
-
-  const buttonLabel = activeTab === 'document'
-    ? (isAnalyzing ? 'Analyzing...' : 'Analyze Text')
-    : (isAnalyzing ? 'Processing...' : 'Analyze Image');
+  }, [activeTab, file, selectedStudent, students, assessmentId, router, toast]);
 
   return (
     <div className="w-full">
       <Card>
         <CardHeader>
           <CardTitle>Setup & Input</CardTitle>
-          <CardDescription>Select a student and upload their work.</CardDescription>
+          <CardDescription>Select a student and upload their academic work.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="student">Student</Label>
+            <Select value={selectedStudent || ''} onValueChange={setSelectedStudentState} disabled={loadingStudents}>
+              <SelectTrigger id="student">
+                <SelectValue placeholder={loadingStudents ? 'Loading students...' : 'Select a student to assess'} />
+              </SelectTrigger>
+              <SelectContent>
+                {students.map((s) => (
+                  <SelectItem key={s.studentIdNumber} value={s.studentIdNumber}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="student">Student</Label>
-              <Select value={selectedStudent || ''} onValueChange={handleStudentChange} disabled={loadingStudents}>
-                <SelectTrigger id="student" disabled={loadingStudents}>
-                  <SelectValue placeholder={loadingStudents ? 'Loading students...' : 'Select a student to assess'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((s) => (
-                    <SelectItem key={s.studentIdNumber} value={s.studentIdNumber}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Label>Submission Method</Label>
+            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setStatus('idle'); setFile(null); }}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="document">Typed Document</TabsTrigger>
+                <TabsTrigger value="image">Handwritten Work</TabsTrigger>
+              </TabsList>
 
-            <div>
-              <Label>Upload</Label>
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'document' | 'image')}>
-                <TabsList>
-                  <TabsTrigger value="document">Document</TabsTrigger>
-                  <TabsTrigger value="image">Image</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="document">
-                  <div className="pt-2">
-                      {docUploadStatus === 'idle' && (
-                        <FileUploader onFileSelected={handleTypedFile} acceptedFileTypes={{ 'text/plain': ['.txt'] }} />
-                      )}
-
-                      {docUploadStatus !== 'idle' && (
-                        <div className="mt-3 flex items-center justify-between">
-                          <div>
-                            <div className="text-sm">{lastDocFile?.name}</div>
-                            <div className="text-xs text-muted-foreground">{docUploadStatus === 'uploaded' ? 'Ready to analyze' : docUploadStatus === 'analyzing' ? 'Analyzing...' : docUploadStatus === 'done' ? 'Analysis complete' : 'Upload error'}</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" onClick={() => { setDocUploadStatus('idle'); setLastDocFile(null); }}>Replace</Button>
-                            {docUploadStatus === 'done' && (
-                              <Button asChild size="sm"><Link href={`/teacher/assessments/${assessmentId}/document`}>View Document</Link></Button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                  </div>
-                </TabsContent>
-
-              <TabsContent value="image">
-                <div className="pt-2">
-                  {imgUploadStatus === 'idle' && (
-                    <FileUploader onFileSelected={handleImageFile} acceptedFileTypes={{ 'image/png': ['.png'], 'image/jpeg': ['.jpeg', '.jpg'] }} />
-                  )}
-
-                  {imgUploadStatus !== 'idle' && (
-                    <div className="mt-3 flex items-center justify-between">
-                      <div>
-                        <div className="text-sm">{lastImgFile?.name}</div>
-                        <div className="text-xs text-muted-foreground">{imgUploadStatus === 'uploaded' ? 'Ready to analyze' : imgUploadStatus === 'analyzing' ? 'Analyzing...' : imgUploadStatus === 'done' ? 'Analysis complete' : 'Upload error'}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" onClick={() => { setImgUploadStatus('idle'); setLastImgFile(null); }}>Replace</Button>
-                        {imgUploadStatus === 'done' && (
-                          <Button asChild size="sm"><Link href={`/teacher/assessments/${assessmentId}/document`}>View Document</Link></Button>
-                        )}
-                      </div>
+              <div className="pt-4">
+                {status === 'idle' ? (
+                  <FileUploader 
+                    onFileSelected={(f) => { setFile(f); setStatus('uploaded'); }} 
+                    acceptedFileTypes={activeTab === 'document' ? { 'text/plain': ['.txt'] } : { 'image/*': ['.png', '.jpg', '.jpeg'] }} 
+                  />
+                ) : (
+                  <div className="flex items-center justify-between p-4 border rounded-xl bg-secondary/20">
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold">{file?.name}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                        {status === 'uploaded' ? 'Ready to analyze' : status === 'analyzing' ? 'Processing...' : status === 'done' ? 'Complete' : 'Error'}
+                      </p>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-              </Tabs>
-            </div>
+                    <Button variant="ghost" size="sm" onClick={() => { setStatus('idle'); setFile(null); }} disabled={status === 'analyzing'}>
+                      Replace File
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Tabs>
+          </div>
 
-            <div className="flex gap-2">
-              <Button disabled={!anyUploaded} onClick={analyzeSelected}>
-                {buttonLabel}
-              </Button>
-              {((activeTab === 'document' && docUploadStatus === 'error') || (activeTab === 'image' && imgUploadStatus === 'error')) && (
-                <Button variant="outline" onClick={analyzeSelected}>Retry</Button>
-              )}
-            </div>
+          <div className="pt-4">
+            <Button className="w-full h-12 rounded-xl font-bold" disabled={status !== 'uploaded' || !selectedStudent} onClick={analyzeSelected}>
+              {status === 'analyzing' ? 'Analyzing...' : activeTab === 'document' ? 'Process Document' : 'Run Image Extraction'}
+            </Button>
           </div>
         </CardContent>
       </Card>
