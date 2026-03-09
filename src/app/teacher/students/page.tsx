@@ -188,7 +188,7 @@ export default function StudentsPage() {
                                     </CardDescription>
                                 </div>
                             </div>
-                             <div className="relative w-full max-w-sm">
+                             <div className="relative w-full max-sm">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 <Input
                                     placeholder="Find student by name..."
