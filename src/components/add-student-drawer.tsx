@@ -122,54 +122,96 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl border-l border-slate-200 px-8">
-        <div className="flex flex-col h-full overflow-hidden">
-          <SheetHeader className="pb-6 pt-2">
-            <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-              <UserPlus className="h-6 w-6 text-[#2F5BEA]" />
-              Manage Enrollment
-            </SheetTitle>
-            <SheetDescription className="text-slate-500 text-sm">
-              Add a new student manually or upload a roster via spreadsheet.
-            </SheetDescription>
-          </SheetHeader>
+      <SheetContent className="w-full sm:max-w-xl border-l border-border bg-white p-0">
+        <div className="flex flex-col h-full">
+          {/* Header Section */}
+          <div className="px-8 pt-10 pb-6 shrink-0 bg-white">
+            <SheetHeader className="text-left">
+              <SheetTitle className="text-2xl font-bold flex items-center gap-3 text-slate-900">
+                <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <UserPlus className="h-5 w-5 text-[#2F5BEA]" />
+                </div>
+                Manage Enrollment
+              </SheetTitle>
+              <SheetDescription className="text-slate-500 text-sm mt-2">
+                Add a new student manually or upload a roster via spreadsheet.
+              </SheetDescription>
+            </SheetHeader>
+          </div>
 
+          {/* Main Tabs Area */}
           <Tabs defaultValue="manual" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-2 mb-6 shrink-0 bg-slate-100 p-1 rounded-xl">
-              <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider">
-                Manual Entry
-              </TabsTrigger>
-              <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider">
-                Bulk Import
-              </TabsTrigger>
-            </TabsList>
+            <div className="px-8 mb-6 shrink-0">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-xl">
+                <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  Manual Entry
+                </TabsTrigger>
+                <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  Bulk Import
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <TabsContent value="manual" className="flex-1 flex flex-col m-0 min-h-0">
+            {/* Manual Entry Form */}
+            <TabsContent value="manual" className="flex-1 flex flex-col m-0 min-h-0 data-[state=inactive]:hidden">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onManualSubmit)} className="flex flex-col h-full">
-                  <div className="flex-1 space-y-6 overflow-y-auto pr-2 pb-6 scrollbar-thin">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
-                          <FormControl>
-                            <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-slate-200 focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA] text-sm" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex-1 overflow-y-auto px-8 space-y-8 pb-10">
+                    <div className="space-y-6">
                       <FormField
                         control={form.control}
-                        name="studentIdNumber"
+                        name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student ID</FormLabel>
+                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="System ID Number" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
+                              <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-slate-200 focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA] text-sm bg-slate-50/30" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="studentIdNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student ID</FormLabel>
+                              <FormControl>
+                                <Input placeholder="System ID Number" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="grade"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Academic Level</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., Grade 5" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <Separator className="bg-slate-100" />
+
+                    <div className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="studentEmail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student Email (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Official school email address" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -177,69 +219,46 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                       />
                       <FormField
                         control={form.control}
-                        name="grade"
+                        name="parentEmail"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Academic Level</FormLabel>
+                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Parent / Guardian Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Grade 5" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
+                              <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-                    <Separator className="bg-slate-100" />
-                    <FormField
-                      control={form.control}
-                      name="studentEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student Email (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Official school email address" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="parentEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Parent / Guardian Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-slate-200 text-sm" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
                   
-                  <SheetFooter className="pt-6 border-t mt-auto shrink-0 flex items-center gap-3">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => onOpenChange(false)}
-                      disabled={isLoading}
-                      className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm"
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm">
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Add Student
-                    </Button>
-                  </SheetFooter>
+                  {/* Footer Anchored to Bottom */}
+                  <div className="px-8 py-6 border-t bg-slate-50/50 shrink-0">
+                    <SheetFooter className="flex-row items-center gap-3 sm:justify-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => onOpenChange(false)}
+                        disabled={isLoading}
+                        className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm px-6"
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm flex-1 sm:flex-none">
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                        Add Student
+                      </Button>
+                    </SheetFooter>
+                  </div>
                 </form>
               </Form>
             </TabsContent>
 
-            <TabsContent value="bulk" className="flex-1 flex flex-col m-0 min-h-0">
-              <div className="flex-1 space-y-6 overflow-y-auto pb-6 scrollbar-thin">
-                <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl flex gap-4">
+            {/* Bulk Import Section */}
+            <TabsContent value="bulk" className="flex-1 flex flex-col m-0 min-h-0 data-[state=inactive]:hidden">
+              <div className="flex-1 overflow-y-auto px-8 space-y-8 pb-10">
+                <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl flex gap-4 mt-2">
                   <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
                     <Info className="h-5 w-5 text-[#2F5BEA]" />
                   </div>
@@ -249,7 +268,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <FileUploader
                     onFileSelected={(file) => setBulkFiles([file])}
                     acceptedFileTypes={{
@@ -267,31 +286,39 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         <p className="text-sm font-bold text-slate-900 truncate">{bulkFiles[0].name}</p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{(bulkFiles[0].size / 1024).toFixed(1)} KB • Ready to process</p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => setBulkFiles([])} className="text-slate-400 hover:text-destructive font-bold text-xs uppercase tracking-wider">Remove</Button>
+                      <button 
+                        onClick={() => setBulkFiles([])} 
+                        className="text-slate-400 hover:text-destructive font-bold text-xs uppercase tracking-wider px-2 py-1 transition-colors"
+                      >
+                        Remove
+                      </button>
                     </div>
                   )}
                 </div>
               </div>
 
-              <SheetFooter className="pt-6 border-t mt-auto shrink-0 flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => onOpenChange(false)}
-                  disabled={isLoading}
-                  className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleBulkUpload} 
-                  disabled={isLoading || bulkFiles.length === 0}
-                  className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm"
-                >
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                  Process Roster
-                </Button>
-              </SheetFooter>
+              {/* Footer Anchored to Bottom */}
+              <div className="px-8 py-6 border-t bg-slate-50/50 shrink-0">
+                <SheetFooter className="flex-row items-center gap-3 sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => onOpenChange(false)}
+                    disabled={isLoading}
+                    className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm px-6"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleBulkUpload} 
+                    disabled={isLoading || bulkFiles.length === 0}
+                    className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm flex-1 sm:flex-none"
+                  >
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                    Process Roster
+                  </Button>
+                </SheetFooter>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
