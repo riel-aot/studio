@@ -15,7 +15,7 @@ import { useWebhook } from '@/lib/hooks';
 import { useAuth } from '@/hooks/use-auth';
 import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, MessageSquare, Calendar, Sparkles, FileText } from 'lucide-react';
+import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, Calendar, Sparkles, FileText, History } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
@@ -152,27 +152,35 @@ export default function TeacherDashboard() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
             title="Needs Grading" 
-            value={kpiData?.kpis.pendingReview ?? 3} 
+            value={kpiData?.kpis.pendingReview ?? 0} 
             icon={PenSquare} 
-            description="Submissions to review" 
+            variant="amber"
+            description="Submissions awaiting review"
+            onClick={() => router.push('/teacher/assessments?status=needs_review')}
           />
           <StatCard 
             title="Active Drafts" 
-            value={kpiData?.kpis.drafts ?? 2} 
+            value={kpiData?.kpis.drafts ?? 0} 
             icon={FileText} 
-            description="Assessments in progress" 
+            variant="blue"
+            description="Assessments in progress"
+            onClick={() => router.push('/teacher/assessments?status=draft')}
           />
           <StatCard 
-            title="Parent Messages" 
-            value={1} 
-            icon={MessageSquare} 
-            description="Unread notifications" 
+            title="Student Activity" 
+            value={reviewQueueData?.items.length ?? 0} 
+            icon={History} 
+            variant="purple"
+            description="Recent submissions or updates"
+            onClick={() => router.push('/teacher/students')}
           />
           <StatCard 
             title="Due Tomorrow" 
             value={4} 
             icon={Calendar} 
-            description="Upcoming deadlines" 
+            variant="red"
+            description="Upcoming deadlines"
+            onClick={() => router.push('/teacher/assessments')}
           />
         </div>
       </div>
@@ -353,7 +361,11 @@ export default function TeacherDashboard() {
             <CardContent className="space-y-3 px-6 py-6">
               {draftsData?.items && draftsData.items.length > 0 ? (
                 draftsData.items.map((draft) => (
-                  <div key={draft.assessmentId} className="flex items-start gap-3 group p-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
+                  <div 
+                    key={draft.assessmentId} 
+                    onClick={() => router.push(`/teacher/assessments/${normalizeAssessmentIdentifier(draft.assessmentId) ?? draft.assessmentId}`)}
+                    className="flex items-start gap-3 group p-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                  >
                     <div className="mt-0.5 h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
                       <PenSquare className="h-4 w-4 text-slate-400" />
                     </div>
