@@ -45,9 +45,6 @@ export function FileUploader({
         <p className="mt-4 font-semibold text-foreground">
           {isDragActive ? 'Drop the file here...' : 'Drag & drop file, or click to select'}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Supported: {Object.values(acceptedFileTypes).flat().join(', ')}
-        </p>
       </div>
     </div>
   );
