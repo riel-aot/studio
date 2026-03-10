@@ -90,8 +90,19 @@ export default function StudentsPage() {
 
     const students = useMemo(() => {
         if (!data) return [];
+        let baseList: StudentListItem[] = [];
+        
+        // Parse the data from the webhook response
         if (Array.isArray(data)) {
-            return data.map((student: any) => ({
+            baseList = data.map((student: any) => ({
+                name: student.name,
+                studentIdNumber: student.student_id ?? student.studentIdNumber,
+                grade: student.grade,
+                studentEmail: student.student_email ?? student.studentEmail,
+                parentEmail: student.parent_email ?? student.parentEmail,
+            }));
+        } else if (data.success && data.data?.students) {
+            baseList = data.data.students.map((student: any) => ({
                 name: student.name,
                 studentIdNumber: student.student_id ?? student.studentIdNumber,
                 grade: student.grade,
@@ -99,17 +110,15 @@ export default function StudentsPage() {
                 parentEmail: student.parent_email ?? student.parentEmail,
             }));
         }
-        if (data.success && data.data?.students) {
-            return data.data.students.map((student: any) => ({
-                name: student.name,
-                studentIdNumber: student.student_id ?? student.studentIdNumber,
-                grade: student.grade,
-                studentEmail: student.student_email ?? student.studentEmail,
-                parentEmail: student.parent_email ?? student.parentEmail,
-            }));
-        }
-        return [];
-    }, [data]);
+
+        // Apply local filtering for immediate "dynamic" feedback
+        if (!displaySearch) return baseList;
+        const searchLower = displaySearch.toLowerCase();
+        return baseList.filter(student => 
+            student.name.toLowerCase().includes(searchLower) || 
+            student.studentIdNumber.toLowerCase().includes(searchLower)
+        );
+    }, [data, displaySearch]);
 
     const handleRowClick = (studentIdNumber: string) => {
         router.push(`/teacher/students/${encodeURIComponent(studentIdNumber)}`);
@@ -174,7 +183,7 @@ export default function StudentsPage() {
                 />
             </div>
 
-            {students.length > 0 || displaySearch ? (
+            {(data || displaySearch) ? (
                  <Card id="onboarding-student-list" className="border-border shadow-sm overflow-hidden rounded-2xl bg-card">
                     <CardHeader className="bg-card pb-8 border-b border-border">
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
