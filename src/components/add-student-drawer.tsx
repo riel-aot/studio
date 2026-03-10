@@ -142,11 +142,11 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
           {/* Main Tabs Area */}
           <Tabs defaultValue="manual" className="flex-1 flex flex-col min-h-0">
             <div className="px-8 mb-6 shrink-0">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-xl">
-                <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-xl h-11">
+                <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider h-full data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   Manual Entry
                 </TabsTrigger>
-                <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider h-10 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider h-full data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   Bulk Import
                 </TabsTrigger>
               </TabsList>
