@@ -138,7 +138,7 @@ export default function ReportsPage() {
                                     const studentName = report.student_name ?? report.studentName ?? 'Unknown';
                                     const assignmentTitle = report.assignment_title ?? report.assignmentTitle ?? report.assessment_title ?? 'Untitled';
                                     const rubricName = report.rubric_name ?? report.rubricName ?? '-';
-                                    const createdAt = report.created_at ?? report.createdAt ?? report.finalized_at ?? report.finalizedAt ?? new Date().toISOString();
+                                    const createdAt = report.Timestamp ?? report.timestamp ?? report.created_at ?? report.createdAt ?? report.finalized_at ?? report.finalizedAt ?? null;
                                     
                                     if (!reportId || reportId === 'undefined') {
                                         console.error('Invalid reportId for report:', report);
@@ -153,7 +153,7 @@ export default function ReportsPage() {
                                             <TableCell className="text-muted-foreground">{assignmentTitle}</TableCell>
                                             <TableCell className="text-muted-foreground">{rubricName}</TableCell>
                                             <TableCell className="text-muted-foreground">
-                                                {format(new Date(createdAt), 'dd MMM yyyy, p')}
+                                                {createdAt ? format(new Date(createdAt), 'dd MMM yyyy, p') : 'Unavailable'}
                                             </TableCell>
                                         </TableRow>
                                     );

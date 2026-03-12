@@ -143,7 +143,7 @@ export default function ReportDetailPage() {
             
             <PageHeader
                 title={report.student_name ?? 'Unknown Student'}
-                description={`Assignment: ${report.assignment_title ?? 'Untitled Assignment'}${report.created_at ? ` • Finalized ${new Date(report.created_at).toLocaleDateString()}` : ''}`}
+                description={`Assignment: ${report.assignment_title ?? 'Untitled Assignment'}${(report.Timestamp ?? report.timestamp ?? report.created_at) ? ` • Finalized ${new Date(report.Timestamp ?? report.timestamp ?? report.created_at ?? '').toLocaleDateString()}` : ''}`}
             />
 
             <div className="space-y-6">

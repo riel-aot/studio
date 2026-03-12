@@ -33,6 +33,10 @@ export function ReportPreviewDrawer({ reportId, initialReport, onOpenChange }: R
         return (
             <Sheet open={!!reportId} onOpenChange={onOpenChange}>
                 <SheetContent className="sm:max-w-lg overflow-y-auto">
+                    <SheetHeader className='sr-only'>
+                        <SheetTitle>Report Preview</SheetTitle>
+                        <SheetDescription>No report data is available for this preview.</SheetDescription>
+                    </SheetHeader>
                     <p className='p-6 text-muted-foreground'>No report data available.</p>
                 </SheetContent>
             </Sheet>

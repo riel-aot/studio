@@ -318,7 +318,12 @@ export default function SetupPage() {
                 <TabsContent value="document">
                   <div className="pt-2">
                       {docUploadStatus === 'idle' && (
-                        <FileUploader onFileSelected={handleTypedFile} acceptedFileTypes={{ 'text/plain': ['.txt'] }} />
+                        <FileUploader onFileSelected={handleTypedFile} acceptedFileTypes={{ 
+                          'text/plain': ['.txt'],
+                          'application/pdf': ['.pdf'],
+                          'application/msword': ['.doc'],
+                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+                        }} />
                       )}
 
                       {docUploadStatus !== 'idle' && (

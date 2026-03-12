@@ -231,10 +231,29 @@ export default function AssessmentsPage() {
     router.push(`/teacher/assessments/${assessmentId}/select-student`);
   };
 
-  const normalizedData = useMemo(
-    () => normalizeAssessmentList(data ?? null, filters, pageSize),
-    [data, filters, pageSize, rubricMap]
-  );
+  // Memoize the normalized data and apply instant client-side filtering
+  const normalizedData = useMemo(() => {
+    const baseData = normalizeAssessmentList(data ?? null, filters, pageSize);
+    
+    // Apply local filtering for immediate "dynamic" feedback as user types
+    if (!displaySearch) return baseData;
+    
+    const searchLower = displaySearch.toLowerCase();
+    const filteredItems = baseData.items.filter(item => 
+      item.title.toLowerCase().includes(searchLower) ||
+      item.rubric.name.toLowerCase().includes(searchLower) ||
+      (item.notes && item.notes.toLowerCase().includes(searchLower))
+    );
+    
+    return {
+      ...baseData,
+      items: filteredItems,
+      pagination: {
+        ...baseData.pagination,
+        total: filteredItems.length
+      }
+    };
+  }, [data, filters, pageSize, displaySearch]);
 
   const counts = normalizedData.counts;
   const items = normalizedData.items;
@@ -288,7 +307,6 @@ export default function AssessmentsPage() {
                         className="w-full rounded-xl bg-secondary border-none focus:ring-2 focus:ring-primary/20 pl-12 h-12 text-base transition-all placeholder:text-muted-foreground font-medium"
                         value={displaySearch}
                         onChange={handleSearchChange}
-                        disabled={isLoading}
                     />
                 </div>
             </div>
