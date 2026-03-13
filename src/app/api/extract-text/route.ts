@@ -1,3 +1,6 @@
+import mammoth from 'mammoth';
+import { PDFParse } from 'pdf-parse';
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -10,16 +13,36 @@ export async function POST(req: Request) {
       );
     }
 
-    // Only accept TXT files
-    if (file.type !== "text/plain") {
+    const fileName = file.name.toLowerCase();
+    const isTextFile = file.type === 'text/plain' || fileName.endsWith('.txt');
+    const isPdfFile = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+    const isDocxFile =
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      || fileName.endsWith('.docx');
+
+    if (!isTextFile && !isPdfFile && !isDocxFile) {
       return Response.json(
-        { error: "Only .txt files are supported" },
+        { error: 'Only .txt, .pdf, and .docx files are supported' },
         { status: 400 }
       );
     }
 
     const buffer = await file.arrayBuffer();
-    const text = new TextDecoder().decode(buffer);
+    let text = '';
+
+    if (isTextFile) {
+      text = new TextDecoder().decode(buffer);
+    } else if (isPdfFile) {
+      const parser = new PDFParse({ data: Buffer.from(buffer) });
+      const result = await parser.getText();
+      await parser.destroy();
+      text = result.text;
+    } else {
+      const result = await mammoth.extractRawText({
+        buffer: Buffer.from(buffer),
+      });
+      text = result.value;
+    }
 
     return Response.json({ text });
   } catch (error) {

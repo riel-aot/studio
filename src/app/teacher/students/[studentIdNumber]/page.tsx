@@ -285,7 +285,7 @@ export default function StudentDetailPage() {
                         <TabsTrigger value="reports">Reports</TabsTrigger>
                     </TabsList>
                     <TabsContent value="assessments">
-                        <StudentAssessmentsTab studentId={student.studentIdNumber} />
+                      <StudentAssessmentsTab studentId={student.studentIdNumber} studentName={student.name} />
                     </TabsContent>
                     <TabsContent value="reports">
                         <StudentReportsTab studentId={student.studentIdNumber} />

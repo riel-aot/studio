@@ -4,7 +4,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install -g npm@11.11.1
 
 # 2. Build application
 FROM node:20-alpine AS builder

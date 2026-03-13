@@ -15,9 +15,12 @@ export async function POST(req: NextRequest) {
       'ASSESSMENT_LIST',
       'ASSESSMENT_GET',
       'ASSESSMENT_CREATE_DRAFT',
+      'ASSESSMENT_FINALIZE',
+      'ASSESSMENT_MARK_COMPLETE',
       'RUBRIC_LIST',
       'REPORTS_LIST',
-      'REPORT_GET'
+      'REPORT_GET',
+      'REPORT_GENERATE'
     ];
 
     const webhookUrl = getWebhookUrl(body.eventName);

@@ -25,6 +25,7 @@ export default function DocumentPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [editableText, setEditableText] = useState<string>("");
+  const [initialEditableText, setInitialEditableText] = useState<string>("");
   const [studentId, setStudentId] = useState<string | null>(null);
   const [studentName, setStudentName] = useState<string | null>(null);
   const [rubricName, setRubricName] = useState<string | null>(null);
@@ -33,6 +34,11 @@ export default function DocumentPage() {
   const sessionStorageUsed = React.useRef(false);
   const normalizedAssessmentName = normalizeAssessmentIdentifier(assessmentId);
   const titleFromId = normalizedAssessmentName;
+
+  const applyInitialText = React.useCallback((text: string) => {
+    setEditableText(text);
+    setInitialEditableText(text);
+  }, []);
 
   useEffect(() => {
     const fetchAssessment = async () => {
@@ -358,7 +364,7 @@ export default function DocumentPage() {
       const storedAssignmentTitle = sessionStorage.getItem('currentAssignmentTitle');
       
       if (stored) {
-        setEditableText(stored);
+        applyInitialText(stored);
         sessionStorageUsed.current = true;
         sessionStorage.removeItem('extractedText');
       }
@@ -387,12 +393,12 @@ export default function DocumentPage() {
       const cacheKey = `${DOCUMENT_TEXT_CACHE_KEY_PREFIX}${normalizedAssessmentName ?? assessmentId ?? 'unknown'}`;
       const cachedText = window.localStorage.getItem(cacheKey);
       if (cachedText) {
-        setEditableText(cachedText);
+        applyInitialText(cachedText);
       }
     }
     // Fall back to assessment data only if we didn't use sessionStorage
     if (!sessionStorageUsed.current && assessmentData?.assessment?.currentText) {
-      setEditableText(assessmentData.assessment.currentText);
+      applyInitialText(assessmentData.assessment.currentText);
     }
     
     // Also try to get studentId from assessment data if not in sessionStorage
@@ -412,7 +418,7 @@ export default function DocumentPage() {
     if (assessmentData?.assessment) {
       console.log('[Document] Full assessment object:', JSON.stringify(assessmentData.assessment, null, 2));
     }
-  }, [assessmentData, studentId, rubricName, studentName]);
+  }, [applyInitialText, assessmentData, studentId, rubricName, studentName]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -581,7 +587,7 @@ export default function DocumentPage() {
 
             <div className="flex gap-2">
               <Button onClick={handleSubmit} disabled={isSubmitting || isLoading}>{isSubmitting ? 'Submitting...' : 'Submit'}</Button>
-              <Button variant="secondary" onClick={() => setEditableText(assessmentData?.assessment?.currentText ?? '')}>Reset</Button>
+              <Button variant="secondary" onClick={() => setEditableText(initialEditableText)}>Reset</Button>
             </div>
           </div>
         </CardContent>

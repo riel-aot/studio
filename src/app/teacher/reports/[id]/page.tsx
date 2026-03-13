@@ -41,40 +41,31 @@ export default function ReportDetailPage() {
         suppressErrorToast: true,
     });
     
-    // Get student_name and assignment_title from reports list cache synchronously
-    const getReportInfo = React.useCallback(() => {
-        const cacheKey = 'reports-list';
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-            try {
-                const parsed = JSON.parse(cachedData);
-                const reports = Array.isArray(parsed.data) ? parsed.data : (parsed.data?.reports ?? parsed.data?.items ?? []);
-                const matchingReport = reports.find((r: any, idx: number) => {
-                    const id = r.id ?? r.reportId ?? r.report_id ?? `report-${idx}`;
-                    return id === reportId;
-                });
-                if (matchingReport) {
-                    return {
-                        student_name: matchingReport.student_name ?? matchingReport.studentName ?? '',
-                        assignment_title: matchingReport.assignment_title ?? matchingReport.assignmentTitle ?? matchingReport.assessment_title ?? ''
-                    };
-                }
-            } catch (e) {
-                console.error('Failed to parse cached reports:', e);
-            }
-        }
-        return { student_name: '', assignment_title: '' };
-    }, [reportId]);
+    const reportInfo = React.useMemo(() => {
+        const reports = Array.isArray(reportsList)
+            ? reportsList
+            : (reportsList?.reports ?? reportsList?.items ?? []);
 
-    const reportInfo = getReportInfo();
+        const matchingReport = reports.find((r: any, idx: number) => {
+            const id = r.id ?? r.reportId ?? r.report_id ?? `report-${idx}`;
+            return id === reportId;
+        });
+
+        return {
+            reportId,
+            student_name: matchingReport?.student_name ?? matchingReport?.studentName,
+            assignment_title: matchingReport?.assignment_title ?? matchingReport?.assignmentTitle ?? matchingReport?.assessment_title,
+        };
+    }, [reportId, reportsList]);
 
     // Fetch report data using REPORT_GET webhook
     const { data: reportRaw, isLoading, error, trigger: refetchReport } = useWebhook<
-        { student_name: string; assignment_title: string },
+        { reportId: string; student_name?: string; assignment_title?: string },
         FinalizedReport | FinalizedReport[]
     >({
         eventName: 'REPORT_GET',
         payload: reportInfo,
+        manual: true,
         cacheKey: `report-${reportId}`,
         cacheTtlMs: 300_000,
         fallbackToCacheOnError: true,
@@ -87,12 +78,13 @@ export default function ReportDetailPage() {
         return Array.isArray(reportRaw) ? reportRaw[0] : reportRaw;
     }, [reportRaw]);
 
-    // Re-fetch report when reportsList updates (to get fresh report info from cache)
+    // Fetch by reportId first; include extra fields when available.
     React.useEffect(() => {
-        if (reportsList && reportInfo.student_name && reportInfo.assignment_title) {
-            refetchReport();
+        if (!reportInfo.reportId) {
+            return;
         }
-    }, [reportsList, reportId]);
+        refetchReport(reportInfo);
+    }, [reportInfo, refetchReport]);
 
     if (isLoading && !report) {
         return (

@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -21,6 +22,15 @@ type Assignment = {
 };
 
 type StudentSubmissionStatus = 'N/A' | 'Graded';
+
+const STUDENT_ASSESSMENT_STATUS_WEBHOOK_URL = process.env.NEXT_PUBLIC_N8N_STUDENT_ASSESSMENT_STATUS_URL;
+
+type WebhookStatusRecord = {
+    assessmentName: string;
+    status: StudentSubmissionStatus;
+};
+
+const normalizeAssessmentName = (value: string): string => value.trim().toLowerCase();
 
 
 
@@ -91,8 +101,9 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
     );
 }
 
-export function StudentAssessmentsTab({ studentId }: { studentId: string }) {
+export function StudentAssessmentsTab({ studentId, studentName }: { studentId: string; studentName?: string }) {
     const router = useRouter();
+    const [statusByAssessmentName, setStatusByAssessmentName] = useState<Record<string, StudentSubmissionStatus>>({});
 
     const { data, isLoading, error, trigger: refetch } = useWebhook<
         { studentId: string },
@@ -104,6 +115,83 @@ export function StudentAssessmentsTab({ studentId }: { studentId: string }) {
         cacheTtlMs: 60_000,
     });
 
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            if (!studentName) {
+                setStatusByAssessmentName({});
+                return;
+            }
+
+            if (!STUDENT_ASSESSMENT_STATUS_WEBHOOK_URL) {
+                console.warn('[StudentAssessmentsTab] Missing NEXT_PUBLIC_N8N_STUDENT_ASSESSMENT_STATUS_URL');
+                setStatusByAssessmentName({});
+                return;
+            }
+
+            try {
+                const response = await fetch(STUDENT_ASSESSMENT_STATUS_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_name: studentName,
+                        studentName,
+                        student_id: studentName,
+                        studentId: studentName,
+                        name: studentName,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Status webhook error: ${response.status}`);
+                }
+
+                const payload = await response.json();
+                const items = Array.isArray(payload)
+                    ? payload
+                    : payload?.data?.items
+                      ?? payload?.data
+                      ?? payload?.items
+                      ?? payload?.assessments
+                      ?? [];
+
+                if (!Array.isArray(items)) {
+                    setStatusByAssessmentName({});
+                    return;
+                }
+
+                const mapped = items.reduce<Record<string, StudentSubmissionStatus>>((acc, item: any) => {
+                    const assessmentName = String(
+                        item?.assessment_id
+                        ?? item?.assessmentId
+                        ?? item?.assessment_name
+                        ?? item?.assessmentName
+                        ?? item?.assignment_name
+                        ?? item?.assignmentName
+                        ?? item?.id
+                        ?? ''
+                    ).trim();
+
+                    if (!assessmentName) {
+                        return acc;
+                    }
+
+                    const normalizedStatus = normalizeStatus(item?.status);
+                    acc[normalizeAssessmentName(assessmentName)] = normalizedStatus;
+                    return acc;
+                }, {});
+
+                setStatusByAssessmentName(mapped);
+            } catch (fetchError) {
+                console.error('[StudentAssessmentsTab] Failed to fetch status map:', fetchError);
+                setStatusByAssessmentName({});
+            }
+        };
+
+        fetchStatuses();
+    }, [studentId, studentName]);
+
     const assignments = useMemo(() => {
         const rawItems = Array.isArray(data)
             ? data
@@ -113,8 +201,15 @@ export function StudentAssessmentsTab({ studentId }: { studentId: string }) {
         }
         return rawItems
             .map((item, index) => normalizeAssignment(item, index))
-            .filter((item): item is Assignment => item !== null);
-    }, [data]);
+            .filter((item): item is Assignment => item !== null)
+            .map((item) => {
+                const mappedStatus = statusByAssessmentName[normalizeAssessmentName(item.title)];
+                return {
+                    ...item,
+                    status: mappedStatus ?? 'N/A',
+                };
+            });
+    }, [data, statusByAssessmentName]);
 
     const getStatusVariant = (status: StudentSubmissionStatus): 'default' | 'secondary' | 'destructive' | 'outline' => {
         switch (status) {
@@ -172,7 +267,7 @@ export function StudentAssessmentsTab({ studentId }: { studentId: string }) {
                     </TableHeader>
                     <TableBody>
                         {assignments.map((assignment) => {
-                            const status = assignment.status ?? 'Unknown';
+                            const status = assignment.status ?? 'N/A';
                             return (
                                 <TableRow
                                     key={assignment.id}

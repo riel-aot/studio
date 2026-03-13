@@ -62,34 +62,17 @@ export default function GradingPage() {
     {
       eventName: 'ASSESSMENT_FINALIZE',
       manual: true,
-      onSuccess: (data) => {
-        const reportId = (data as any)?.reportId
-          ?? (data as any)?.report?.reportId
-          ?? (data as any)?.assessment?.reportId;
-        if (typeof window !== 'undefined' && reportId && selectedStudentId) {
-          const cacheKey = `report:${selectedStudentId}:${normalizedAssessmentId}`;
-          window.sessionStorage.setItem(cacheKey, reportId);
-        }
-        toast({ title: 'Finalized', description: 'Assessment has been finalized.' });
-        setTimeout(() => router.push('/teacher/assessments'), 600);
-      },
     }
   );
 
   const { trigger: markComplete, isLoading: isMarkingComplete } = useWebhook<{
+    student_id: string;
     assessment_id: string;
-    student_id?: string | null;
-    student_name?: string | null;
-    assignment_title?: string | null;
-    status?: string;
+    status: string;
   }, { success?: boolean }>(
     {
       eventName: 'ASSESSMENT_MARK_COMPLETE',
       manual: true,
-      onSuccess: () => {
-        toast({ title: 'Complete', description: 'Assessment marked as complete.' });
-        setTimeout(() => router.push('/teacher/assessments'), 600);
-      },
     }
   );
 
@@ -307,7 +290,7 @@ export default function GradingPage() {
                 maxPoints: 5,
               };
             })
-            .filter((item): item is { id: string; title: string; description?: string; maxPoints: number } => item !== null);
+            .filter((item): item is { id: string; title: string; description: string; maxPoints: number } => item !== null);
 
           if (mappedFromFields.length > 0) {
             persistCriteria(mappedFromFields);
@@ -331,7 +314,7 @@ export default function GradingPage() {
                   maxPoints: 5,
                 };
               })
-              .filter((item): item is { id: string; title: string; description?: string; maxPoints: number } => item !== null);
+              .filter((item): item is { id: string; title: string; description: string; maxPoints: number } => item !== null);
 
             if (mappedFromFields.length > 0) {
               persistCriteria(mappedFromFields);
@@ -415,19 +398,22 @@ export default function GradingPage() {
       rating: item.score,
       maxRating: 5,
     }));
-    const assignmentTitle = normalizedAssessmentId ?? resolvedAssessment?.title ?? selectedAssignmentTitle ?? null;
+    const assignmentTitle = resolvedAssessment?.title ?? selectedAssignmentTitle ?? normalizedAssessmentId ?? null;
     const rubricName = resolvedAssessment?.rubricName
       ?? resolvedAssessment?.rubric_name
       ?? resolvedAssessment?.rubricId
       ?? resolvedAssessment?.rubric_id
       ?? rubricNameFromSession
       ?? null;
-    const studentId = resolvedAssessment?.student?.id ?? selectedStudentId ?? null;
+    const studentId = resolvedAssessment?.student?.studentIdNumber
+      ?? resolvedAssessment?.student?.id
+      ?? selectedStudentId
+      ?? null;
     const studentName = resolvedAssessment?.student?.name ?? selectedStudentName ?? null;
     const aiOutput = aiOutputText && aiOutputText !== 'No AI output yet.' ? aiOutputText : null;
     const feedbackValue = teacherFeedback.trim() ? teacherFeedback.trim() : null;
 
-    await finalizeAssessment({
+    const finalizeResponse = await finalizeAssessment({
       assessment_id: normalizedAssessmentId,
       student_id: studentId,
       student_name: studentName,
@@ -439,6 +425,42 @@ export default function GradingPage() {
       rubric_grades: rubricGrades,
       criteria_ratings: criteriaRatings,
     });
+
+    // Mark the assignment as complete for the student
+    if (studentName && assignmentTitle) {
+      await markComplete({
+        student_id: studentName,
+        assessment_id: assignmentTitle,
+        status: 'Graded',
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      if (studentId) {
+        sessionStorage.setItem('currentStudentId', studentId);
+      }
+      if (studentName) {
+        sessionStorage.setItem('currentStudentName', studentName);
+      }
+      if (assignmentTitle) {
+        sessionStorage.setItem('currentAssignmentTitle', assignmentTitle);
+      }
+    }
+
+    const reportId = (finalizeResponse as any)?.data?.reportId
+      ?? (finalizeResponse as any)?.reportId
+      ?? (finalizeResponse as any)?.data?.report?.reportId
+      ?? (finalizeResponse as any)?.report?.reportId
+      ?? (finalizeResponse as any)?.data?.assessment?.reportId
+      ?? (finalizeResponse as any)?.assessment?.reportId;
+
+    if (typeof window !== 'undefined' && reportId && studentId) {
+      const cacheKey = `report:${studentId}:${normalizedAssessmentId}`;
+      window.sessionStorage.setItem(cacheKey, reportId);
+    }
+
+    toast({ title: 'Finalized', description: 'Assessment finalized.' });
+    setTimeout(() => router.push(reportId ? `/teacher/reports/${reportId}` : '/teacher/reports'), 600);
   };
 
   return (
@@ -520,21 +542,7 @@ export default function GradingPage() {
 
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => { setTeacherFeedback(''); }}>Reset</Button>
-              <Button variant="outline" onClick={async () => {
-                const assignmentTitle = normalizedAssessmentId ?? resolvedAssessment?.title ?? selectedAssignmentTitle ?? null;
-                const studentId = resolvedAssessment?.student?.id ?? selectedStudentId ?? null;
-                const studentName = resolvedAssessment?.student?.name ?? selectedStudentName ?? null;
-                await markComplete({
-                  assessment_id: normalizedAssessmentId,
-                  student_id: studentId,
-                  student_name: studentName,
-                  assignment_title: assignmentTitle,
-                  status: 'Graded',
-                });
-              }} disabled={isMarkingComplete}>
-                {isMarkingComplete ? 'Marking Complete...' : 'Mark Complete (No Report)'}
-              </Button>
-              <Button onClick={handleFinalize} disabled={isFinalizing}>{isFinalizing ? 'Finalizing...' : 'Finalize & Create Report'}</Button>
+              <Button onClick={handleFinalize} disabled={isFinalizing || isMarkingComplete}>{isFinalizing || isMarkingComplete ? 'Processing...' : 'Finalize & Create Report'}</Button>
             </div>
           </div>
         </CardContent>

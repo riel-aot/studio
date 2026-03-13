@@ -101,8 +101,8 @@ export function OnboardingTour() {
   useEffect(() => {
     if (steps.length === 0) return;
     
-    const hasSeenTour = localStorage.getItem(storageKey);
-    if (process.env.NODE_ENV === 'development' || !hasSeenTour) {
+    const hasSeenTour = sessionStorage.getItem(storageKey);
+    if (!hasSeenTour) {
       const timer = setTimeout(() => {
         setIsVisible(true);
         setCurrentStep(0);
@@ -139,7 +139,7 @@ export function OnboardingTour() {
 
   const completeTour = () => {
     setIsVisible(false);
-    localStorage.setItem(storageKey, 'true');
+    sessionStorage.setItem(storageKey, 'true');
   };
 
   const getCardPosition = () => {

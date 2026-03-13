@@ -56,6 +56,33 @@ const healthCheck = {
     lastSuccessfulCall: new Date().toISOString(),
 };
 
+const generateReport = (payload: ReportGeneratePayload) => {
+  const newReportId = `rep_${crypto.randomUUID().slice(0, 8)}`;
+  const student = students.find((item) => item.studentIdNumber === payload.studentId);
+  const periodLabel = payload.period.preset === 'this_month'
+    ? 'This Month'
+    : payload.period.preset === 'last_30'
+      ? 'Last 30 Days'
+      : payload.period.startDate && payload.period.endDate
+        ? `${payload.period.startDate} - ${payload.period.endDate}`
+        : 'Custom Range';
+
+  reports.unshift({
+    reportId: newReportId,
+    studentName: student?.name ?? 'Unknown Student',
+    periodLabel,
+    generatedAt: new Date().toISOString(),
+    status: 'Queued',
+    hasPdf: payload.delivery.pdf,
+    delivery: {
+      portal: payload.delivery.portal,
+      email: payload.delivery.email,
+    },
+  });
+
+  return { reportId: newReportId, status: 'Queued' as const };
+};
+
 const studentList = () => ({
     students: students,
     total: students.length,
@@ -146,6 +173,7 @@ const handlers: { [key: string]: (payload: any, actor: WebhookRequest['actor']) 
     },
     'REPORTS_LIST': () => ({ items: reports, pagination: { page: 1, pageSize: 20, total: reports.length } }),
     'REPORT_GET': () => ({ report: fullReportData }),
+    'REPORT_GENERATE': (payload: ReportGeneratePayload) => generateReport(payload),
     'PARENT_CHILDREN_LIST': (payload, actor) => {
         const childIds = parentChildMap[actor.userId] || [];
         const children = childIds.map(id => {

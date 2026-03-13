@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,21 +13,43 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import { useAuth } from '@/hooks/use-auth';
-import type { DashboardKpis, ReviewQueueItem, DraftItem } from '@/lib/events';
+import type { DashboardKpis, ReviewQueueItem, ReportListItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, Calendar, Sparkles, FileText, History } from 'lucide-react';
+import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
-import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 
-const gradeDistData = [
-  { range: 'A', count: 12, fill: '#2F5BEA' },
-  { range: 'B', count: 18, fill: '#4F79F2' },
-  { range: 'C', count: 8, fill: '#7F9CF5' },
-  { range: 'D', count: 3, fill: '#A5B4FC' },
-  { range: 'F', count: 1, fill: '#E5E7EB' },
-];
+type ClassPerformanceView = {
+  avgScore: number;
+  completionRate: number;
+  studentsAtRisk: number;
+  criteriaBreakdown: Array<{
+    criterion: string;
+    averageScore: number;
+    maxScore: number;
+    trend: 'up' | 'down' | 'stable';
+  }>;
+};
+
+type FinalizedReport = {
+  rubric_grades?: Array<{
+    score: number;
+    maxScore: number;
+    criterionName: string;
+  }>;
+  rubricGrades?: Array<{
+    score: number;
+    maxScore: number;
+    criterionName: string;
+  }>;
+  rubricSnapshot?: Array<{
+    criterion: string;
+    averageScore: number;
+    trend: 'up' | 'down' | 'stable';
+  }>;
+};
 
 function DashboardLoadingSkeleton() {
   return (
@@ -71,10 +93,149 @@ export default function TeacherDashboard() {
     payload: { limit: 5 },
   });
 
-  const { data: draftsData, isLoading: draftsLoading, error: draftsError, trigger: refetchDrafts } = useWebhook<{ limit: number }, { items: DraftItem[] }>({
-    eventName: 'GET_DRAFTS',
-    payload: { limit: 5 },
+  const { data: reportsListData, isLoading: reportsListLoading } = useWebhook<{}, any>({
+    eventName: 'REPORTS_LIST',
+    payload: {},
+    suppressErrorToast: true,
   });
+
+  const { trigger: fetchReportDetails } = useWebhook<{ reportId?: string; student_name?: string; assignment_title?: string }, FinalizedReport | FinalizedReport[] | { report: FinalizedReport }>({
+    eventName: 'REPORT_GET',
+    manual: true,
+    suppressErrorToast: true,
+  });
+
+  const fetchReportDetailsRef = useRef(fetchReportDetails);
+  useEffect(() => { fetchReportDetailsRef.current = fetchReportDetails; });
+
+  const [classPerformance, setClassPerformance] = useState<ClassPerformanceView | null>(null);
+  const [classPerformanceLoading, setClassPerformanceLoading] = useState(false);
+
+  const reports = useMemo(() => {
+    if (!reportsListData) return [];
+    if (Array.isArray(reportsListData)) return reportsListData as unknown as ReportListItem[];
+    return (reportsListData.reports ?? reportsListData.items ?? []) as ReportListItem[];
+  }, [reportsListData]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const calculateClassPerformance = async () => {
+      if (reports.length === 0) {
+        if (isMounted) setClassPerformance(null);
+        return;
+      }
+
+      const completedReports = reports.filter((report) => {
+        const status = String((report as any).status ?? '').toLowerCase();
+        if (!status) return true;
+        return ['generated', 'sent', 'finalized', 'complete', 'completed'].includes(status);
+      });
+      const completionRate = Math.round((completedReports.length / reports.length) * 100);
+
+      if (completedReports.length === 0) {
+        if (isMounted) setClassPerformance({ avgScore: 0, completionRate, studentsAtRisk: 0, criteriaBreakdown: [] });
+        return;
+      }
+
+      // First try: extract rubric grades directly from list items (avoids extra REPORT_GET calls)
+      const reportsWithGrades = completedReports.filter((report) => {
+        const grades = (report as any).rubric_grades ?? (report as any).rubricGrades;
+        return Array.isArray(grades) && grades.length > 0;
+      });
+
+      let gradedReports: Array<{ report: ReportListItem; grades: any[] }> = reportsWithGrades.map((report) => ({
+        report,
+        grades: (report as any).rubric_grades ?? (report as any).rubricGrades,
+      }));
+
+      // Fallback: call REPORT_GET if list items don't have rubric grades
+      if (gradedReports.length === 0) {
+        setClassPerformanceLoading(true);
+        try {
+          const reportRequests = completedReports
+            .map((report) => {
+              const reportId = (report as any).reportId ?? (report as any).report_id ?? (report as any).id;
+              if (!reportId) return null;
+              const student_name = (report as any).student_name ?? (report as any).studentName ?? undefined;
+              const assignment_title = (report as any).assignment_title ?? (report as any).assignmentTitle ?? (report as any).assessment_title ?? undefined;
+              return { report, payload: { reportId: reportId as string, student_name: student_name as string | undefined, assignment_title: assignment_title as string | undefined } };
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null);
+
+          if (reportRequests.length > 0) {
+            const reportResponses = await Promise.all(
+              reportRequests.map((request) => fetchReportDetailsRef.current(request!.payload))
+            );
+            if (!isMounted) return;
+
+            gradedReports = reportResponses.flatMap((response, index) => {
+              const reportPayload = response && 'data' in response ? (response as any).data : null;
+              if (!reportPayload) return [];
+              const normalizedReport = Array.isArray(reportPayload) ? reportPayload[0] : (reportPayload as any).report ?? reportPayload;
+              const rubricGrades = normalizedReport?.rubric_grades ?? normalizedReport?.rubricGrades;
+              if (Array.isArray(rubricGrades) && rubricGrades.length > 0) {
+                return [{ report: reportRequests[index]!.report, grades: rubricGrades }];
+              }
+              const rubricSnapshot = normalizedReport?.rubricSnapshot;
+              if (Array.isArray(rubricSnapshot) && rubricSnapshot.length > 0) {
+                return [{ report: reportRequests[index]!.report, grades: rubricSnapshot.map((e: any) => ({ criterionName: e.criterion, score: e.averageScore, maxScore: 5 })) }];
+              }
+              return [];
+            });
+          }
+        } catch {
+          // fall through to empty state
+        } finally {
+          if (isMounted) setClassPerformanceLoading(false);
+        }
+      }
+
+      if (!isMounted) return;
+
+      if (gradedReports.length === 0) {
+        setClassPerformance({ avgScore: 0, completionRate, studentsAtRisk: 0, criteriaBreakdown: [] });
+        return;
+      }
+
+      const criteriaMap = new Map<string, { scoreSum: number; count: number; values: number[]; maxScore: number }>();
+      for (const gradedReport of gradedReports) {
+        for (const grade of gradedReport.grades) {
+          const criterionName = grade?.criterionName ?? grade?.criterion_name;
+          const rawScore = Number(grade?.score);
+          const rawMaxScore = Number(grade?.maxScore ?? grade?.max_score);
+          if (!criterionName || Number.isNaN(rawScore)) continue;
+          const maxScore = rawMaxScore > 0 ? rawMaxScore : 5;
+          const normalizedScore = (rawScore / maxScore) * 5;
+          const existing = criteriaMap.get(criterionName) ?? { scoreSum: 0, count: 0, values: [], maxScore: 5 };
+          existing.scoreSum += normalizedScore;
+          existing.count += 1;
+          existing.values.push(normalizedScore);
+          criteriaMap.set(criterionName, existing);
+        }
+      }
+
+      const criteriaBreakdown = Array.from(criteriaMap.entries()).map(([criterion, stats]) => {
+        const averageScore = Number((stats.scoreSum / stats.count).toFixed(2));
+        const delta = stats.values[stats.values.length - 1] - stats.values[0];
+        const trend = delta > 0.15 ? 'up' : delta < -0.15 ? 'down' : 'stable';
+        return { criterion, averageScore, maxScore: 5, trend } as const;
+      });
+
+      const avgScore = criteriaBreakdown.length > 0
+        ? Math.round((criteriaBreakdown.reduce((sum, item) => sum + item.averageScore, 0) / criteriaBreakdown.length / 5) * 100)
+        : 0;
+      const studentsAtRisk = criteriaBreakdown.filter((item) => item.averageScore / item.maxScore < 0.6).length;
+
+      if (isMounted) setClassPerformance({ avgScore, completionRate, studentsAtRisk, criteriaBreakdown });
+    };
+
+    calculateClassPerformance();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reports]);  // fetchReportDetails intentionally omitted — accessed via ref to avoid re-firing
 
   const handleReviewOpen = useCallback((_: any, payload?: { assessmentId: string }) => {
     const normalized = normalizeAssessmentIdentifier(payload?.assessmentId) ?? payload?.assessmentId;
@@ -99,13 +260,12 @@ export default function TeacherDashboard() {
     onSuccess: handleNewAssessmentStart,
   });
 
-  const isLoading = kpiLoading || reviewQueueLoading || draftsLoading;
-  const hasError = kpiError || reviewQueueError || draftsError;
+  const isLoading = kpiLoading || reviewQueueLoading || reportsListLoading;
+  const hasError = kpiError || reviewQueueError;
 
   const handleRetry = () => {
     if (kpiError) refetchKpis();
     if (reviewQueueError) refetchReviewQueue();
-    if (draftsError) refetchDrafts();
   };
 
   if (isLoading) return <DashboardLoadingSkeleton />;
@@ -157,30 +317,6 @@ export default function TeacherDashboard() {
             variant="amber"
             description="Submissions awaiting review"
             onClick={() => router.push('/teacher/assessments?status=needs_review')}
-          />
-          <StatCard 
-            title="Active Drafts" 
-            value={kpiData?.kpis.drafts ?? 0} 
-            icon={FileText} 
-            variant="blue"
-            description="Assessments in progress"
-            onClick={() => router.push('/teacher/assessments?status=draft')}
-          />
-          <StatCard 
-            title="Student Activity" 
-            value={reviewQueueData?.items.length ?? 0} 
-            icon={History} 
-            variant="purple"
-            description="Recent submissions or updates"
-            onClick={() => router.push('/teacher/students')}
-          />
-          <StatCard 
-            title="Due Tomorrow" 
-            value={4} 
-            icon={Calendar} 
-            variant="red"
-            description="Upcoming deadlines"
-            onClick={() => router.push('/teacher/assessments')}
           />
         </div>
       </div>
@@ -258,78 +394,104 @@ export default function TeacherDashboard() {
                 <Activity className="h-5 w-5 text-[#2F5BEA] dark:text-[#3B82F6]" />
                 <CardTitle className="text-lg font-bold text-[#111827] dark:text-[#E5E7EB]">Class Performance</CardTitle>
               </div>
-              <CardDescription className="text-xs text-slate-500 dark:text-slate-500">Aggregated student progress metrics across all active classes.</CardDescription>
+              <CardDescription className="text-xs text-slate-500 dark:text-slate-500">Aggregated rubric scores across all generated reports.</CardDescription>
             </CardHeader>
             <CardContent className="p-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-10">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                     <GraduationCap className="h-4 w-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Avg. Grade</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Avg. Score</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">78%</span>
-                    <span className="text-[10px] font-bold text-green-600 dark:text-green-500">+2.4%</span>
+                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.avgScore ?? '—'}%</span>
                   </div>
-                  <Progress value={78} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
+                  <Progress value={classPerformance?.avgScore ?? 0} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                     <CheckCircle2 className="h-4 w-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Completion</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Reports Complete</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">84%</span>
+                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.completionRate ?? '—'}%</span>
                     <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Target: 90%</span>
                   </div>
-                  <Progress value={84} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
+                  <Progress value={classPerformance?.completionRate ?? 0} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                     <AlertTriangle className="h-4 w-4 text-amber-500 dark:text-amber-600" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Students At Risk</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Criteria At Risk</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-destructive dark:text-amber-500">4</span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Requires focus</span>
+                    <span className="text-2xl font-bold text-destructive dark:text-amber-500">{classPerformance?.studentsAtRisk ?? '—'}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Below 60%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-[#1F2937] rounded-full overflow-hidden">
-                    <div className="bg-destructive dark:bg-amber-600 h-full" style={{ width: '15%' }} />
+                    <div className="bg-destructive dark:bg-amber-600 h-full" style={{ width: `${classPerformance?.studentsAtRisk ? (classPerformance.studentsAtRisk / (classPerformance.criteriaBreakdown.length || 1)) * 100 : 0}%` }} />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold text-slate-900 dark:text-slate-400 flex items-center gap-2 uppercase tracking-widest">
-                  Academic Grade Distribution
+                  Rubric Criteria Breakdown
                 </h4>
-                <div className="h-[180px] w-full pt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={gradeDistData}>
-                      <XAxis 
-                        dataKey="range" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} 
-                      />
-                      <Tooltip 
-                        cursor={{fill: '#f8fafc'}}
-                        contentStyle={{backgroundColor: '#111827', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', color: '#fff'}}
-                        itemStyle={{color: '#E5E7EB'}}
-                      />
-                      <Bar 
-                        dataKey="count" 
-                        radius={[4, 4, 0, 0]}
-                        barSize={32}
-                      >
-                        {gradeDistData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} className="dark:opacity-80" />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                {classPerformanceLoading ? (
+                  <div className="h-[180px] flex items-center justify-center">
+                    <p className="text-xs text-slate-400">Loading rubric data...</p>
+                  </div>
+                ) : classPerformance?.criteriaBreakdown && classPerformance.criteriaBreakdown.length > 0 ? (
+                  <div className="h-[180px] w-full pt-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ left: -16 }}>
+                        <XAxis
+                          dataKey="criterion"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
+                        />
+                        <YAxis
+                          domain={[0, 5]}
+                          ticks={[0, 1, 2, 3, 4, 5]}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        />
+                        <Tooltip
+                          cursor={{ fill: '#f8fafc' }}
+                          contentStyle={{ backgroundColor: '#111827', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', color: '#fff' }}
+                          itemStyle={{ color: '#E5E7EB' }}
+                          formatter={(value: number) => [`${value} / 5`, 'Avg. Score']}
+                        />
+                        <Bar dataKey="averageScore" radius={[4, 4, 0, 0]} barSize={32}>
+                          {classPerformance.criteriaBreakdown.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.averageScore >= 4 ? '#2F5BEA' : entry.averageScore >= 3 ? '#4F79F2' : '#F59E0B'}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center">
+                    <p className="text-xs text-slate-400">No report data available yet.</p>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-4 pt-1">
+                  {classPerformance?.criteriaBreakdown.map((entry) => (
+                    <div key={entry.criterion} className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+                      {entry.trend === 'up' ? <TrendingUp className="h-3 w-3 text-green-500" /> : entry.trend === 'down' ? <TrendingDown className="h-3 w-3 text-red-500" /> : <Minus className="h-3 w-3 text-slate-400" />}
+                      <span className="font-semibold">{entry.criterion}</span>
+                      <span className="text-slate-300">·</span>
+                      <span>{entry.averageScore.toFixed(1)}/5</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>
@@ -354,41 +516,7 @@ export default function TeacherDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm rounded-2xl">
-            <CardHeader className="pb-4 pt-6 px-8 border-b border-slate-50 dark:border-[#1F2937]">
-              <CardTitle className="text-base font-bold text-[#111827] dark:text-[#E5E7EB]">Drafts In Progress</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 px-6 py-6">
-              {draftsData?.items && draftsData.items.length > 0 ? (
-                draftsData.items.map((draft) => (
-                  <div 
-                    key={draft.assessmentId} 
-                    onClick={() => router.push(`/teacher/assessments/${normalizeAssessmentIdentifier(draft.assessmentId) ?? draft.assessmentId}`)}
-                    className="flex items-start gap-3 group p-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
-                  >
-                    <div className="mt-0.5 h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
-                      <PenSquare className="h-4 w-4 text-slate-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB] truncate leading-tight">{draft.assessmentName}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-0.5 line-clamp-1">{draft.studentName}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-600 mt-1 font-bold uppercase tracking-wider">
-                        {formatDistanceToNow(new Date(draft.updatedAt), { addSuffix: true }).replace('about ', '')}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-3 w-3 text-slate-300 dark:text-slate-700 group-hover:text-[#2F5BEA] dark:group-hover:text-[#3B82F6] transition-transform group-hover:translate-x-0.5 shrink-0 self-center" />
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-[10px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest italic">No active drafts</p>
-                </div>
-              )}
-              <Button variant="ghost" className="w-full text-[#2F5BEA] dark:text-[#3B82F6] font-bold hover:bg-blue-50 dark:hover:bg-blue-500/10 text-[10px] uppercase tracking-widest mt-2 h-10 rounded-xl" asChild>
-                <Link href="/teacher/assessments">View Full History</Link>
-              </Button>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>
