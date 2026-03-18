@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useWebhook } from "@/lib/hooks";
 import { normalizeAssessmentIdentifier } from "@/lib/utils";
 import { getWebhookUrl } from '@/lib/webhook-config';
 import { getMockResponse } from '@/lib/mock-api';
@@ -31,6 +32,12 @@ export default function DocumentPage() {
   const [rubricName, setRubricName] = useState<string | null>(null);
   const [assignmentTitle, setAssignmentTitle] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { trigger: submitForAiReview } = useWebhook<Record<string, any>, any>({
+    eventName: 'ASSESSMENT_SUBMIT_FOR_AI_REVIEW',
+    manual: true,
+    allowRawResponse: true,
+    suppressErrorToast: true,
+  });
   const sessionStorageUsed = React.useRef(false);
   const normalizedAssessmentName = normalizeAssessmentIdentifier(assessmentId);
   const titleFromId = normalizedAssessmentName;
@@ -474,30 +481,19 @@ export default function DocumentPage() {
 
       console.log('[Document] Payload being sent:', payload);
 
-      const webhookUrl = getWebhookUrl('ASSESSMENT_SUBMIT_FOR_AI_REVIEW');
-      
       let result: any;
-      
-      if (webhookUrl) {
-        const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      if (getWebhookUrl('ASSESSMENT_SUBMIT_FOR_AI_REVIEW')) {
+        const response = await submitForAiReview(payload);
+        if ((response as any)?.success === false) {
+          throw new Error((response as any)?.error?.message || 'Failed to submit for AI review');
+        }
+        result = (response as any)?.data ?? response;
 
-        console.log('[Document] Response status:', response.status);
-        console.log('[Document] Response ok:', response.ok);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('[Document] Error response:', errorText);
+        if (!result) {
           throw new Error('Failed to submit for AI review');
         }
 
-        result = await response.json();
-        console.log('[Document] Success response:', result);
+        console.log('[Document] Success response via gateway:', result);
       } else {
         // Use mock data if no webhook
         console.warn('[Document] No AI review webhook, using mock data');

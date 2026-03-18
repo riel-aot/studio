@@ -6,10 +6,50 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWebhook } from '@/lib/hooks';
 import { useToast } from '@/hooks/use-toast';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { getWebhookUrl } from '@/lib/webhook-config';
+
+type GradeScaleValue = 'A' | 'B' | '1' | '2' | '3' | '4' | '5' | '6';
+
+const GRADE_SCALE_OPTIONS: GradeScaleValue[] = ['A', 'B', '1', '2', '3', '4', '5', '6'];
+
+const toGradeNumericValue = (value: GradeScaleValue): number => {
+  switch (value) {
+    case 'A': return 1;
+    case 'B': return 2;
+    case '1': return 3;
+    case '2': return 4;
+    case '3': return 5;
+    case '4': return 6;
+    case '5': return 7;
+    case '6': return 8;
+    default: return 5;
+  }
+};
+
+const toGradeScaleValue = (value: unknown): GradeScaleValue => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    if (value === 'A' || value === 'B') {
+      return value;
+    }
+    return '3';
+  }
+  const clamped = Math.max(1, Math.min(8, Math.round(parsed)));
+  switch (clamped) {
+    case 1: return 'A';
+    case 2: return 'B';
+    case 3: return '1';
+    case 4: return '2';
+    case 5: return '3';
+    case 6: return '4';
+    case 7: return '5';
+    case 8: return '6';
+    default: return '3';
+  }
+};
 
 export default function GradingPage() {
   const params = useParams<{ id: string }>();
@@ -76,7 +116,17 @@ export default function GradingPage() {
     }
   );
 
-  const [scores, setScores] = useState<Record<string, number>>({});
+  const { trigger: getRubricDetails } = useWebhook<
+    { rubricName?: string; rubric_name?: string },
+    any
+  >({
+    eventName: 'RUBRIC_GET',
+    manual: true,
+    allowRawResponse: true,
+    suppressErrorToast: true,
+  });
+
+  const [scores, setScores] = useState<Record<string, GradeScaleValue>>({});
   const [teacherFeedback, setTeacherFeedback] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedStudentName, setSelectedStudentName] = useState<string | null>(null);
@@ -237,24 +287,8 @@ export default function GradingPage() {
       }
 
       try {
-        const webhookUrl = getWebhookUrl('RUBRIC_GET');
-        if (!webhookUrl) {
-          throw new Error('Rubric get webhook URL is not configured');
-        }
-
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ rubricName, rubric_name: rubricName }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
+        const webhookResponse = await getRubricDetails({ rubricName, rubric_name: rubricName });
+        const result = (webhookResponse as any)?.data ?? webhookResponse;
         const rawCriteria = result?.criteria
           ?? result?.rubric?.criteria
           ?? result?.data?.criteria
@@ -339,15 +373,15 @@ export default function GradingPage() {
     };
 
     fetchRubricCriteria();
-  }, [criteria.length, resolvedAssessment, rubricNameFromSession]);
+  }, [criteria.length, resolvedAssessment, rubricNameFromSession, getRubricDetails]);
 
   useEffect(() => {
     if (!criteria.length) {
       return;
     }
-    const initial: Record<string, number> = {};
+    const initial: Record<string, GradeScaleValue> = {};
     criteria.forEach((criterion) => {
-      initial[criterion.id] = Math.round(criterion.maxPoints * 0.6);
+      initial[criterion.id] = toGradeScaleValue(Math.round(criterion.maxPoints * 0.6));
     });
     setScores(initial);
   }, [criteria]);
@@ -360,7 +394,7 @@ export default function GradingPage() {
     if (!Array.isArray(rubricGrades) || !criteria.length) {
       return;
     }
-    const newScores: Record<string, number> = {};
+    const newScores: Record<string, GradeScaleValue> = {};
     criteria.forEach((criterion) => {
       const grade = rubricGrades.find((g: any) =>
         g.criterionId === criterion.id
@@ -370,33 +404,32 @@ export default function GradingPage() {
       );
       const score = grade?.score ?? grade?.points;
       newScores[criterion.id] = Number.isFinite(Number(score))
-        ? Number(score)
-        : Math.round(criterion.maxPoints * 0.6);
+        ? toGradeScaleValue(score)
+        : toGradeScaleValue(Math.round(criterion.maxPoints * 0.6));
     });
     setScores((prev) => ({ ...prev, ...newScores }));
   }, [resolvedAssessment, criteria]);
 
-  const handleScoreChange = (id: string, value: number) => {
+  const handleScoreChange = (id: string, value: GradeScaleValue) => {
     setScores((s) => ({ ...s, [id]: value }));
   };
 
   const handleFinalize = async () => {
-    const clampToRating = (value: number) => Math.min(5, Math.max(1, Math.round(value)));
     const rubricGrades = criteria.map((criterion) => {
-      const rawScore = scores[criterion.id] ?? Math.round(criterion.maxPoints * 0.6);
-      const rating = clampToRating(rawScore);
+      const rawScore = scores[criterion.id] ?? '4';
+      const rating = toGradeNumericValue(rawScore);
       return {
         criterionId: criterion.id,
         criterionName: criterion.title,
         score: rating,
-        maxScore: 5,
+        maxScore: 8,
       };
     });
     const criteriaRatings = rubricGrades.map((item) => ({
       criterionId: item.criterionId,
       criterionName: item.criterionName,
       rating: item.score,
-      maxRating: 5,
+      maxRating: 8,
     }));
     const assignmentTitle = resolvedAssessment?.title ?? selectedAssignmentTitle ?? normalizedAssessmentId ?? null;
     const rubricName = resolvedAssessment?.rubricName
@@ -470,7 +503,7 @@ export default function GradingPage() {
           <div className="flex justify-between items-start">
             <div>
               <CardTitle>Grading & Feedback</CardTitle>
-              <CardDescription>Review AI suggestions and finalize the assignment grades.</CardDescription>
+              <CardDescription>Review AI suggestions and finalize the assignment proficiency levels.</CardDescription>
               {(resolvedAssessment?.student || selectedStudentId || selectedStudentName) && (
                 <div className="mt-2 text-sm">
                   <span className="text-muted-foreground">Student: </span>
@@ -480,16 +513,6 @@ export default function GradingPage() {
                       ?? selectedStudentName
                       ?? selectedStudentId}
                   </span>
-                </div>
-              )}
-              {criteria.length > 0 && (
-                <div className="mt-3 text-sm">
-                  <div className="text-muted-foreground">Criteria:</div>
-                  <ul className="mt-1 list-disc pl-5 text-muted-foreground">
-                    {criteria.map((criterion) => (
-                      <li key={criterion.id}>{criterion.title}</li>
-                    ))}
-                  </ul>
                 </div>
               )}
               {(resolvedAssessment?.title || selectedAssignmentTitle || normalizedAssessmentId) && (
@@ -515,14 +538,19 @@ export default function GradingPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Label>{scores[criterion.id]} / {criterion.maxPoints}</Label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={criterion.maxPoints}
-                      value={scores[criterion.id] ?? Math.round(criterion.maxPoints * 0.6)}
-                      onChange={(e) => handleScoreChange(criterion.id, Number(e.target.value))}
-                    />
+                    <Select
+                      value={scores[criterion.id] ?? '4'}
+                      onValueChange={(value) => handleScoreChange(criterion.id, value as GradeScaleValue)}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="Proficiency Level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRADE_SCALE_OPTIONS.map((option) => (
+                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>

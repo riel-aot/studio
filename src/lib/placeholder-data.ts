@@ -73,14 +73,26 @@ export const aiSuggestions: AISuggestion[] = [
 
 export const rubricGrades: RubricGrade[] = [];
 
-export const mockRubrics: RubricListItem[] = [];
+export const GLOBAL_RUBRIC_NAME = 'Schoolwide Master Rubric';
+
+export const mockRubrics: RubricListItem[] = [
+    {
+        id: 'rubric_global_01',
+        name: GLOBAL_RUBRIC_NAME,
+        version: '1.0',
+        criteria1: 'Understanding of Content',
+        criteria2: 'Use of Evidence',
+        criteria3: 'Organization and Clarity',
+        criteria4: 'Conventions and Accuracy',
+    },
+];
 
 
 export const assessmentWorkspaceData: AssessmentWorkspaceData = {
     id: "asm_01",
     title: "Book Report: The Giver",
     status: 'draft',
-    rubricName: null,
+    rubricName: GLOBAL_RUBRIC_NAME,
     student: {
         id: "S00123",
         name: "Amelia Johnson",
@@ -103,7 +115,7 @@ export const assessmentListItems: AssessmentListItem[] = [
     student: { id: 'S00123', name: 'Amelia Johnson' },
     classLabel: 'Grade 5',
     submissionType: 'typed',
-    rubric: { name: 'Standard ELA Essay' },
+        rubric: { name: GLOBAL_RUBRIC_NAME },
     status: 'needs_review',
     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     notes: 'Please focus on the mathematical reasoning',
@@ -114,7 +126,7 @@ export const assessmentListItems: AssessmentListItem[] = [
     student: { id: 'S00124', name: 'Benjamin Carter' },
     classLabel: 'Grade 5',
     submissionType: 'handwritten',
-    rubric: { name: 'Standard ELA Essay' },
+        rubric: { name: GLOBAL_RUBRIC_NAME },
     status: 'ai_draft_ready',
     updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     notes: 'Strong narrative, check citations',
@@ -125,7 +137,7 @@ export const assessmentListItems: AssessmentListItem[] = [
     student: { id: 'S00125', name: 'Charlotte Davis' },
     classLabel: 'Grade 5',
     submissionType: 'typed',
-    rubric: { name: 'Quick Write - Single Paragraph' },
+        rubric: { name: GLOBAL_RUBRIC_NAME },
     status: 'draft',
     updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -135,7 +147,7 @@ export const assessmentListItems: AssessmentListItem[] = [
     student: { id: 'S00123', name: 'Amelia Johnson' },
     classLabel: 'Grade 5',
     submissionType: 'typed',
-    rubric: { name: '5th Grade Book Report' },
+        rubric: { name: GLOBAL_RUBRIC_NAME },
     status: 'finalized',
     updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -145,7 +157,7 @@ export const assessmentListItems: AssessmentListItem[] = [
     student: { id: 'S00127', name: 'Emma Foster' },
     classLabel: 'Grade 5',
     submissionType: 'handwritten',
-    rubric: { name: '5th Grade Book Report' },
+    rubric: { name: GLOBAL_RUBRIC_NAME },
     status: 'needs_review',
     updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
   },

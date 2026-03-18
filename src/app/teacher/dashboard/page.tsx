@@ -21,10 +21,25 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 
+const formatProficiencyLevel = (score: number): string => {
+  const rounded = Math.max(1, Math.min(8, Math.round(Number(score))));
+  switch (rounded) {
+    case 1: return 'A';
+    case 2: return 'B';
+    case 3: return '1';
+    case 4: return '2';
+    case 5: return '3';
+    case 6: return '4';
+    case 7: return '5';
+    case 8: return '6';
+    default: return '3';
+  }
+};
+
 type ClassPerformanceView = {
   avgScore: number;
   completionRate: number;
-  studentsAtRisk: number;
+  masteryAchieved: number;
   criteriaBreakdown: Array<{
     criterion: string;
     averageScore: number;
@@ -131,10 +146,10 @@ export default function TeacherDashboard() {
         if (!status) return true;
         return ['generated', 'sent', 'finalized', 'complete', 'completed'].includes(status);
       });
-      const completionRate = Math.round((completedReports.length / reports.length) * 100);
+      const completionRate = completedReports.length;
 
       if (completedReports.length === 0) {
-        if (isMounted) setClassPerformance({ avgScore: 0, completionRate, studentsAtRisk: 0, criteriaBreakdown: [] });
+        if (isMounted) setClassPerformance({ avgScore: 0, completionRate, masteryAchieved: 0, criteriaBreakdown: [] });
         return;
       }
 
@@ -194,7 +209,7 @@ export default function TeacherDashboard() {
       if (!isMounted) return;
 
       if (gradedReports.length === 0) {
-        setClassPerformance({ avgScore: 0, completionRate, studentsAtRisk: 0, criteriaBreakdown: [] });
+        setClassPerformance({ avgScore: 0, completionRate, masteryAchieved: 0, criteriaBreakdown: [] });
         return;
       }
 
@@ -205,9 +220,13 @@ export default function TeacherDashboard() {
           const rawScore = Number(grade?.score);
           const rawMaxScore = Number(grade?.maxScore ?? grade?.max_score);
           if (!criterionName || Number.isNaN(rawScore)) continue;
-          const maxScore = rawMaxScore > 0 ? rawMaxScore : 5;
-          const normalizedScore = (rawScore / maxScore) * 5;
-          const existing = criteriaMap.get(criterionName) ?? { scoreSum: 0, count: 0, values: [], maxScore: 5 };
+          // If maxScore is 6 (old 1-6 scale), map to 1-8 internal scale: 1→3, 2→4, 3→5, 4→6, 5→7, 6→8
+          const maxScore = rawMaxScore > 0 ? rawMaxScore : 8;
+          let normalizedScore = rawScore;
+          if (maxScore === 6) {
+            normalizedScore = rawScore + 2; // Convert 1-6 to 3-8 (mapping: 1→3, 2→4, 3→5, etc.)
+          }
+          const existing = criteriaMap.get(criterionName) ?? { scoreSum: 0, count: 0, values: [], maxScore: 8 };
           existing.scoreSum += normalizedScore;
           existing.count += 1;
           existing.values.push(normalizedScore);
@@ -219,15 +238,16 @@ export default function TeacherDashboard() {
         const averageScore = Number((stats.scoreSum / stats.count).toFixed(2));
         const delta = stats.values[stats.values.length - 1] - stats.values[0];
         const trend = delta > 0.15 ? 'up' : delta < -0.15 ? 'down' : 'stable';
-        return { criterion, averageScore, maxScore: 5, trend } as const;
+        return { criterion, averageScore, maxScore: 8, trend } as const;
       });
 
-      const avgScore = criteriaBreakdown.length > 0
-        ? Math.round((criteriaBreakdown.reduce((sum, item) => sum + item.averageScore, 0) / criteriaBreakdown.length / 5) * 100)
+      const validCriteria = criteriaBreakdown.filter(item => item.averageScore >= 3);
+      const avgScore = validCriteria.length > 0
+        ? Number((validCriteria.reduce((sum, item) => sum + item.averageScore, 0) / validCriteria.length - 2).toFixed(1))
         : 0;
-      const studentsAtRisk = criteriaBreakdown.filter((item) => item.averageScore / item.maxScore < 0.6).length;
+      const masteryAchieved = criteriaBreakdown.filter((item) => item.averageScore >= 8).length;
 
-      if (isMounted) setClassPerformance({ avgScore, completionRate, studentsAtRisk, criteriaBreakdown });
+      if (isMounted) setClassPerformance({ avgScore, completionRate, masteryAchieved, criteriaBreakdown });
     };
 
     calculateClassPerformance();
@@ -298,6 +318,26 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
+        <div className="mt-6 flex justify-end">
+          <div className="w-full lg:w-[420px]">
+            <Card id="onboarding-quick-actions" className="bg-[#2F5BEA] dark:bg-[#1E293B] text-white border-none shadow-xl shadow-blue-500/10 overflow-hidden relative rounded-2xl">
+              <div className="absolute top-[-20px] right-[-20px] h-40 w-40 bg-white/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+              <CardHeader className="py-6 px-8">
+                <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
+                <CardDescription className="text-blue-100 dark:text-slate-400 text-xs">Common administrative tasks.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 relative z-10 px-8 pb-8">
+                <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white dark:bg-[#3B82F6] text-[#2F5BEA] dark:text-white hover:bg-blue-50 dark:hover:bg-[#2563EB] h-12 font-bold rounded-xl transition-all border-none shadow-md">
+                  <FilePlus className="mr-2 h-4 w-4 stroke-[2.5]" /> New Assignment
+                </Button>
+                <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 dark:border-slate-700 text-white hover:bg-white/20 dark:hover:bg-slate-800 h-12 font-bold rounded-xl transition-all">
+                  <Link href="/teacher/assessments"><PenSquare className="mr-2 h-4 w-4 stroke-[2.5]" /> All Assignments</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
       {/* Today's Teacher Brief */}
       <div id="onboarding-kpis" className="space-y-6">
         <div className="flex items-center gap-3">
@@ -321,9 +361,9 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-10">
         {/* Main Feed: Priority Tasks */}
-        <div className="lg:col-span-8 space-y-10">
+        <div className="space-y-10">
           <Card id="onboarding-review-queue" className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm overflow-hidden rounded-2xl">
             <CardHeader className="bg-white dark:bg-[#111827] border-b border-slate-50 dark:border-[#1F2937] py-5 px-8">
               <div className="flex items-center justify-between">
@@ -404,9 +444,10 @@ export default function TeacherDashboard() {
                     <span className="text-[10px] font-bold uppercase tracking-widest">Avg. Score</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.avgScore ?? '—'}%</span>
+                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.avgScore ?? '—'}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">/ 6</span>
                   </div>
-                  <Progress value={classPerformance?.avgScore ?? 0} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
+                  <Progress value={((classPerformance?.avgScore ?? 0) / 6) * 100} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
                 </div>
 
                 <div className="space-y-2">
@@ -415,23 +456,22 @@ export default function TeacherDashboard() {
                     <span className="text-[10px] font-bold uppercase tracking-widest">Reports Complete</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.completionRate ?? '—'}%</span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Target: 90%</span>
+                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.completionRate ?? '—'}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">completed</span>
                   </div>
-                  <Progress value={classPerformance?.completionRate ?? 0} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                    <AlertTriangle className="h-4 w-4 text-amber-500 dark:text-amber-600" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Criteria At Risk</span>
+                    <GraduationCap className="h-4 w-4 text-emerald-500 dark:text-emerald-600" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Mastery Achieved</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-destructive dark:text-amber-500">{classPerformance?.studentsAtRisk ?? '—'}</span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Below 60%</span>
+                    <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{classPerformance?.masteryAchieved ?? '—'}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Level 6</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-[#1F2937] rounded-full overflow-hidden">
-                    <div className="bg-destructive dark:bg-amber-600 h-full" style={{ width: `${classPerformance?.studentsAtRisk ? (classPerformance.studentsAtRisk / (classPerformance.criteriaBreakdown.length || 1)) * 100 : 0}%` }} />
+                    <div className="bg-emerald-500 dark:bg-emerald-600 h-full" style={{ width: `${classPerformance?.masteryAchieved ? (classPerformance.masteryAchieved / (classPerformance.criteriaBreakdown.length || 1)) * 100 : 0}%` }} />
                   </div>
                 </div>
               </div>
@@ -447,7 +487,7 @@ export default function TeacherDashboard() {
                 ) : classPerformance?.criteriaBreakdown && classPerformance.criteriaBreakdown.length > 0 ? (
                   <div className="h-[180px] w-full pt-2">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ left: -16 }}>
+                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ left: -16, top: 10, bottom: 20 }}>
                         <XAxis
                           dataKey="criterion"
                           axisLine={false}
@@ -455,23 +495,37 @@ export default function TeacherDashboard() {
                           tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
                         />
                         <YAxis
-                          domain={[0, 5]}
-                          ticks={[0, 1, 2, 3, 4, 5]}
+                          domain={[1, 8]}
+                          ticks={[1, 2, 3, 4, 5, 6, 7, 8]}
+                          interval={0}
                           axisLine={false}
                           tickLine={false}
+                          tickFormatter={(value) => {
+                            switch (value) {
+                              case 1: return 'A';
+                              case 2: return 'B';
+                              case 3: return '1';
+                              case 4: return '2';
+                              case 5: return '3';
+                              case 6: return '4';
+                              case 7: return '5';
+                              case 8: return '6';
+                              default: return '';
+                            }
+                          }}
                           tick={{ fill: '#94a3b8', fontSize: 9 }}
                         />
                         <Tooltip
                           cursor={{ fill: '#f8fafc' }}
                           contentStyle={{ backgroundColor: '#111827', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', color: '#fff' }}
                           itemStyle={{ color: '#E5E7EB' }}
-                          formatter={(value: number) => [`${value} / 5`, 'Avg. Score']}
+                          formatter={(value: number) => [`${formatProficiencyLevel(value)}`, 'Avg. Proficiency']}
                         />
                         <Bar dataKey="averageScore" radius={[4, 4, 0, 0]} barSize={32}>
                           {classPerformance.criteriaBreakdown.map((entry, index) => (
                             <Cell
                               key={`cell-${index}`}
-                              fill={entry.averageScore >= 4 ? '#2F5BEA' : entry.averageScore >= 3 ? '#4F79F2' : '#F59E0B'}
+                              fill={entry.averageScore >= 4.8 ? '#2F5BEA' : entry.averageScore >= 3 ? '#4F79F2' : '#F59E0B'}
                             />
                           ))}
                         </Bar>
@@ -489,7 +543,7 @@ export default function TeacherDashboard() {
                       {entry.trend === 'up' ? <TrendingUp className="h-3 w-3 text-green-500" /> : entry.trend === 'down' ? <TrendingDown className="h-3 w-3 text-red-500" /> : <Minus className="h-3 w-3 text-slate-400" />}
                       <span className="font-semibold">{entry.criterion}</span>
                       <span className="text-slate-300">·</span>
-                      <span>{entry.averageScore.toFixed(1)}/5</span>
+                      <span>{formatProficiencyLevel(entry.averageScore)}</span>
                     </div>
                   ))}
                 </div>
@@ -498,26 +552,6 @@ export default function TeacherDashboard() {
           </Card>
         </div>
 
-        {/* Side Actions & Drafts */}
-        <div className="lg:col-span-4 space-y-10">
-          <Card id="onboarding-quick-actions" className="bg-[#2F5BEA] dark:bg-[#1E293B] text-white border-none shadow-xl shadow-blue-500/10 overflow-hidden relative rounded-2xl">
-            <div className="absolute top-[-20px] right-[-20px] h-40 w-40 bg-white/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-            <CardHeader className="py-6 px-8">
-              <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
-              <CardDescription className="text-blue-100 dark:text-slate-400 text-xs">Common administrative tasks.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3 relative z-10 px-8 pb-8">
-              <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white dark:bg-[#3B82F6] text-[#2F5BEA] dark:text-white hover:bg-blue-50 dark:hover:bg-[#2563EB] h-12 font-bold rounded-xl transition-all border-none shadow-md">
-                <FilePlus className="mr-2 h-4 w-4 stroke-[2.5]" /> New Assignment
-              </Button>
-              <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 dark:border-slate-700 text-white hover:bg-white/20 dark:hover:bg-slate-800 h-12 font-bold rounded-xl transition-all">
-                <Link href="/teacher/assessments"><PenSquare className="mr-2 h-4 w-4 stroke-[2.5]" /> All Assignments</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-
-        </div>
       </div>
     </div>
   );

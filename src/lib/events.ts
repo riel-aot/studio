@@ -161,7 +161,7 @@ export interface AssessmentCreateDraftRequest {
   actor: { role: UserRole; userId: string };
   payload: {
     title: string;
-    rubricName: string;
+    rubricName?: string;
     notes?: string;
   };
 }

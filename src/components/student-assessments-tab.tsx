@@ -104,6 +104,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 export function StudentAssessmentsTab({ studentId, studentName }: { studentId: string; studentName?: string }) {
     const router = useRouter();
     const [statusByAssessmentName, setStatusByAssessmentName] = useState<Record<string, StudentSubmissionStatus>>({});
+    const [globalRubricName, setGlobalRubricName] = useState<string>('No global rubric configured');
 
     const { data, isLoading, error, trigger: refetch } = useWebhook<
         { studentId: string },
@@ -192,6 +193,30 @@ export function StudentAssessmentsTab({ studentId, studentName }: { studentId: s
         fetchStatuses();
     }, [studentId, studentName]);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const rawValue = window.sessionStorage.getItem('rubrics:list');
+        if (!rawValue) {
+            return;
+        }
+
+        try {
+            const cached = JSON.parse(rawValue) as { data?: Array<{ name?: string }> | { rubrics?: Array<{ name?: string }> } };
+            const rubrics = Array.isArray(cached?.data)
+                ? cached.data
+                : cached?.data?.rubrics ?? [];
+            const firstRubricName = rubrics[0]?.name;
+            if (firstRubricName) {
+                setGlobalRubricName(firstRubricName);
+            }
+        } catch {
+            window.sessionStorage.removeItem('rubrics:list');
+        }
+    }, []);
+
     const assignments = useMemo(() => {
         const rawItems = Array.isArray(data)
             ? data
@@ -228,9 +253,7 @@ export function StudentAssessmentsTab({ studentId, studentName }: { studentId: s
         // Persist assignment metadata for downstream pages.
         if (typeof window !== 'undefined') {
             sessionStorage.setItem('currentStudentId', studentId);
-            if (assignment.rubricName) {
-                sessionStorage.setItem('currentRubricName', assignment.rubricName);
-            }
+            sessionStorage.setItem('currentRubricName', assignment.rubricName || globalRubricName);
             sessionStorage.setItem('currentAssignmentTitle', assignment.title);
         }
 
@@ -276,7 +299,7 @@ export function StudentAssessmentsTab({ studentId, studentName }: { studentId: s
                                 >
                                     <TableCell className="font-medium">{assignment.title}</TableCell>
                                     <TableCell className="text-muted-foreground">
-                                        {assignment.rubricName || 'No rubric'}
+                                        {assignment.rubricName || globalRubricName}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={getStatusVariant(status)}>

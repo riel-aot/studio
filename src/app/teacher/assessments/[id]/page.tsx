@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useWebhook } from '@/lib/hooks';
 import type { AssessmentWorkspaceData, AISuggestion, RubricListItem } from '@/lib/events';
@@ -83,17 +83,6 @@ function SetupInputPanel({
     onAssessmentUpdate: (data: Partial<AssessmentWorkspaceData>) => void,
 }) {
     const [text, setText] = useState(assessment.currentText || '');
-    
-    const onSetRubricSuccess = useCallback((data: { assessmentId: string, rubricName: string }) => {
-        onAssessmentUpdate({ rubricName: data.rubricName });
-    }, [onAssessmentUpdate]);
-
-    const { trigger: setRubric, isLoading: isSettingRubric } = useWebhook<{ assessmentId: string; rubricName: string }, { assessmentId: string, rubricName: string }>({
-        eventName: 'ASSESSMENT_SET_RUBRIC',
-        manual: true,
-        onSuccess: onSetRubricSuccess,
-        errorMessage: "Failed to set rubric."
-    });
 
     const onRunAIGradeSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
         onAssessmentUpdate(data.assessment);
@@ -142,12 +131,12 @@ function SetupInputPanel({
     });
 
     const handleTypedFileSelect = useCallback((files: File[]) => {
-        if (files.length > 0 && assessment.rubricName) {
+        if (files.length > 0 && hasGlobalRubric) {
             // Here you would normally upload the file to a storage service and get a fileRef.
             // For the mock, we'll just use the file name as the ref.
             uploadTypedFile({ assessmentId: assessment.id, fileRef: files[0].name });
         }
-    }, [uploadTypedFile, assessment]);
+    }, [uploadTypedFile, assessment.id, hasGlobalRubric]);
     
     const handleHandwrittenFileSelect = useCallback((files: File[]) => {
         if (files.length > 0) {
@@ -163,38 +152,24 @@ function SetupInputPanel({
     const isHandwrittenTextLocked = assessment.aiReview?.status === 'ready' || assessment.aiReview?.status === 'running' || assessment.status === 'finalized';
 
     const selectedRubricName = useMemo(() => {
-        return assessment.rubricName || '';
-    }, [assessment.rubricName]);
+        return assessment.rubricName || rubrics[0]?.name || 'No global rubric configured';
+    }, [assessment.rubricName, rubrics]);
+    const hasGlobalRubric = selectedRubricName !== 'No global rubric configured';
 
     const isProcessing = isUploadingTyped || isExtracting || isRunningAi || isUpdatingText;
 
     return (
         <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
             <h3 className="text-lg font-semibold mb-1">Setup & Input</h3>
-            <p className="text-sm text-muted-foreground mb-4">Select rubric and provide student work.</p>
+            <p className="text-sm text-muted-foreground mb-4">Use the shared rubric and provide student work.</p>
             
             <div className='space-y-4'>
                 {/* Rubric Selection */}
                 <div className="space-y-2">
-                    <Label htmlFor="rubric">Rubric</Label>
-                    <Select 
-                        name="rubric" 
-                        required 
-                        onValueChange={(rubricName) => setRubric({ assessmentId: assessment.id, rubricName })}
-                        value={assessment.rubricName || ''}
-                        disabled={isSettingRubric || isFinalized || isProcessing}
-                    >
-                        <SelectTrigger id="rubric" disabled={isSettingRubric || isFinalized || isProcessing}>
-                            <SelectValue placeholder={isSettingRubric ? "Saving..." : (selectedRubricName || "Select a rubric")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {rubrics.map(rubric => (
-                                <SelectItem key={rubric.name} value={rubric.name}>
-                                    {rubric.name} (v{rubric.version})
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Label>Global Rubric</Label>
+                    <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {selectedRubricName}
+                    </div>
                 </div>
 
                 <Separator />
@@ -214,9 +189,9 @@ function SetupInputPanel({
                                     {!assessment.currentText ? (
                                         <>
                                             <FileUploader onFileSelected={handleTypedFileSelect} acceptedFileTypes={{'application/pdf': ['.pdf'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'], 'text/plain': ['.txt']}} />
-                                             {!assessment.rubricName &&
+                                             {!hasGlobalRubric &&
                                                 <Alert variant="destructive" className="text-xs mt-2">
-                                                    <AlertDescription>Please select a rubric before uploading a document.</AlertDescription>
+                                                    <AlertDescription>A global rubric must be configured before uploading a document.</AlertDescription>
                                                 </Alert>
                                             }
                                         </>
@@ -260,7 +235,7 @@ function SetupInputPanel({
                                          <Button onClick={handleSaveExtractedText} disabled={isUpdatingText} variant="secondary">
                                             {isUpdatingText ? <Loader2 className="animate-spin mr-2" /> : null} Save Extracted Text
                                         </Button>
-                                         <Button onClick={() => runAiGrade({ assessmentId: assessment.id })} disabled={isRunningAi || !assessment.rubricName}>
+                                         <Button onClick={() => runAiGrade({ assessmentId: assessment.id })} disabled={isRunningAi || !hasGlobalRubric}>
                                             {isRunningAi ? <Loader2 className="animate-spin mr-2" /> : <Lock className="mr-2 h-4 w-4" />} Lock & Send to AI
                                         </Button>
                                     </div>
@@ -271,9 +246,9 @@ function SetupInputPanel({
                                         <p className="text-muted-foreground mt-1">Text is now read-only and is being reviewed by the AI.</p>
                                     </div>
                                 )}
-                                {!assessment.rubricName && !isHandwrittenTextLocked &&
+                                {!hasGlobalRubric && !isHandwrittenTextLocked &&
                                     <Alert variant="destructive" className="text-xs">
-                                        <AlertDescription>Please select a rubric before sending to AI.</AlertDescription>
+                                        <AlertDescription>A global rubric must be configured before sending to AI.</AlertDescription>
                                     </Alert>
                                 }
                                 </>
@@ -372,9 +347,39 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
     const { toast } = useToast();
     const assessmentId = resolveAssessmentId(assessment.id);
 
+    const overrideScaleOptions = ['A', 'B', '1', '2', '3', '4', '5', '6'] as const;
+    const toOverrideNumericValue = (value: string): number => {
+        if (value === 'A') {
+            return 6;
+        }
+        if (value === 'B') {
+            return 5;
+        }
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+            return numeric;
+        }
+        return 1;
+    };
+    const toOverrideDisplayValue = (value: unknown): string => {
+        if (value === 6 || value === '6') {
+            return 'A';
+        }
+        if (value === 5 || value === '5') {
+            return 'B';
+        }
+        if (typeof value === 'number') {
+            return String(Math.max(1, Math.min(6, Math.round(value))));
+        }
+        if (typeof value === 'string' && overrideScaleOptions.includes(value as any)) {
+            return value;
+        }
+        return '';
+    };
+
     const handleOverrideChange = (criterionId: string, field: 'score' | 'note', value: string | number) => {
         const currentOverride = overrides[criterionId] || {};
-        const newScore = field === 'score' ? Number(value) : currentOverride.score;
+        const newScore = field === 'score' ? toOverrideNumericValue(String(value)) : currentOverride.score;
         const newNote = field === 'note' ? String(value) : currentOverride.note || '';
         
         setOverrides((prev: any) => ({
@@ -415,32 +420,32 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
 
     return (
         <div className="h-full rounded-lg bg-card p-4 border flex flex-col">
-             <h3 className="text-lg font-semibold mb-1">Rubric Grading & Approval</h3>
-            <p className="text-sm text-muted-foreground mb-4">Review AI grades and provide final feedback.</p>
+             <h3 className="text-lg font-semibold mb-1">Rubric Proficiency Levels & Approval</h3>
+            <p className="text-sm text-muted-foreground mb-4">Review AI proficiency levels and provide final feedback.</p>
             
             <div className='h-full overflow-y-auto pr-2 space-y-6'>
                 {/* Rubric Grades */}
                 <div className='space-y-4'>
-                    <h4 className='font-semibold'>Rubric Grades (AI Draft)</h4>
+                    <h4 className='font-semibold'>Proficiency Levels (AI Draft)</h4>
                     {assessment.aiReview?.rubricGrades ? (
                         assessment.aiReview.rubricGrades.map(criterion => (
                             <div key={criterion.id} className='p-3 border rounded-md'>
                                 <div className='flex justify-between items-start'>
                                     <h5 className="font-semibold">{criterion.criterionName}</h5>
-                                    <Badge>AI Score: {criterion.suggestedLevelOrScore}</Badge>
+                                    <Badge>AI Proficiency Level: {criterion.suggestedLevelOrScore}</Badge>
                                 </div>
                                 <p className="text-xs italic text-muted-foreground mt-1">&quot;{criterion.rationale}&quot;</p>
                                 <div className='mt-3 space-y-2'>
-                                    <Label className='text-xs'>Teacher Override</Label>
+                                    <Label className='text-xs'>Teacher Proficiency Override</Label>
                                     <div className='flex gap-2'>
                                         <Select 
                                             disabled={isFinalized}
                                             onValueChange={(value) => handleOverrideChange(criterion.id, 'score', value)}
-                                            value={overrides[criterion.id]?.score?.toString()}
+                                            value={toOverrideDisplayValue(overrides[criterion.id]?.score)}
                                         >
-                                            <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
+                                            <SelectTrigger><SelectValue placeholder="Proficiency Level" /></SelectTrigger>
                                             <SelectContent>
-                                                {[...Array(6).keys()].map(i => <SelectItem key={i} value={String(i)}>{i}</SelectItem>)}
+                                                {overrideScaleOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                         <Input 
@@ -522,6 +527,23 @@ export default function AssessmentWorkspacePage() {
       eventName: 'RUBRIC_LIST',
       payload: {},
   });
+
+  useEffect(() => {
+      const globalRubricName = rubricsData?.rubrics?.[0]?.name;
+      if (!globalRubricName) {
+          return;
+      }
+
+      setAssessmentData((prev) => {
+          if (!prev || prev.rubricName) {
+              return prev;
+          }
+          return {
+              ...prev,
+              rubricName: globalRubricName,
+          };
+      });
+  }, [rubricsData]);
 
   const onRunAIGradeSuccess = useCallback((data: { assessment: AssessmentWorkspaceData }) => {
       handleAssessmentUpdate(data.assessment);

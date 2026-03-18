@@ -10,6 +10,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 
+const formatProficiencyLevel = (score: number): string => {
+  const rounded = Math.max(1, Math.min(8, Math.round(Number(score))));
+  switch (rounded) {
+    case 1: return 'A';
+    case 2: return 'B';
+    case 3: return '1';
+    case 4: return '2';
+    case 5: return '3';
+    case 6: return '4';
+    case 7: return '5';
+    case 8: return '6';
+    default: return '3';
+  }
+};
+
+const normalizeLegacyRubricScore = (score: number, maxScore?: number): number => {
+    const rawScore = Number(score);
+    const rawMaxScore = Number(maxScore);
+    // Legacy reports stored proficiency on a 1-6 scale; convert to internal 1-8 mapping.
+    if (Number.isFinite(rawMaxScore) && rawMaxScore === 6) {
+        return rawScore + 2;
+    }
+    return rawScore;
+};
+
 interface FinalizedReport {
   id?: string;
   student_name: string;
@@ -164,7 +189,7 @@ export default function ReportDetailPage() {
                                     >
                                         <span className='font-medium'>{item.criterionName}</span>
                                         <Badge variant="secondary">
-                                            {item.score}/{item.maxScore}
+                                            {formatProficiencyLevel(normalizeLegacyRubricScore(item.score, item.maxScore))}
                                         </Badge>
                                     </div>
                                 ))}

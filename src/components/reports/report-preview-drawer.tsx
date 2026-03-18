@@ -43,7 +43,18 @@ export function ReportPreviewDrawer({ reportId, initialReport, onOpenChange }: R
         );
     }
 
-  return (
+    const formatCriteriaRating = (rating: number): string => {
+        const normalized = Math.max(1, Math.min(6, Math.round(rating)));
+        if (normalized === 6) {
+            return 'A';
+        }
+        if (normalized === 5) {
+            return 'B';
+        }
+        return String(normalized);
+    };
+
+    return (
     <Sheet open={!!reportId} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg overflow-y-auto">
             <SheetHeader className='p-6'>
@@ -92,7 +103,7 @@ export function ReportPreviewDrawer({ reportId, initialReport, onOpenChange }: R
                                     <Badge 
                                         variant={rating >= 4 ? "default" : rating >= 3 ? "secondary" : "destructive"}
                                     >
-                                        {rating}/5
+                                        {formatCriteriaRating(rating)}
                                     </Badge>
                                 </div>
                             ))}

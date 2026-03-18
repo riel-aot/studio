@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useWebhook } from "@/lib/hooks";
@@ -27,6 +26,7 @@ export default function NewAssessmentPage() {
     });
 
     const rubrics = Array.isArray(rubricsData) ? rubricsData : rubricsData?.rubrics ?? [];
+    const globalRubric = rubrics[0];
 
 
     const handleSuccess = useCallback((data: { assessmentId: string }) => {
@@ -47,11 +47,11 @@ export default function NewAssessmentPage() {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const title = formData.get('title') as string;
-        const rubricName = formData.get('rubricName') as string;
         const notes = formData.get('notes') as string;
+        const rubricName = globalRubric?.name;
 
         if (!title || !rubricName) {
-            toast({ variant: 'destructive', title: "Missing fields", description: "Please provide a title and select a rubric." });
+            toast({ variant: 'destructive', title: "Missing fields", description: "Please provide a title. A global rubric must also be configured." });
             return;
         }
 
@@ -74,7 +74,7 @@ export default function NewAssessmentPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Assignment Details</CardTitle>
-                    <CardDescription>Define the assignment that will be given to all students. You must select a rubric to continue.</CardDescription>
+                    <CardDescription>Define the assignment that will be given to all students. The configured global rubric will be used automatically.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -83,22 +83,14 @@ export default function NewAssessmentPage() {
                     </div>
                     {/* Student selection removed — assignments apply to all students */}
                     <div className="space-y-2">
-                        <Label htmlFor="rubricName">Rubric</Label>
-                         <Select name="rubricName" required>
-                            <SelectTrigger id="rubricName" disabled={rubricsLoading}>
-                                <SelectValue placeholder={rubricsLoading ? "Loading rubrics..." : "Select a rubric"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {rubrics.map((rubric, index) => (
-                                    <SelectItem key={`${rubric.name}-${index}`} value={rubric.name}>
-                                        {rubric.name}
-                                        {rubric.version ? (
-                                          <span className="text-muted-foreground ml-2">(v{rubric.version})</span>
-                                        ) : null}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Label>Global Rubric</Label>
+                        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                            {rubricsLoading
+                                ? 'Loading rubric...'
+                                : globalRubric
+                                  ? `${globalRubric.name}${globalRubric.version ? ` (v${globalRubric.version})` : ''}`
+                                  : 'No global rubric configured'}
+                        </div>
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="notes">Initial Notes (Optional)</Label>
@@ -106,7 +98,7 @@ export default function NewAssessmentPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit" disabled={isCreating || rubricsLoading}>
+                    <Button type="submit" disabled={isCreating || rubricsLoading || !globalRubric}>
                         {isCreating ? 'Creating Assignment...' : 'Create Assignment'}
                     </Button>
                 </CardFooter>

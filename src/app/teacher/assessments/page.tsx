@@ -58,7 +58,6 @@ function AssessmentsPageSkeleton() {
             <TableHeader>
               <TableRow>
                 <TableHead>Assessment</TableHead>
-                <TableHead>Rubric</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead className="w-12"><span className="sr-only">View</span></TableHead>
               </TableRow>
@@ -67,7 +66,6 @@ function AssessmentsPageSkeleton() {
               {[...Array(5)].map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-5" /></TableCell>
                 </TableRow>
@@ -117,17 +115,21 @@ type RawAssignmentItem = {
   notes?: string | null;
 };
 
-const resolveRubricName = (rubricName?: string): string => {
+const resolveRubricName = (rubricName?: string, globalRubricName?: string): string => {
   if (rubricName) {
     return rubricName;
   }
-  return 'Unknown Rubric';
+  if (globalRubricName) {
+    return globalRubricName;
+  }
+  return 'No global rubric configured';
 };
 
 function normalizeAssessmentList(
   data: AssessmentListResponse | RawAssignmentItem[] | null,
   filters: Omit<AssessmentListPayload, 'pageSize'>,
-  pageSize: number
+  pageSize: number,
+  globalRubricName?: string,
 ): AssessmentListResponse {
   if (!data || Array.isArray(data)) {
     const itemsArray = Array.isArray(data) ? data : [];
@@ -139,7 +141,7 @@ function normalizeAssessmentList(
       title: item.title || 'Untitled Assignment',
       student: { id: 'all', name: 'All Students' },
       rubric: {
-        name: resolveRubricName(resolvedRubricName),
+        name: resolveRubricName(resolvedRubricName, globalRubricName),
       },
       status: 'draft',
       updatedAt: new Date().toISOString(),
@@ -202,9 +204,7 @@ export default function AssessmentsPage() {
   }, []);
 
 
-  const rubricMap = useMemo(() => {
-    return new Map(rubricItems.map(rubric => [rubric.name, rubric.name]));
-  }, [rubricItems]);
+  const globalRubricName = useMemo(() => rubricItems[0]?.name, [rubricItems]);
 
   const { data, isLoading, error, trigger: refetch } = useWebhook<AssessmentListPayload, AssessmentListResponse | RawAssignmentItem[]>({
     eventName: 'ASSESSMENT_LIST',
@@ -233,7 +233,7 @@ export default function AssessmentsPage() {
 
   // Memoize the normalized data and apply instant client-side filtering
   const normalizedData = useMemo(() => {
-    const baseData = normalizeAssessmentList(data ?? null, filters, pageSize);
+    const baseData = normalizeAssessmentList(data ?? null, filters, pageSize, globalRubricName);
     
     // Apply local filtering for immediate "dynamic" feedback as user types
     if (!displaySearch) return baseData;
@@ -253,7 +253,7 @@ export default function AssessmentsPage() {
         total: filteredItems.length
       }
     };
-  }, [data, filters, pageSize, displaySearch]);
+  }, [data, filters, pageSize, displaySearch, globalRubricName]);
 
   const counts = normalizedData.counts;
   const items = normalizedData.items;
@@ -288,7 +288,7 @@ export default function AssessmentsPage() {
       <OnboardingTour />
       <PageHeader
         title="Assignments"
-        description="Select an assignment and choose which student's work to grade."
+        description="Select an assignment and choose which student's work to grade. All assignments use one shared rubric."
         actions={
           <Button id="onboarding-new-assessment" asChild>
             <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4" strokeWidth={2.5} /> New Assignment</Link>
@@ -317,7 +317,6 @@ export default function AssessmentsPage() {
                     <TableHeader className="bg-secondary/30">
                     <TableRow className="hover:bg-transparent border-b border-border">
                         <TableHead className="font-bold text-foreground h-14 pl-8">Assignment</TableHead>
-                        <TableHead className="font-bold text-foreground h-14">Rubric</TableHead>
                         <TableHead className="font-bold text-foreground h-14">Notes</TableHead>
                         <TableHead className="text-right w-12 pr-8 h-14"><span className="sr-only">View</span></TableHead>
                     </TableRow>
@@ -326,7 +325,6 @@ export default function AssessmentsPage() {
                     {items.map((item) => (
                         <TableRow key={item.assessmentId} onClick={() => handleRowClick(item.assessmentId)} className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0">
                         <TableCell className="font-bold text-foreground py-5 pl-8 text-sm">{item.title}</TableCell>
-                        <TableCell className="text-muted-foreground py-5 text-sm">{item.rubric.name}</TableCell>
                         <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-5">{item.notes || '-'}</TableCell>
                         <TableCell className="text-right py-5 pr-8">
                             <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />

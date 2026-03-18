@@ -1,9 +1,10 @@
 import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData, ParentChildrenListResponse, ParentChild, ParentReportsListPayload, ParentReportData, DashboardKpis, ReviewQueueItem, DraftItem } from './events';
-import { studentListData as initialStudentData, getStudentByIdNumber, assessmentWorkspaceData as initialAssessmentData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems, reportListItems, fullReportData } from './placeholder-data';
+import { studentListData as initialStudentData, getStudentByIdNumber, assessmentWorkspaceData as initialAssessmentData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems, reportListItems, fullReportData, GLOBAL_RUBRIC_NAME } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
 let reports: ReportListItem[] = [...reportListItems];
 let currentAssessmentState: AssessmentWorkspaceData = { ...initialAssessmentData };
+const globalRubricName = mockRubrics[0]?.name ?? GLOBAL_RUBRIC_NAME;
 
 const parentChildMap: { [parentId: string]: string[] } = {
     'parent-01': ['S00123'],
@@ -163,9 +164,35 @@ const handlers: { [key: string]: (payload: any, actor: WebhookRequest['actor']) 
     'ASSESSMENT_LIST': (payload) => listAssessments(payload),
     'ASSESSMENT_GET': (payload: { assessmentId: string }) => {
         if (payload.assessmentId !== currentAssessmentState.id) {
-             currentAssessmentState = { ...initialAssessmentData, id: payload.assessmentId };
+         currentAssessmentState = { ...initialAssessmentData, id: payload.assessmentId, rubricName: globalRubricName };
         }
         return { assessment: currentAssessmentState };
+    },
+    'ASSESSMENT_CREATE_DRAFT': (payload: { title: string; rubricName?: string; notes?: string }) => {
+      const assessmentId = `asm_draft_${crypto.randomUUID().slice(0, 8)}`;
+      const rubricName = payload.rubricName ?? globalRubricName;
+      assessmentListItems.unshift({
+        assessmentId,
+        title: payload.title || 'Untitled Assignment',
+        student: { id: 'all', name: 'All Students' },
+        classLabel: 'Grade 5',
+        submissionType: 'typed',
+        rubric: { name: rubricName },
+        status: 'draft',
+        updatedAt: new Date().toISOString(),
+        notes: payload.notes,
+      });
+
+      currentAssessmentState = {
+        ...currentAssessmentState,
+        id: assessmentId,
+        title: payload.title || 'Untitled Assignment',
+        rubricName,
+        notes: payload.notes,
+        status: 'draft',
+      };
+
+      return { assessmentId };
     },
     'ASSESSMENT_FINALIZE': () => {
         currentAssessmentState.status = 'finalized';
