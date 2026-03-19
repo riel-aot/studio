@@ -10,10 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useWebhook } from '@/lib/hooks';
 import { useToast } from '@/hooks/use-toast';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
+import { clampProficiencyLevelForGrade, getAllowedProficiencyLevelsForGrade, normalizeStudentGrade } from '@/lib/grade-rules';
+import type { StudentListItem, StudentListResponse } from '@/lib/events';
 
 type GradeScaleValue = 'A' | 'B' | '1' | '2' | '3' | '4' | '5' | '6';
 
-const GRADE_SCALE_OPTIONS: GradeScaleValue[] = ['A', 'B', '1', '2', '3', '4', '5', '6'];
+const FIXED_REPORT_CRITERIA: Array<{ id: string; title: string; description?: string; maxPoints: number }> = [
+  { id: 'listening', title: 'Listening', maxPoints: 8 },
+  { id: 'speaking', title: 'Speaking', maxPoints: 8 },
+  { id: 'reading', title: 'Reading', maxPoints: 8 },
+  { id: 'writing', title: 'Writing', maxPoints: 8 },
+];
 
 const toGradeNumericValue = (value: GradeScaleValue): number => {
   switch (value) {
@@ -66,6 +73,40 @@ export default function GradingPage() {
     fallbackToCacheOnError: true,
   });
 
+  const { data: studentsData } = useWebhook<{}, StudentListResponse | StudentListItem[] | { students?: any[] }>({
+    eventName: 'STUDENT_LIST',
+    allowRawResponse: true,
+  });
+
+  const normalizedStudents = useMemo<StudentListItem[]>(() => {
+    if (!studentsData) {
+      return [];
+    }
+
+    const mapStudent = (student: any): StudentListItem => ({
+      name: student?.name,
+      grade: student?.grade,
+      studentIdNumber: student?.student_id ?? student?.studentId ?? student?.studentIdNumber ?? student?.id ?? '',
+      studentEmail: student?.student_email ?? student?.studentEmail,
+      parentEmail: student?.parent_email ?? student?.parentEmail ?? '',
+    });
+
+    if (Array.isArray(studentsData)) {
+      return studentsData.map(mapStudent).filter((student) => student.name && student.studentIdNumber);
+    }
+
+    const responseLike = studentsData as any;
+    if (Array.isArray(responseLike.students)) {
+      return responseLike.students.map(mapStudent).filter((student: StudentListItem) => student.name && student.studentIdNumber);
+    }
+
+    if (responseLike.success && Array.isArray(responseLike.data?.students)) {
+      return responseLike.data.students.map(mapStudent).filter((student: StudentListItem) => student.name && student.studentIdNumber);
+    }
+
+    return [];
+  }, [studentsData]);
+
   const resolvedAssessment = useMemo(() => {
     if (!assessmentData) {
       return null;
@@ -116,60 +157,15 @@ export default function GradingPage() {
     }
   );
 
-  const { trigger: getRubricDetails } = useWebhook<
-    { rubricName?: string; rubric_name?: string },
-    any
-  >({
-    eventName: 'RUBRIC_GET',
-    manual: true,
-    allowRawResponse: true,
-    suppressErrorToast: true,
-  });
-
   const [scores, setScores] = useState<Record<string, GradeScaleValue>>({});
   const [teacherFeedback, setTeacherFeedback] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedStudentName, setSelectedStudentName] = useState<string | null>(null);
   const [selectedAssignmentTitle, setSelectedAssignmentTitle] = useState<string | null>(null);
   const [sessionAiOutput, setSessionAiOutput] = useState<string | null>(null);
-  const [rubricCriteria, setRubricCriteria] = useState<Array<{ id: string; title: string; description?: string; maxPoints: number }>>(() => {
-    // Try to initialize from cache on mount
-    if (typeof window !== 'undefined') {
-      const storedRubricName = sessionStorage.getItem('currentRubricName');
-      if (storedRubricName) {
-        const cacheKey = `n8n:rubric:criteria:${storedRubricName}`;
-        try {
-          const cachedValue = window.localStorage.getItem(cacheKey);
-          if (cachedValue) {
-            const cached = JSON.parse(cachedValue) as { timestamp: number; data: Array<{ id: string; title: string; description?: string; maxPoints: number }> };
-            if (Array.isArray(cached?.data) && cached.data.length > 0) {
-              return cached.data;
-            }
-          }
-        } catch {
-          // Ignore parse errors
-        }
-      }
-    }
-    return [];
-  });
   const [rubricNameFromSession, setRubricNameFromSession] = useState<string | null>(null);
 
-  const criteria = useMemo(() => {
-    const rawCriteria = resolvedAssessment?.criteria ?? rubricCriteria;
-    if (!Array.isArray(rawCriteria)) {
-      return [] as Array<{ id: string; title: string; description?: string; maxPoints: number }>;
-    }
-    return rawCriteria.map((item: any, index: number) => {
-      const maxPoints = Number(item.maxPoints ?? item.max_points ?? item.points ?? 5);
-      return {
-        id: item.id ?? item.criterionId ?? item.key ?? `criterion-${index + 1}`,
-        title: item.title ?? item.name ?? item.criterion ?? `Criterion ${index + 1}`,
-        description: item.description ?? item.details ?? '',
-        maxPoints: Number.isFinite(maxPoints) ? maxPoints : 5,
-      };
-    });
-  }, [resolvedAssessment, rubricCriteria]);
+  const criteria = useMemo(() => FIXED_REPORT_CRITERIA, []);
 
   const aiOutputText = useMemo(() => {
     const rawOutput = resolvedAssessment?.aiReview?.finalFeedback
@@ -226,6 +222,89 @@ export default function GradingPage() {
     return JSON.stringify(rawOutput, null, 2);
   }, [resolvedAssessment, sessionAiOutput]);
 
+  const resolvedStudentGrade = useMemo(() => {
+    const assessmentGrade = resolvedAssessment?.student?.grade
+      ?? resolvedAssessment?.student?.gradeLabel
+      ?? resolvedAssessment?.student_grade
+      ?? resolvedAssessment?.studentGrade
+      ?? resolvedAssessment?.gradeLabel
+      ?? resolvedAssessment?.grade
+      ?? null;
+
+    if (assessmentGrade) {
+      return String(assessmentGrade);
+    }
+
+    const students = normalizedStudents;
+    if (!students.length) {
+      return null;
+    }
+
+    const assessmentStudentId = resolvedAssessment?.student?.studentIdNumber
+      ?? resolvedAssessment?.student?.id
+      ?? null;
+    const assessmentStudentName = resolvedAssessment?.student?.name ?? null;
+
+    const normalizeMatchValue = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+
+    const candidateIds = new Set(
+      [
+        selectedStudentId,
+        assessmentStudentId,
+      ]
+        .map(normalizeMatchValue)
+        .filter(Boolean),
+    );
+
+    const candidateNames = new Set(
+      [
+        selectedStudentName,
+        assessmentStudentName,
+      ]
+        .map(normalizeMatchValue)
+        .filter(Boolean),
+    );
+
+    const matchedStudent = students.find((student) => {
+      const rawStudent = student as any;
+      const studentIdCandidates = [
+        rawStudent.id,
+        rawStudent.student_id,
+        rawStudent.studentId,
+        rawStudent.studentIdNumber,
+        student.studentIdNumber,
+      ]
+        .map(normalizeMatchValue)
+        .filter(Boolean);
+
+      const studentNameCandidates = [
+        rawStudent.name,
+        rawStudent.student_name,
+        rawStudent.studentName,
+        student.name,
+      ]
+        .map(normalizeMatchValue)
+        .filter(Boolean);
+
+      return (
+        studentIdCandidates.some((id) => candidateIds.has(id))
+        || studentNameCandidates.some((name) => candidateNames.has(name))
+      );
+    });
+
+    return matchedStudent?.grade ?? null;
+  }, [resolvedAssessment, selectedStudentId, selectedStudentName, normalizedStudents]);
+
+  const allowedGradeScaleOptions = useMemo(
+    () => getAllowedProficiencyLevelsForGrade(resolvedStudentGrade) as GradeScaleValue[],
+    [resolvedStudentGrade],
+  );
+
+  const displayedLimiterGrade = useMemo(
+    () => normalizeStudentGrade(resolvedStudentGrade),
+    [resolvedStudentGrade],
+  );
+
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -256,135 +335,18 @@ export default function GradingPage() {
   }, []);
 
   useEffect(() => {
-    const fetchRubricCriteria = async () => {
-      if (criteria.length > 0) {
-        return;
-      }
-      const rubricName = resolvedAssessment?.rubricName
-        ?? resolvedAssessment?.rubric_name
-        ?? resolvedAssessment?.rubricId
-        ?? resolvedAssessment?.rubric_id
-        ?? rubricNameFromSession;
-
-      if (!rubricName) {
-        return;
-      }
-
-      const cacheKey = `n8n:rubric:criteria:${rubricName}`;
-      if (typeof window !== 'undefined') {
-        const cachedValue = window.localStorage.getItem(cacheKey);
-        if (cachedValue) {
-          try {
-            const cached = JSON.parse(cachedValue) as { timestamp: number; data: Array<{ id: string; title: string; description?: string; maxPoints: number }> };
-            if (Array.isArray(cached?.data) && cached.data.length > 0) {
-              setRubricCriteria(cached.data);
-              return;
-            }
-          } catch {
-            window.localStorage.removeItem(cacheKey);
-          }
-        }
-      }
-
-      try {
-        const webhookResponse = await getRubricDetails({ rubricName, rubric_name: rubricName });
-        const result = (webhookResponse as any)?.data ?? webhookResponse;
-        const rawCriteria = result?.criteria
-          ?? result?.rubric?.criteria
-          ?? result?.data?.criteria
-          ?? result?.data?.rubric?.criteria
-          ?? result?.items
-          ?? result;
-
-        const criteriaFields = [
-          { key: 'criteria1', label: 'Criterion 1' },
-          { key: 'criteria2', label: 'Criterion 2' },
-          { key: 'criteria3', label: 'Criterion 3' },
-          { key: 'criteria4', label: 'Criterion 4' },
-        ];
-
-        const persistCriteria = (mapped: Array<{ id: string; title: string; description?: string; maxPoints: number }>) => {
-          setRubricCriteria(mapped);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mapped }));
-          }
-        };
-
-        if (rawCriteria && !Array.isArray(rawCriteria) && typeof rawCriteria === 'object') {
-          const mappedFromFields = criteriaFields
-            .map((field) => {
-              const value = (rawCriteria as Record<string, unknown>)[field.key];
-              if (!value) {
-                return null;
-              }
-              return {
-                id: field.key,
-                title: String(value),
-                description: '',
-                maxPoints: 5,
-              };
-            })
-            .filter((item): item is { id: string; title: string; description: string; maxPoints: number } => item !== null);
-
-          if (mappedFromFields.length > 0) {
-            persistCriteria(mappedFromFields);
-            return;
-          }
-        }
-
-        if (Array.isArray(rawCriteria)) {
-          const first = rawCriteria[0];
-          if (first && typeof first === 'object') {
-            const mappedFromFields = criteriaFields
-              .map((field) => {
-                const value = first[field.key as keyof typeof first];
-                if (!value) {
-                  return null;
-                }
-                return {
-                  id: field.key,
-                  title: String(value),
-                  description: '',
-                  maxPoints: 5,
-                };
-              })
-              .filter((item): item is { id: string; title: string; description: string; maxPoints: number } => item !== null);
-
-            if (mappedFromFields.length > 0) {
-              persistCriteria(mappedFromFields);
-              return;
-            }
-          }
-
-          const mapped = rawCriteria.map((item: any, index: number) => {
-            const maxPoints = Number(item.maxPoints ?? item.max_points ?? item.points ?? 5);
-            return {
-              id: item.id ?? item.criterionId ?? item.key ?? `criterion-${index + 1}`,
-              title: item.title ?? item.name ?? item.criterion ?? `Criterion ${index + 1}`,
-              description: item.description ?? item.details ?? '',
-              maxPoints: Number.isFinite(maxPoints) ? maxPoints : 5,
-            };
-          });
-          persistCriteria(mapped);
-        }
-      } catch (error) {
-        console.warn('[Grading] Failed to fetch rubric criteria:', error);
-      }
-    };
-
-    fetchRubricCriteria();
-  }, [criteria.length, resolvedAssessment, rubricNameFromSession, getRubricDetails]);
-
-  useEffect(() => {
     if (!criteria.length) {
       return;
     }
     const initial: Record<string, GradeScaleValue> = {};
     criteria.forEach((criterion) => {
-      initial[criterion.id] = toGradeScaleValue(Math.round(criterion.maxPoints * 0.6));
+      initial[criterion.id] = clampProficiencyLevelForGrade(
+        toGradeScaleValue(Math.round(criterion.maxPoints * 0.6)),
+        resolvedStudentGrade,
+      ) as GradeScaleValue;
     });
     setScores(initial);
-  }, [criteria]);
+  }, [criteria, resolvedStudentGrade]);
 
   useEffect(() => {
     // Populate scores from AI review when assessment data loads
@@ -395,20 +357,21 @@ export default function GradingPage() {
       return;
     }
     const newScores: Record<string, GradeScaleValue> = {};
-    criteria.forEach((criterion) => {
+    criteria.forEach((criterion, index) => {
       const grade = rubricGrades.find((g: any) =>
         g.criterionId === criterion.id
         || g.id === criterion.id
         || (g.title && g.title === criterion.title)
         || (g.name && g.name === criterion.title)
-      );
+      ) ?? rubricGrades[index];
       const score = grade?.score ?? grade?.points;
-      newScores[criterion.id] = Number.isFinite(Number(score))
+      const resolvedScore = Number.isFinite(Number(score))
         ? toGradeScaleValue(score)
         : toGradeScaleValue(Math.round(criterion.maxPoints * 0.6));
+      newScores[criterion.id] = clampProficiencyLevelForGrade(resolvedScore, resolvedStudentGrade) as GradeScaleValue;
     });
     setScores((prev) => ({ ...prev, ...newScores }));
-  }, [resolvedAssessment, criteria]);
+  }, [resolvedAssessment, criteria, resolvedStudentGrade]);
 
   const handleScoreChange = (id: string, value: GradeScaleValue) => {
     setScores((s) => ({ ...s, [id]: value }));
@@ -523,6 +486,16 @@ export default function GradingPage() {
                   </span>
                 </div>
               )}
+              <div className="mt-3 rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Limiter Grade: </span>
+                  <span className="font-medium">{displayedLimiterGrade ?? 'Unknown (using full scale)'}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Allowed Levels: </span>
+                  <span className="font-medium">{allowedGradeScaleOptions.join(', ')}</span>
+                </div>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -539,14 +512,14 @@ export default function GradingPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Select
-                      value={scores[criterion.id] ?? '4'}
+                      value={clampProficiencyLevelForGrade(scores[criterion.id] ?? '4', resolvedStudentGrade)}
                       onValueChange={(value) => handleScoreChange(criterion.id, value as GradeScaleValue)}
                     >
                       <SelectTrigger className="w-24">
                         <SelectValue placeholder="Proficiency Level" />
                       </SelectTrigger>
                       <SelectContent>
-                        {GRADE_SCALE_OPTIONS.map((option) => (
+                        {allowedGradeScaleOptions.map((option) => (
                           <SelectItem key={option} value={option}>{option}</SelectItem>
                         ))}
                       </SelectContent>

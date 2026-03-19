@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, FileText } from "lucide-react";
+import { AlertCircle, FileText, ChevronRight } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -30,9 +30,8 @@ function ReportsPageSkeleton() {
                             <TableRow>
                                 <TableHead>Student</TableHead>
                                 <TableHead>Assignment</TableHead>
-                                <TableHead>Rubric</TableHead>
                                 <TableHead>Finalized On</TableHead>
-                                <TableHead className="w-[100px] text-right">Actions</TableHead>
+                                <TableHead className="text-right w-[50px]"><span className="sr-only">View</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -40,9 +39,8 @@ function ReportsPageSkeleton() {
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell className="text-right"><Skeleton className="h-9 w-20" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-5 w-5" /></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -61,6 +59,28 @@ function EmptyState() {
             <p className="text-muted-foreground mt-2 mb-4">Finalized assessments will appear here.</p>
         </div>
     )
+}
+
+function formatGeneratedDate(value: any): string {
+    const trimmed = String(value ?? '').trim();
+    if (!trimmed) {
+        return 'N/A';
+    }
+
+    const numericValue = Number(trimmed);
+    if (Number.isFinite(numericValue) && trimmed.length >= 10) {
+        const dateFromTimestamp = new Date(trimmed.length === 13 ? numericValue : numericValue * 1000);
+        if (!Number.isNaN(dateFromTimestamp.getTime())) {
+            return format(dateFromTimestamp, 'dd MMM yyyy');
+        }
+    }
+
+    const parsedDate = new Date(trimmed);
+    if (!Number.isNaN(parsedDate.getTime())) {
+        return format(parsedDate, 'dd MMM yyyy');
+    }
+
+    return 'N/A';
 }
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
@@ -128,8 +148,8 @@ export default function ReportsPage() {
                                 <TableRow>
                                     <TableHead>Student</TableHead>
                                     <TableHead>Assignment</TableHead>
-                                    <TableHead>Rubric</TableHead>
                                     <TableHead>Finalized On</TableHead>
+                                    <TableHead className="text-right w-[50px]"><span className="sr-only">View</span></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -137,7 +157,6 @@ export default function ReportsPage() {
                                     const reportId = report.id ?? report.reportId ?? report.report_id ?? `report-${index}`;
                                     const studentName = report.student_name ?? report.studentName ?? 'Unknown';
                                     const assignmentTitle = report.assignment_title ?? report.assignmentTitle ?? report.assessment_title ?? 'Untitled';
-                                    const rubricName = report.rubric_name ?? report.rubricName ?? '-';
                                     const createdAt = report.Timestamp ?? report.timestamp ?? report.created_at ?? report.createdAt ?? report.finalized_at ?? report.finalizedAt ?? null;
                                     
                                     if (!reportId || reportId === 'undefined') {
@@ -146,14 +165,25 @@ export default function ReportsPage() {
                                     }
                                     
                                     return (
-                                        <TableRow key={reportId} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                                            router.push(`/teacher/reports/${reportId}`);
-                                        }}>
+                                        <TableRow 
+                                            key={reportId} 
+                                            className={`group hover:bg-secondary/50 transition-colors cursor-pointer`}
+                                            onClick={() => {
+                                                router.push(`/teacher/reports/${reportId}`);
+                                            }}
+                                        >
                                             <TableCell className="font-medium">{studentName}</TableCell>
                                             <TableCell className="text-muted-foreground">{assignmentTitle}</TableCell>
-                                            <TableCell className="text-muted-foreground">{rubricName}</TableCell>
-                                            <TableCell className="text-muted-foreground">
-                                                {createdAt ? format(new Date(createdAt), 'dd MMM yyyy, p') : 'Unavailable'}
+                                            <TableCell className="text-sm text-muted-foreground">
+                                                {formatGeneratedDate(createdAt)}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <span className="text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest text-primary">
+                                                        View Report
+                                                    </span>
+                                                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     );

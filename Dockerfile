@@ -4,7 +4,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install -g npm@11.11.1
+RUN npm install
 
 # 2. Build application
 FROM node:20-alpine AS builder
@@ -12,10 +12,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Copy local env file if it exists (optional - can also use build args)
-# Note: For production builds, you should use environment variables or build args
-# instead of copying .env.local into the image
-RUN if [ -f .env.local ]; then cp .env.local .env.local; fi
+# Create .env.local from env.example template
+RUN cp env.example .env.local
 
 RUN npm run build
 

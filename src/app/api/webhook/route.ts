@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       'STUDENT_LIST',
       'STUDENT_GET',
       'STUDENT_CREATE',
+      'STUDENT_REPORTS_LIST',
       'ASSESSMENT_LIST',
       'ASSESSMENT_GET',
       'ASSESSMENT_CREATE_DRAFT',

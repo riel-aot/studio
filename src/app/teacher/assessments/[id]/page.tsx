@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useWebhook } from '@/lib/hooks';
-import type { AssessmentWorkspaceData, AISuggestion, RubricListItem } from '@/lib/events';
+import type { AssessmentWorkspaceData, AISuggestion, RubricListItem, StudentListItem } from '@/lib/events';
 import { Button } from '@/components/ui/button';
 import { FileUploader } from '@/components/file-uploader';
 import { CheckCircle, FileCheck2, FileText, ImageIcon, Loader2, Lock, Sparkles, X } from 'lucide-react';
@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
+import { getAllowedProficiencyLevelsForGrade } from '@/lib/grade-rules';
 
 // --- Helper Functions and Components ---
 
@@ -347,7 +348,80 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
     const { toast } = useToast();
     const assessmentId = resolveAssessmentId(assessment.id);
 
+    const { data: studentsData } = useWebhook<{}, { students: StudentListItem[] }>({
+        eventName: 'STUDENT_LIST',
+    });
+
     const overrideScaleOptions = ['A', 'B', '1', '2', '3', '4', '5', '6'] as const;
+    const resolvedStudentGrade = useMemo(() => {
+        const directGrade = (assessment as any)?.student?.grade
+            ?? (assessment as any)?.student?.gradeLabel
+            ?? (assessment as any)?.studentGrade
+            ?? (assessment as any)?.student_grade
+            ?? (assessment as any)?.gradeLabel
+            ?? (assessment as any)?.grade
+            ?? null;
+
+        if (directGrade) {
+            return String(directGrade);
+        }
+
+        const students = studentsData?.students ?? [];
+        if (!students.length) {
+            return null;
+        }
+
+        const assessmentStudentId = (assessment as any)?.student?.studentIdNumber ?? assessment.student?.id;
+        const assessmentStudentName = assessment.student?.name;
+
+        const normalizeMatchValue = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+
+        const candidateIds = new Set(
+            [assessmentStudentId]
+                .map(normalizeMatchValue)
+                .filter(Boolean),
+        );
+
+        const candidateNames = new Set(
+            [assessmentStudentName]
+                .map(normalizeMatchValue)
+                .filter(Boolean),
+        );
+
+        const matchedStudent = students.find((student) => {
+            const rawStudent = student as any;
+            const studentIdCandidates = [
+                rawStudent.id,
+                rawStudent.student_id,
+                rawStudent.studentId,
+                rawStudent.studentIdNumber,
+                student.studentIdNumber,
+            ]
+                .map(normalizeMatchValue)
+                .filter(Boolean);
+
+            const studentNameCandidates = [
+                rawStudent.name,
+                rawStudent.student_name,
+                rawStudent.studentName,
+                student.name,
+            ]
+                .map(normalizeMatchValue)
+                .filter(Boolean);
+
+            return (
+                studentIdCandidates.some((id) => candidateIds.has(id))
+                || studentNameCandidates.some((name) => candidateNames.has(name))
+            );
+        });
+
+        return matchedStudent?.grade ?? null;
+    }, [assessment, studentsData]);
+
+    const allowedOverrideScaleOptions = useMemo(
+        () => getAllowedProficiencyLevelsForGrade(resolvedStudentGrade),
+        [resolvedStudentGrade],
+    );
     const toOverrideNumericValue = (value: string): number => {
         if (value === 'A') {
             return 6;
@@ -441,11 +515,13 @@ function GradingPanel({ assessment, onSaveFeedback, onSaveOverride }: { assessme
                                         <Select 
                                             disabled={isFinalized}
                                             onValueChange={(value) => handleOverrideChange(criterion.id, 'score', value)}
-                                            value={toOverrideDisplayValue(overrides[criterion.id]?.score)}
+                                            value={allowedOverrideScaleOptions.includes(toOverrideDisplayValue(overrides[criterion.id]?.score) as any)
+                                                ? toOverrideDisplayValue(overrides[criterion.id]?.score)
+                                                : ''}
                                         >
                                             <SelectTrigger><SelectValue placeholder="Proficiency Level" /></SelectTrigger>
                                             <SelectContent>
-                                                {overrideScaleOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                                                {allowedOverrideScaleOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                         <Input 

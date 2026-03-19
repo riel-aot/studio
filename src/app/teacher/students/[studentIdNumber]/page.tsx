@@ -288,7 +288,7 @@ export default function StudentDetailPage() {
                       <StudentAssessmentsTab studentId={student.studentIdNumber} studentName={student.name} />
                     </TabsContent>
                     <TabsContent value="reports">
-                        <StudentReportsTab studentId={student.studentIdNumber} />
+                      <StudentReportsTab studentId={student.studentIdNumber} studentName={student.name} />
                     </TabsContent>
                 </Tabs>
             </div>

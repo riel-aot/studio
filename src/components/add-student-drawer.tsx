@@ -22,17 +22,21 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUploader } from '@/components/file-uploader';
 import { Loader2, UserPlus, FileSpreadsheet, UploadCloud, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { getWebhookUrl } from '@/lib/webhook-config';
+import { STUDENT_GRADE_OPTIONS } from '@/lib/grade-rules';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Full name is required.' }),
   studentIdNumber: z.string().min(1, { message: 'Student identification number is required.' }),
-  grade: z.string().min(1, { message: 'Grade level is required.' }),
+  grade: z.enum(STUDENT_GRADE_OPTIONS as [string, ...string[]], {
+    errorMap: () => ({ message: 'Grade level is required.' }),
+  }),
   studentEmail: z.string().email({ message: 'Enter a valid student email address.' }).optional().or(z.literal('')),
   parentEmail: z.string().email({ message: 'Enter a valid parent/guardian email address.' }),
 });
@@ -122,18 +126,18 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl border-l border-border bg-white p-0">
+      <SheetContent className="w-full sm:max-w-xl border-l border-border bg-background p-0 text-foreground">
         <div className="flex flex-col h-full">
           {/* Header Section */}
-          <div className="px-8 pt-10 pb-6 shrink-0 bg-white">
+          <div className="px-8 pt-10 pb-6 shrink-0 bg-background">
             <SheetHeader className="text-left">
-              <SheetTitle className="text-2xl font-bold flex items-center gap-3 text-slate-900">
-                <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <SheetTitle className="text-2xl font-bold flex items-center gap-3 text-foreground">
+                <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
                   <UserPlus className="h-5 w-5 text-[#2F5BEA]" />
                 </div>
                 Manage Enrollment
               </SheetTitle>
-              <SheetDescription className="text-slate-500 text-sm mt-2">
+              <SheetDescription className="text-muted-foreground text-sm mt-2">
                 Add a new student manually or upload a roster via spreadsheet.
               </SheetDescription>
             </SheetHeader>
@@ -142,11 +146,11 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
           {/* Main Tabs Area */}
           <Tabs defaultValue="manual" className="flex-1 flex flex-col min-h-0">
             <div className="px-8 mb-6 shrink-0">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-xl h-11">
-                <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider h-full data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-xl h-11">
+                <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-wider h-full data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                   Manual Entry
                 </TabsTrigger>
-                <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider h-full data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <TabsTrigger value="bulk" className="rounded-lg font-bold text-xs uppercase tracking-wider h-full data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                   Bulk Import
                 </TabsTrigger>
               </TabsList>
@@ -163,9 +167,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
+                            <FormLabel className="text-foreground font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
                             <FormControl>
-                              <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-slate-200 focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA] text-sm bg-slate-50/30" {...field} />
+                              <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-border focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA] text-sm bg-background" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -177,9 +181,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                           name="studentIdNumber"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student ID</FormLabel>
+                              <FormLabel className="text-foreground font-bold text-[10px] uppercase tracking-wider">Student ID</FormLabel>
                               <FormControl>
-                                <Input placeholder="System ID Number" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
+                                <Input placeholder="System ID Number" className="h-12 rounded-xl border-border text-sm bg-background" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -190,9 +194,18 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                           name="grade"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Academic Level</FormLabel>
+                              <FormLabel className="text-foreground font-bold text-[10px] uppercase tracking-wider">Academic Level</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g., Grade 5" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                  <SelectTrigger className="h-12 rounded-xl border-border text-sm bg-background">
+                                    <SelectValue placeholder="Select grade" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {STUDENT_GRADE_OPTIONS.map((grade) => (
+                                      <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -201,7 +214,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                       </div>
                     </div>
 
-                    <Separator className="bg-slate-100" />
+                    <Separator className="bg-border" />
 
                     <div className="space-y-6">
                       <FormField
@@ -209,9 +222,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         name="studentEmail"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Student Email (Optional)</FormLabel>
+                            <FormLabel className="text-foreground font-bold text-[10px] uppercase tracking-wider">Student Email (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="Official school email address" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
+                              <Input placeholder="Official school email address" className="h-12 rounded-xl border-border text-sm bg-background" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -222,9 +235,9 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                         name="parentEmail"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-900 font-bold text-[10px] uppercase tracking-wider">Parent / Guardian Email</FormLabel>
+                            <FormLabel className="text-foreground font-bold text-[10px] uppercase tracking-wider">Parent / Guardian Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-slate-200 text-sm bg-slate-50/30" {...field} />
+                              <Input placeholder="Primary contact email for reporting" className="h-12 rounded-xl border-border text-sm bg-background" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -234,14 +247,14 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                   </div>
                   
                   {/* Footer Anchored to Bottom */}
-                  <div className="px-8 py-6 border-t bg-slate-50/50 shrink-0">
+                  <div className="px-8 py-6 border-t bg-muted/30 shrink-0">
                     <SheetFooter className="flex-row items-center gap-3 sm:justify-end">
                       <Button
                         type="button"
                         variant="ghost"
                         onClick={() => onOpenChange(false)}
                         disabled={isLoading}
-                        className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm px-6"
+                        className="font-bold text-muted-foreground hover:text-foreground h-12 text-sm px-6"
                       >
                         Cancel
                       </Button>
@@ -258,13 +271,13 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
             {/* Bulk Import Section */}
             <TabsContent value="bulk" className="flex-1 flex flex-col m-0 min-h-0 data-[state=inactive]:hidden">
               <div className="flex-1 overflow-y-auto px-8 space-y-8 pb-10">
-                <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl flex gap-4 mt-2">
-                  <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                <div className="p-5 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl flex gap-4 mt-2">
+                  <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
                     <Info className="h-5 w-5 text-[#2F5BEA]" />
                   </div>
-                  <div className="text-sm text-slate-700 leading-relaxed pt-1">
+                  <div className="text-sm text-foreground leading-relaxed pt-1">
                     <p className="font-bold text-[#2F5BEA] mb-1 uppercase tracking-wider text-[10px]">Import Guidelines</p>
-                    <p className="text-xs font-medium">Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">name</span>, <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">student_id</span>, <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">grade</span>, and <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-blue-100">parent_email</span>.</p>
+                    <p className="text-xs font-medium">Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">name</span>, <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">student_id</span>, <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">grade</span>, and <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">parent_email</span>.</p>
                   </div>
                 </div>
 
@@ -278,17 +291,17 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                   />
                   
                   {bulkFiles.length > 0 && (
-                    <div className="flex items-center gap-4 p-5 border border-slate-200 rounded-2xl bg-white shadow-sm animate-in fade-in slide-in-from-bottom-2">
-                      <div className="h-12 w-12 rounded-xl bg-green-50 flex items-center justify-center">
+                    <div className="flex items-center gap-4 p-5 border border-border rounded-2xl bg-card shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                      <div className="h-12 w-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
                         <FileSpreadsheet className="h-6 w-6 text-green-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{bulkFiles[0].name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{(bulkFiles[0].size / 1024).toFixed(1)} KB • Ready to process</p>
+                        <p className="text-sm font-bold text-foreground truncate">{bulkFiles[0].name}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{(bulkFiles[0].size / 1024).toFixed(1)} KB • Ready to process</p>
                       </div>
                       <button 
                         onClick={() => setBulkFiles([])} 
-                        className="text-slate-400 hover:text-destructive font-bold text-xs uppercase tracking-wider px-2 py-1 transition-colors"
+                        className="text-muted-foreground hover:text-destructive font-bold text-xs uppercase tracking-wider px-2 py-1 transition-colors"
                       >
                         Remove
                       </button>
@@ -298,14 +311,14 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
               </div>
 
               {/* Footer Anchored to Bottom */}
-              <div className="px-8 py-6 border-t bg-slate-50/50 shrink-0">
+              <div className="px-8 py-6 border-t bg-muted/30 shrink-0">
                 <SheetFooter className="flex-row items-center gap-3 sm:justify-end">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => onOpenChange(false)}
                     disabled={isLoading}
-                    className="font-bold text-slate-400 hover:text-slate-900 h-12 text-sm px-6"
+                    className="font-bold text-muted-foreground hover:text-foreground h-12 text-sm px-6"
                   >
                     Cancel
                   </Button>
