@@ -53,7 +53,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
           variants={itemVariants}
           className={cn(
             isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
-            "font-semibold text-primary tracking-tight leading-none font-sans"
+            "font-bold text-primary tracking-tight leading-none font-sans"
           )}
         >
           ATH
@@ -73,7 +73,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
           variants={itemVariants}
           className={cn(
             isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
-            "font-semibold text-primary tracking-tight leading-none font-sans"
+            "font-bold text-primary tracking-tight leading-none font-sans"
           )}
         >
           NA
@@ -82,11 +82,11 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
       <motion.span
         variants={itemVariants}
         className={cn(
-          "text-slate-400 font-medium mt-1 font-sans uppercase tracking-widest",
+          "text-slate-400 font-bold mt-1 font-sans uppercase tracking-[0.3em]",
           isSmall ? 'text-[8px]' : isCentered ? 'text-[10px] md:text-xs' : 'text-[9px] md:text-[10px]'
         )}
       >
-        by ClassPulse
+        Portal
       </motion.span>
     </motion.div>
   );

@@ -15,7 +15,7 @@ import { useWebhook } from '@/lib/hooks';
 import { useAuth } from '@/hooks/use-auth';
 import type { DashboardKpis, ReviewQueueItem, ReportListItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb } from 'lucide-react';
+import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb, Loader2 } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid } from 'recharts';
 import { Progress } from '@/components/ui/progress';
@@ -450,7 +450,7 @@ export default function TeacherDashboard() {
                       </div>
                       <span className="text-xs font-bold truncate max-w-[120px]">{report.studentName || 'Student'}</span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-bold border-border">{report.status.toUpperCase()}</Badge>
+                    <Badge variant="outline" className="text-[10px] font-bold border-border">{(report.status || 'Generated').toUpperCase()}</Badge>
                   </div>
                 ))}
               </div>
@@ -623,7 +623,7 @@ export default function TeacherDashboard() {
                     <Activity className="h-8 w-8 text-muted-foreground opacity-30" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground mb-2">Insufficient Class Data</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">Finalize more student assessments to unlock class-wide proficiency tracking and insights.</p>
+                  <p className="text-sm text-muted-foreground max-sm leading-relaxed">Finalize more student assessments to unlock class-wide proficiency tracking and insights.</p>
                 </div>
               )}
             </CardContent>
@@ -675,7 +675,7 @@ export default function TeacherDashboard() {
               <CardContent className="px-10 pb-10">
                 <div className="space-y-6">
                   {reports.slice(0, 4).map((report, i) => (
-                    <div key={i} className="flex gap-4 group cursor-pointer">
+                    <div key={i} className="flex gap-4 group cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
                       <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
                         <CheckCircle2 className="h-5 w-5" />
                       </div>
