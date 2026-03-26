@@ -35,7 +35,7 @@ function StudentListSkeleton() {
                 hideBack
             />
             <Card className="border-border bg-card shadow-sm overflow-hidden rounded-[2rem]">
-                <CardHeader className="bg-card pb-8 px-8 pt-8">
+                <CardHeader className="bg-card pb-6 px-8 pt-6">
                     <Skeleton className="h-12 w-full max-w-sm rounded-xl" />
                 </CardHeader>
                 <CardContent className="p-0">
@@ -51,10 +51,10 @@ function StudentListSkeleton() {
                         <TableBody>
                             {[...Array(5)].map((_, i) => (
                                 <TableRow key={i} className="border-b border-border">
-                                    <TableCell className="py-6 pl-8"><Skeleton className="h-4 w-32" /></TableCell>
-                                    <TableCell className="py-6"><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell className="py-6"><Skeleton className="h-4 w-20" /></TableCell>
-                                    <TableCell className="text-right py-6 pr-8"><Skeleton className="h-5 w-5 ml-auto" /></TableCell>
+                                    <TableCell className="py-4.5 pl-8"><Skeleton className="h-4 w-32" /></TableCell>
+                                    <TableCell className="py-4.5"><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell className="py-4.5"><Skeleton className="h-4 w-20" /></TableCell>
+                                    <TableCell className="text-right py-4.5 pr-8"><Skeleton className="h-5 w-5 ml-auto" /></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -166,7 +166,7 @@ export default function StudentsPage() {
     if (isLoading && !data) return <StudentListSkeleton />;
     
     if (error && !data) return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <PageHeader title="Student Roster" description="Manage enrollment." hideBack />
             <div className="p-12 text-center bg-card rounded-[2rem] border border-destructive/20 shadow-sm">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4 opacity-20" />
@@ -201,7 +201,7 @@ export default function StudentsPage() {
     };
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-6">
             <OnboardingTour />
             <AddStudentDrawer
                 isOpen={isDrawerOpen}
@@ -230,7 +230,7 @@ export default function StudentsPage() {
 
             {items.length > 0 || displaySearch ? (
                  <Card id="onboarding-student-list" className="border-border shadow-sm overflow-hidden rounded-[2rem] bg-card">
-                    <CardHeader className="bg-card pb-8 px-8 pt-8">
+                    <CardHeader className="bg-card pb-6 px-8 pt-6">
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                              <div className="relative w-full max-w-sm">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -264,14 +264,14 @@ export default function StudentsPage() {
                                             onClick={() => handleRowClick(student.studentIdNumber)}
                                             onKeyDown={(e) => handleKeyDown(e, student.studentIdNumber)}
                                         >
-                                            <TableCell className="font-bold text-foreground py-6 pl-8 text-sm">{student.name}</TableCell>
-                                            <TableCell className="py-6">
+                                            <TableCell className="font-bold text-foreground py-4.5 pl-8 text-sm">{student.name}</TableCell>
+                                            <TableCell className="py-4.5">
                                                 <Badge variant="secondary" className="bg-secondary text-foreground border-none font-bold rounded-md px-3 py-1">
                                                     {(student.grade || '').toUpperCase()}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="font-mono text-xs text-muted-foreground py-6 tracking-widest uppercase">{student.studentIdNumber}</TableCell>
-                                            <TableCell className="text-right py-6 pr-8">
+                                            <TableCell className="font-mono text-xs text-muted-foreground py-4.5 tracking-widest uppercase">{student.studentIdNumber}</TableCell>
+                                            <TableCell className="text-right py-4.5 pr-8">
                                                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                                             </TableCell>
                                         </TableRow>
@@ -297,7 +297,7 @@ export default function StudentsPage() {
             )}
 
             {pagination.total > 0 && (
-                <div className="flex justify-center mt-8">
+                <div className="flex justify-center mt-4">
                     <div className="flex items-center bg-white dark:bg-slate-900 border border-border shadow-[0_15px_40px_rgba(0,0,0,0.12)] rounded-full p-1.5 px-6 w-fit min-w-[480px]">
                         <Pagination className="mx-0 w-auto">
                             <PaginationContent className="gap-2">

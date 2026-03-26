@@ -276,7 +276,7 @@ export default function AssessmentsPage() {
   const showingEnd = Math.min(pageNumber * pageSize, pagination?.total ?? 0);
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       <OnboardingTour />
       <PageHeader
         title="Assignments"
@@ -289,7 +289,7 @@ export default function AssessmentsPage() {
       />
       
       <Card id="onboarding-assessment-list" className="border-border shadow-sm overflow-hidden rounded-[2rem] bg-card">
-        <CardHeader className="bg-card pb-8 px-8 pt-8">
+        <CardHeader className="bg-card pb-6 px-8 pt-6">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                  <div className="relative w-full max-w-sm">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -315,9 +315,9 @@ export default function AssessmentsPage() {
                     <TableBody>
                     {items.map((item) => (
                         <TableRow key={item.assessmentId} onClick={() => handleRowClick(item.assessmentId)} className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0">
-                        <TableCell className="font-bold text-foreground py-6 pl-8 text-sm">{item.title}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-6">{item.notes || '-'}</TableCell>
-                        <TableCell className="text-right py-6 pr-8">
+                        <TableCell className="font-bold text-foreground py-4.5 pl-8 text-sm">{item.title}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-4.5">{item.notes || '-'}</TableCell>
+                        <TableCell className="text-right py-4.5 pr-8">
                             <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                         </TableCell>
                         </TableRow>
@@ -332,7 +332,7 @@ export default function AssessmentsPage() {
 
       {/* Replicated Luxury Pagination Pill */}
       {pagination && pagination.total > 0 && (
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-4">
           <div className="flex items-center bg-white dark:bg-slate-900 border border-border shadow-[0_15px_40px_rgba(0,0,0,0.12)] rounded-full p-1.5 px-6 w-fit min-w-[480px]">
             <Pagination className="mx-0 w-auto">
               <PaginationContent className="gap-2">
