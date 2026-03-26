@@ -12,6 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
 import { clampProficiencyLevelForGrade, getAllowedProficiencyLevelsForGrade, normalizeStudentGrade } from '@/lib/grade-rules';
 import type { StudentListItem, StudentListResponse } from '@/lib/events';
+import { User, FileText, ShieldCheck, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 type GradeScaleValue = 'A' | 'B' | '1' | '2' | '3' | '4' | '5' | '6';
 
@@ -332,7 +335,7 @@ export default function GradingPage() {
     } else if (storedAssignmentTitle) {
       setSelectedAssignmentTitle(storedAssignmentTitle);
     }
-  }, []);
+  }, [normalizedAssessmentId]);
 
   useEffect(() => {
     if (!criteria.length) {
@@ -459,95 +462,179 @@ export default function GradingPage() {
     setTimeout(() => router.push(reportId ? `/teacher/reports/${reportId}` : '/teacher/reports'), 600);
   };
 
+  const studentDisplayName = resolvedAssessment?.student?.name
+    ?? resolvedAssessment?.student?.studentIdNumber
+    ?? selectedStudentName
+    ?? selectedStudentId
+    ?? 'Unknown Student';
+
+  const assignmentDisplayName = normalizedAssessmentId
+    ?? resolvedAssessment?.title
+    ?? selectedAssignmentTitle
+    ?? 'Untitled Assignment';
+
   return (
-    <div className="w-full">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>Grading & Feedback</CardTitle>
-              <CardDescription>Review AI suggestions and finalize the assignment proficiency levels.</CardDescription>
-              {(resolvedAssessment?.student || selectedStudentId || selectedStudentName) && (
-                <div className="mt-2 text-sm">
-                  <span className="text-muted-foreground">Student: </span>
-                  <span className="font-medium">
-                    {resolvedAssessment?.student?.name
-                      ?? resolvedAssessment?.student?.studentIdNumber
-                      ?? selectedStudentName
-                      ?? selectedStudentId}
+    <div className="w-full space-y-8 pb-20">
+      {/* Premium Context Header */}
+      <div className="space-y-4">
+        <button 
+          onClick={() => router.back()}
+          className="group flex items-center gap-2 text-[10px] font-bold text-muted-foreground hover:text-primary transition-all tracking-[0.2em] uppercase"
+        >
+          <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-1" />
+          <span>Return to Workspace</span>
+        </button>
+
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between bg-white dark:bg-[#111827] p-6 rounded-[2rem] border border-border shadow-sm">
+          <div className="flex flex-wrap items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center border border-border">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Student</p>
+                <p className="text-sm font-bold text-foreground truncate max-w-[180px]">{studentDisplayName}</p>
+              </div>
+            </div>
+
+            <Separator orientation="vertical" className="hidden lg:block h-10 bg-border" />
+
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center border border-border">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Assignment</p>
+                <p className="text-sm font-bold text-foreground truncate max-w-[220px]">{assignmentDisplayName}</p>
+              </div>
+            </div>
+
+            <Separator orientation="vertical" className="hidden lg:block h-10 bg-border" />
+
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none mb-1">Grade Level Rules</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-secondary text-foreground border-none font-bold rounded-md px-2 py-0.5">
+                    {displayedLimiterGrade ?? 'Manual'}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                    {allowedGradeScaleOptions.length} levels allowed
                   </span>
-                </div>
-              )}
-              {(resolvedAssessment?.title || selectedAssignmentTitle || normalizedAssessmentId) && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Assignment: </span>
-                  <span className="font-medium">
-                    {normalizedAssessmentId ?? resolvedAssessment?.title ?? selectedAssignmentTitle}
-                  </span>
-                </div>
-              )}
-              <div className="mt-3 rounded-md border bg-muted/30 px-3 py-2 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Limiter Grade: </span>
-                  <span className="font-medium">{displayedLimiterGrade ?? 'Unknown (using full scale)'}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Allowed Levels: </span>
-                  <span className="font-medium">{allowedGradeScaleOptions.join(', ')}</span>
                 </div>
               </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {criteria.map((criterion) => (
-              <div key={criterion.id} className="p-3 border rounded">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{criterion.title}</div>
+
+          <Button 
+            onClick={handleFinalize} 
+            disabled={isFinalizing || isMarkingComplete || isLoading}
+            className="bg-primary hover:opacity-90 h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-primary/20"
+          >
+            {isFinalizing || isMarkingComplete ? <ArrowLeft className="animate-spin h-4 w-4 mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+            Finalize & Create Report
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Action Workspace */}
+      <div className="grid gap-8 lg:grid-cols-12 items-start">
+        <Card className="lg:col-span-7 border-border shadow-sm overflow-hidden rounded-[2rem] bg-card">
+          <CardHeader className="bg-card border-b border-border pb-6 px-8">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold">Rubric Evaluation</CardTitle>
+                <CardDescription>Assign proficiency levels for each reporting criterion.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
+            <div className="grid gap-4">
+              {criteria.map((criterion) => (
+                <div key={criterion.id} className="group p-5 border border-border rounded-2xl hover:bg-secondary/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{criterion.id}</p>
+                    <h4 className="font-bold text-foreground">{criterion.title}</h4>
                     {criterion.description && (
-                      <div className="text-sm text-muted-foreground">{criterion.description}</div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{criterion.description}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="shrink-0">
                     <Select
                       value={clampProficiencyLevelForGrade(scores[criterion.id] ?? '4', resolvedStudentGrade)}
                       onValueChange={(value) => handleScoreChange(criterion.id, value as GradeScaleValue)}
                     >
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Proficiency Level" />
+                      <SelectTrigger className="w-full sm:w-28 h-11 rounded-xl bg-background border-border font-bold text-sm focus:ring-primary/20">
+                        <SelectValue placeholder="Level" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl">
                         {allowedGradeScaleOptions.map((option) => (
-                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                          <SelectItem key={option} value={option} className="font-medium">{option}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            <Separator className="bg-border/50" />
+
+            <div className="space-y-3 pt-2">
+              <Label htmlFor="teacher-feedback" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Final Feedback for Student</Label>
+              <Textarea 
+                id="teacher-feedback" 
+                placeholder="Share encouraging remarks and areas for growth with the student and parents..."
+                className="min-h-[160px] rounded-2xl bg-secondary/20 border-border focus:border-primary/50 transition-all text-sm leading-relaxed p-5"
+                value={teacherFeedback} 
+                onChange={(e) => setTeacherFeedback(e.target.value)} 
+              />
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setTeacherFeedback('')} className="text-muted-foreground text-xs font-bold uppercase tracking-wider hover:text-foreground">
+                  Reset Comments
+                </Button>
               </div>
-            ))}
-
-            <div>
-              <Label>AI Output</Label>
-              <pre className="mt-2 h-64 overflow-y-auto rounded border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
-                {aiOutputText}
-              </pre>
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <Label htmlFor="teacher-feedback">Teacher Feedback</Label>
-              <Textarea id="teacher-feedback" className="h-40" value={teacherFeedback} onChange={(e) => setTeacherFeedback(e.target.value)} />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => { setTeacherFeedback(''); }}>Reset</Button>
-              <Button onClick={handleFinalize} disabled={isFinalizing || isMarkingComplete}>{isFinalizing || isMarkingComplete ? 'Processing...' : 'Finalize & Create Report'}</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        {/* AI Insight Sidebar */}
+        <div className="lg:col-span-5 space-y-8">
+          <Card className="border-border shadow-sm overflow-hidden rounded-[2rem] bg-white dark:bg-[#111827]">
+            <CardHeader className="bg-primary/5 border-b border-border/50 pb-6 px-8">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-bold text-foreground">AI Intelligence Brief</CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">Generated analysis from student work.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="rounded-2xl border border-border bg-secondary/10 p-6">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap italic">
+                  {aiOutputText}
+                </p>
+              </div>
+              <div className="mt-6 p-4 rounded-xl border border-primary/10 bg-primary/5 flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div className="text-xs leading-relaxed">
+                  <p className="font-bold text-primary mb-1 uppercase tracking-wider">Scale Enforcement</p>
+                  <p className="text-muted-foreground font-medium">Proficiency options are limited to <span className="text-foreground font-bold">{allowedGradeScaleOptions.join(', ')}</span> based on the student&apos;s current grade level ({displayedLimiterGrade}).</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
