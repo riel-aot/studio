@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
 import { clampProficiencyLevelForGrade, getAllowedProficiencyLevelsForGrade, normalizeStudentGrade } from '@/lib/grade-rules';
 import type { StudentListItem, StudentListResponse } from '@/lib/events';
-import { User, FileText, ShieldCheck, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
+import { User, FileText, ShieldCheck, ArrowLeft, CheckCircle2, Sparkles, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -549,33 +549,32 @@ export default function GradingPage() {
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold">Rubric Evaluation</CardTitle>
-                <CardDescription>Assign proficiency levels for each reporting criterion.</CardDescription>
+                <CardTitle className="text-xl font-bold">Evaluation Grid</CardTitle>
+                <CardDescription>Select proficiency levels for this student.</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <div className="grid gap-4">
+          <CardContent className="p-8 space-y-8">
+            {/* Criteria Grid: Small & Compact */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {criteria.map((criterion) => (
-                <div key={criterion.id} className="group p-5 border border-border rounded-2xl hover:bg-secondary/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{criterion.id}</p>
-                    <h4 className="font-bold text-foreground">{criterion.title}</h4>
-                    {criterion.description && (
-                      <p className="text-xs text-muted-foreground leading-relaxed">{criterion.description}</p>
-                    )}
+                <div key={criterion.id} className="group p-3 border border-border rounded-xl hover:bg-secondary/10 transition-all flex items-center justify-between gap-3 relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary group-hover:bg-primary transition-colors" />
+                  <div className="space-y-0.5 pl-2">
+                    <h4 className="text-xs font-bold text-foreground leading-tight">{criterion.title}</h4>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Criterion {criterion.id}</p>
                   </div>
                   <div className="shrink-0">
                     <Select
                       value={clampProficiencyLevelForGrade(scores[criterion.id] ?? '4', resolvedStudentGrade)}
                       onValueChange={(value) => handleScoreChange(criterion.id, value as GradeScaleValue)}
                     >
-                      <SelectTrigger className="w-full sm:w-28 h-11 rounded-xl bg-background border-border font-bold text-sm focus:ring-primary/20">
+                      <SelectTrigger className="w-20 h-8 rounded-lg bg-background border-border font-bold text-[11px] focus:ring-primary/20 px-2">
                         <SelectValue placeholder="Level" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
                         {allowedGradeScaleOptions.map((option) => (
-                          <SelectItem key={option} value={option} className="font-medium">{option}</SelectItem>
+                          <SelectItem key={option} value={option} className="text-xs font-medium">{option}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -586,18 +585,31 @@ export default function GradingPage() {
 
             <Separator className="bg-border/50" />
 
-            <div className="space-y-3 pt-2">
-              <Label htmlFor="teacher-feedback" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Final Feedback for Student</Label>
-              <Textarea 
-                id="teacher-feedback" 
-                placeholder="Share encouraging remarks and areas for growth with the student and parents..."
-                className="min-h-[160px] rounded-2xl bg-secondary/20 border-border focus:border-primary/50 transition-all text-sm leading-relaxed p-5"
-                value={teacherFeedback} 
-                onChange={(e) => setTeacherFeedback(e.target.value)} 
-              />
+            {/* Final Feedback: Prominent & Most Important */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageSquare className="h-3 w-3 text-primary" />
+                </div>
+                <Label htmlFor="teacher-feedback" className="text-[11px] font-bold uppercase tracking-widest text-primary">Final Teacher Narrative</Label>
+              </div>
+              
+              <div className="relative group">
+                <Textarea 
+                  id="teacher-feedback" 
+                  placeholder="The most important part! Share encouraging remarks and areas for growth with the student and parents..."
+                  className="min-h-[220px] rounded-2xl bg-secondary/20 border-border focus:border-primary/50 transition-all text-sm leading-relaxed p-6 shadow-inner ring-offset-background placeholder:italic"
+                  value={teacherFeedback} 
+                  onChange={(e) => setTeacherFeedback(e.target.value)} 
+                />
+                <div className="absolute top-4 right-4 opacity-30 group-hover:opacity-100 transition-opacity">
+                  <Badge variant="outline" className="bg-background text-[9px] font-bold uppercase">Narrative Feedback</Badge>
+                </div>
+              </div>
+              
               <div className="flex justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setTeacherFeedback('')} className="text-muted-foreground text-xs font-bold uppercase tracking-wider hover:text-foreground">
-                  Reset Comments
+                <Button variant="ghost" size="sm" onClick={() => setTeacherFeedback('')} className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider hover:text-foreground">
+                  Clear Narrative
                 </Button>
               </div>
             </div>
