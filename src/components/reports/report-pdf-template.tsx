@@ -29,21 +29,20 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
-    letterSpacing: -0.8,
+    letterSpacing: -1,
   },
   xiContainer: {
     width: 16,
-    height: 14,
+    height: 12,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    marginHorizontal: 1,
-    paddingVertical: 1,
-    marginTop: 3, // Baseline alignment for Helvetica-Bold
+    marginHorizontal: 2,
+    marginTop: 4, // Aligns with the visual center of Helvetica-Bold caps
   },
   xiBar: {
-    height: 2.8,
+    height: 2.5,
     backgroundColor: '#FF764D',
-    borderRadius: 1.4, // Perfectly rounded ends like the reference image
+    borderRadius: 1.25,
   },
   recordLabel: {
     fontSize: 7,
@@ -215,7 +214,7 @@ export function ReportPDFTemplate({
           <Text style={styles.recordLabel}>Official Academic Record</Text>
         </View>
 
-        <View style={styles.summaryBlock}>
+        <View style={summaryBlock}>
           <Text style={styles.studentName}>{studentName}</Text>
           <Text style={styles.assignmentTitle}>{assignmentTitle}</Text>
           
