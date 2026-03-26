@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileText, ChevronRight, Search, Users, School, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle, FileText, ChevronRight, Search, Users, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { StudentListItem, StudentListResponse } from '@/lib/events';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,40 +28,46 @@ import {
 
 function StudentListSkeleton() {
     return (
-        <Card className="w-full border-border bg-card">
-            <CardHeader>
-                <Skeleton className="h-6 w-32 mb-2" />
-                <Skeleton className="h-4 w-48" />
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Grade</TableHead>
-                            <TableHead>Student ID</TableHead>
-                            <TableHead className="text-right w-[50px]"><span className="sr-only">View</span></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {[...Array(5)].map((_, i) => (
-                            <TableRow key={i}>
-                                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                <TableCell className="text-right"><Skeleton className="h-5 w-5" /></TableCell>
+        <div className="w-full">
+            <PageHeader
+                title="Student Roster"
+                description="Manage enrollment and track performance for all students."
+                hideBack
+            />
+            <Card className="border-border bg-card shadow-sm overflow-hidden rounded-[2rem]">
+                <CardHeader className="bg-card pb-8 px-8 pt-8">
+                    <Skeleton className="h-12 w-full max-w-sm rounded-xl" />
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader className="bg-secondary/30">
+                            <TableRow className="hover:bg-transparent border-b border-border">
+                                <TableHead className="h-14 pl-8"><Skeleton className="h-3 w-20" /></TableHead>
+                                <TableHead className="h-14"><Skeleton className="h-3 w-24" /></TableHead>
+                                <TableHead className="h-14"><Skeleton className="h-3 w-20" /></TableHead>
+                                <TableHead className="text-right w-24 h-14 pr-8"></TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
+                        </TableHeader>
+                        <TableBody>
+                            {[...Array(5)].map((_, i) => (
+                                <TableRow key={i} className="border-b border-border">
+                                    <TableCell className="py-6 pl-8"><Skeleton className="h-4 w-32" /></TableCell>
+                                    <TableCell className="py-6"><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell className="py-6"><Skeleton className="h-4 w-20" /></TableCell>
+                                    <TableCell className="text-right py-6 pr-8"><Skeleton className="h-5 w-5 ml-auto" /></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
 
 function EmptyState({ onAddStudent }: { onAddStudent: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center py-24 text-center bg-card rounded-2xl border border-dashed border-border w-full shadow-sm">
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-card rounded-[2rem] border border-dashed border-border w-full shadow-sm mt-8">
             <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
                 <Users className="h-10 w-10 text-primary" />
             </div>
@@ -83,11 +89,10 @@ export default function StudentsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
-    // Debounce search input to avoid spamming the database
     useEffect(() => {
         const timer = setTimeout(() => {
             setDbSearch(displaySearch);
-            setCurrentPage(1); // Reset page on search
+            setCurrentPage(1);
         }, 500);
         return () => clearTimeout(timer);
     }, [displaySearch]);
@@ -105,7 +110,6 @@ export default function StudentsPage() {
         if (!data) return { items: [], pagination: { page: 1, pageSize, total: 0 } };
         let baseList: StudentListItem[] = [];
         
-        // Parse the data from the webhook response
         if (Array.isArray(data)) {
             baseList = data.map((student: any) => ({
                 name: student.name,
@@ -124,7 +128,6 @@ export default function StudentsPage() {
             }));
         }
 
-        // Apply local filtering for immediate "dynamic" feedback
         const filteredList = displaySearch 
             ? baseList.filter(student => 
                 student.name.toLowerCase().includes(displaySearch.toLowerCase()) || 
@@ -160,21 +163,12 @@ export default function StudentsPage() {
         setCurrentPage(page);
     };
 
-    if (isLoading && !data) return (
-        <div className="space-y-8">
-             <PageHeader
-                title="Student Roster"
-                description="Manage enrollment and track performance for all students."
-                hideBack
-            />
-            <StudentListSkeleton />
-        </div>
-    );
+    if (isLoading && !data) return <StudentListSkeleton />;
     
     if (error && !data) return (
         <div className="space-y-8">
             <PageHeader title="Student Roster" description="Manage enrollment." hideBack />
-            <div className="p-12 text-center bg-card rounded-2xl border border-destructive/20 shadow-sm">
+            <div className="p-12 text-center bg-card rounded-[2rem] border border-destructive/20 shadow-sm">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4 opacity-20" />
                 <p className="text-destructive font-bold text-lg">Synchronization Offline</p>
                 <p className="text-muted-foreground mb-6">{error?.message || 'Failed to load students'}</p>
@@ -187,11 +181,9 @@ export default function StudentsPage() {
     const showingStart = (currentPage - 1) * pageSize + 1;
     const showingEnd = Math.min(currentPage * pageSize, pagination.total);
 
-    // Generate page numbers for pagination
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 5;
-        
         if (totalPages <= maxVisiblePages) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
@@ -220,44 +212,31 @@ export default function StudentsPage() {
                 }}
             />
             
-            <div className="flex flex-col gap-2">
-                <PageHeader
-                    title="Student Roster"
-                    description="The central directory for all students across your active classes."
-                    hideBack
-                    actions={
-                        <div className="flex gap-3">
-                            <Button variant="outline" className="h-11 rounded-xl font-bold border-border bg-card text-foreground" asChild>
-                                <Link href="/teacher/assessments"><FileText className="mr-2 h-4 w-4" /> Assignments</Link>
-                            </Button>
-                            <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)} className="bg-primary hover:bg-primary/90 h-11 rounded-xl font-bold px-6 shadow-md shadow-primary/20 transition-all">
-                                <PlusCircle className="mr-2 h-4 w-4 stroke-[3]" /> Add Student
-                            </Button>
-                        </div>
-                    }
-                />
-            </div>
+            <PageHeader
+                title="Student Roster"
+                description="The central directory for all students across your active classes."
+                hideBack
+                actions={
+                    <div className="flex gap-3">
+                        <Button variant="outline" className="h-11 rounded-xl font-bold border-border bg-card text-foreground" asChild>
+                            <Link href="/teacher/assessments"><FileText className="mr-2 h-4 w-4" /> Assignments</Link>
+                        </Button>
+                        <Button id="onboarding-add-student" onClick={() => setIsDrawerOpen(true)} className="bg-primary hover:bg-primary/90 h-11 rounded-xl font-bold px-6 shadow-md shadow-primary/20 transition-all">
+                            <PlusCircle className="mr-2 h-4 w-4 stroke-[3]" /> Add Student
+                        </Button>
+                    </div>
+                }
+            />
 
-            {(data || displaySearch) ? (
-                 <Card id="onboarding-student-list" className="border-border shadow-sm overflow-hidden rounded-2xl bg-card">
-                    <CardHeader className="bg-card pb-8 border-b border-border">
+            {items.length > 0 || displaySearch ? (
+                 <Card id="onboarding-student-list" className="border-border shadow-sm overflow-hidden rounded-[2rem] bg-card">
+                    <CardHeader className="bg-card pb-8 px-8 pt-8">
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 bg-secondary rounded-xl flex items-center justify-center border border-border">
-                                    <School className="h-6 w-6 text-primary" />
-                                </div>
-                                <div>
-                                    <CardTitle className="text-2xl font-bold text-foreground">Active Enrollment</CardTitle>
-                                    <CardDescription className="text-muted-foreground font-medium">
-                                        {pagination.total} {pagination.total === 1 ? 'student' : 'students'} tracked in the system
-                                    </CardDescription>
-                                </div>
-                            </div>
                              <div className="relative w-full max-w-sm">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 <Input
                                     placeholder="Find student by name..."
-                                    className="w-full rounded-xl bg-secondary border-none focus:ring-2 focus:ring-primary/20 pl-12 h-12 text-base transition-all placeholder:text-muted-foreground font-medium"
+                                    className="w-full rounded-2xl bg-secondary/50 border-none focus:ring-2 focus:ring-primary/20 pl-12 h-12 text-base transition-all placeholder:text-muted-foreground font-medium"
                                     value={displaySearch}
                                     onChange={(e) => setDisplaySearch(e.target.value)}
                                 />
@@ -269,9 +248,9 @@ export default function StudentsPage() {
                             <Table>
                                 <TableHeader className="bg-secondary/30">
                                     <TableRow className="hover:bg-transparent border-b border-border">
-                                        <TableHead className="font-bold text-foreground h-14 pl-8">Name</TableHead>
-                                        <TableHead className="font-bold text-foreground h-14">Academic Level</TableHead>
-                                        <TableHead className="font-bold text-foreground h-14">Identifier</TableHead>
+                                        <TableHead className="font-bold text-foreground h-14 pl-8 uppercase tracking-widest text-[10px]">Name</TableHead>
+                                        <TableHead className="font-bold text-foreground h-14 uppercase tracking-widest text-[10px]">Academic Level</TableHead>
+                                        <TableHead className="font-bold text-foreground h-14 uppercase tracking-widest text-[10px]">Identifier</TableHead>
                                         <TableHead className="text-right w-24 h-14 pr-8"></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -285,18 +264,15 @@ export default function StudentsPage() {
                                             onClick={() => handleRowClick(student.studentIdNumber)}
                                             onKeyDown={(e) => handleKeyDown(e, student.studentIdNumber)}
                                         >
-                                            <TableCell className="font-bold text-foreground py-5 pl-8 text-lg">{student.name}</TableCell>
-                                            <TableCell className="py-5">
+                                            <TableCell className="font-bold text-foreground py-6 pl-8 text-sm">{student.name}</TableCell>
+                                            <TableCell className="py-6">
                                                 <Badge variant="secondary" className="bg-secondary text-foreground border-none font-bold rounded-md px-3 py-1">
                                                     {(student.grade || '').toUpperCase()}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="font-mono text-xs text-muted-foreground py-5 tracking-widest uppercase">{student.studentIdNumber}</TableCell>
-                                            <TableCell className="text-right py-5 pr-8">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">View Profile</span>
-                                                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                                                </div>
+                                            <TableCell className="font-mono text-xs text-muted-foreground py-6 tracking-widest uppercase">{student.studentIdNumber}</TableCell>
+                                            <TableCell className="text-right py-6 pr-8">
+                                                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -309,11 +285,7 @@ export default function StudentsPage() {
                                 </div>
                                 <h3 className="text-xl font-bold text-foreground">No results for &quot;{displaySearch}&quot;</h3>
                                 <p className="text-muted-foreground mt-1">Check the spelling or try a broader search term.</p>
-                                <Button 
-                                    variant="ghost" 
-                                    onClick={() => setDisplaySearch('')}
-                                    className="mt-6 text-primary font-bold hover:bg-primary/10"
-                                >
+                                <Button variant="ghost" onClick={() => setDisplaySearch('')} className="mt-6 text-primary font-bold hover:bg-primary/10">
                                     Reset Filters
                                 </Button>
                             </div>
@@ -324,7 +296,6 @@ export default function StudentsPage() {
                 <EmptyState onAddStudent={() => setIsDrawerOpen(true)} />
             )}
 
-            {/* Premium Luxury Pagination Pill */}
             {pagination.total > 0 && (
                 <div className="flex justify-center mt-8">
                     <div className="flex items-center bg-white dark:bg-slate-900 border border-border shadow-[0_15px_40px_rgba(0,0,0,0.12)] rounded-full p-1.5 px-6 w-fit min-w-[480px]">
