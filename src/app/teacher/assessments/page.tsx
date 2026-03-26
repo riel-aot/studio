@@ -340,29 +340,38 @@ export default function AssessmentsPage() {
         </CardContent>
       </Card>
 
-      {/* Refined Pill Pagination - Moved below the card island */}
+      {/* Replicated Luxury Pagination Pill */}
       {pagination && pagination.total > 0 && (
         <div className="flex justify-center mt-8">
-          <div className="flex items-center gap-6 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-1.5 px-5 w-fit">
+          <div className="flex items-center bg-white dark:bg-slate-900 border border-border shadow-[0_15px_40px_rgba(0,0,0,0.12)] rounded-full p-1.5 px-6 w-fit min-w-[480px]">
             <Pagination className="mx-0 w-auto">
-              <PaginationContent className="gap-1.5">
+              <PaginationContent className="gap-2">
                 <PaginationItem>
                   <PaginationPrevious 
                     onClick={() => pageNumber > 1 && handlePageChange(pageNumber - 1)}
                     disabled={pageNumber <= 1}
-                    className={cn(pageNumber <= 1 && "pointer-events-none opacity-50")}
+                    className={cn(
+                      "text-foreground hover:bg-secondary/50 h-9 px-4 transition-colors",
+                      pageNumber <= 1 && "pointer-events-none opacity-30"
+                    )}
                   />
                 </PaginationItem>
                 
-                <div className="hidden sm:flex items-center gap-1 mx-1.5">
+                <div className="flex items-center gap-1 mx-4">
                   {getPageNumbers().map((page, idx) => (
                     <PaginationItem key={idx}>
                       {page === 'ellipsis' ? (
-                        <PaginationEllipsis />
+                        <PaginationEllipsis className="text-muted-foreground" />
                       ) : (
                         <PaginationLink 
                           isActive={page === pageNumber}
                           onClick={() => handlePageChange(page as number)}
+                          className={cn(
+                            "h-9 w-9 font-bold transition-all",
+                            page === pageNumber 
+                              ? "bg-primary text-white shadow-md shadow-primary/30" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                          )}
                         >
                           {page}
                         </PaginationLink>
@@ -375,14 +384,19 @@ export default function AssessmentsPage() {
                   <PaginationNext 
                     onClick={() => pageNumber < totalPages && handlePageChange(pageNumber + 1)}
                     disabled={pageNumber >= totalPages}
-                    className={cn(pageNumber >= totalPages && "pointer-events-none opacity-50")}
+                    className={cn(
+                      "text-foreground hover:bg-secondary/50 h-9 px-4 transition-colors",
+                      pageNumber >= totalPages && "pointer-events-none opacity-30"
+                    )}
                   />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
 
-            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap pl-4 border-l border-border pr-2">
-              <span className="text-foreground">{showingStart}-{showingEnd}</span> / <span className="text-foreground">{pagination.total}</span>
+            <div className="flex items-center gap-4 ml-6 pl-6 border-l border-border h-6">
+              <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                Showing <span className="text-foreground">{showingStart}-{showingEnd}</span> of <span className="text-foreground">{pagination.total}</span> results
+              </span>
             </div>
           </div>
         </div>
