@@ -12,26 +12,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useWebhook } from '@/lib/hooks';
 import type { AssessmentListItem, AssessmentListPayload, AssessmentListResponse, AssessmentStatus, RubricListItem } from '@/lib/events';
 import { AlertCircle, ChevronRight, FilePlus, Search } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { OnboardingTour } from '@/components/onboarding-tour';
-
-const statusMap: Record<AssessmentStatus, string> = {
-  draft: 'Draft',
-  ai_draft_ready: 'AI Draft Ready',
-  needs_review: 'Needs Review',
-  finalized: 'Finalized',
-};
-
-const statusPillVariants: Record<AssessmentStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    draft: 'secondary',
-    ai_draft_ready: 'default',
-    needs_review: 'destructive',
-    finalized: 'outline',
-};
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 function AssessmentsPageSkeleton() {
   return (
@@ -41,11 +35,6 @@ function AssessmentsPageSkeleton() {
         description="Search, filter, and open assessments for review."
         actions={<Skeleton className="h-11 w-40" />}
       />
-      <div className="mb-4 flex gap-4">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-5 w-40" />
-      </div>
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -176,7 +165,6 @@ export default function AssessmentsPage() {
 
   const [rubricItems, setRubricItems] = useState<RubricListItem[]>([]);
 
-  // Debounce search input to avoid spamming the database
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters(prev => ({ ...prev, search: displaySearch, page: 1 }));
@@ -185,15 +173,11 @@ export default function AssessmentsPage() {
   }, [displaySearch]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+    if (typeof window === 'undefined') return;
     const rawValue = window.sessionStorage.getItem('rubrics:list');
-    if (!rawValue) {
-      return;
-    }
+    if (!rawValue) return;
     try {
-      const cached = JSON.parse(rawValue) as { timestamp?: number; data?: RubricListItem[] | { rubrics: RubricListItem[] } };
+      const cached = JSON.parse(rawValue);
       const cachedData = Array.isArray(cached?.data)
         ? cached.data
         : cached?.data?.rubrics ?? [];
@@ -212,30 +196,21 @@ export default function AssessmentsPage() {
     allowRawResponse: true,
   });
 
-  const handleStatusChange = (status: string) => {
-    setFilters(prev => ({ ...prev, status: status as AssessmentStatus, page: 1 }));
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDisplaySearch(e.target.value);
   };
 
-  const handlePageChange = (direction: 'next' | 'prev') => {
-    setFilters(prev => ({
-        ...prev,
-        page: direction === 'next' ? (prev.page ?? 1) + 1 : (prev.page ?? 1) - 1,
-    }));
+  const handlePageChange = (page: number) => {
+    setFilters(prev => ({ ...prev, page }));
   };
 
   const handleRowClick = (assessmentId: string) => {
     router.push(`/teacher/assessments/${assessmentId}/select-student`);
   };
 
-  // Memoize the normalized data and apply instant client-side filtering
   const normalizedData = useMemo(() => {
     const baseData = normalizeAssessmentList(data ?? null, filters, pageSize, globalRubricName);
     
-    // Apply local filtering for immediate "dynamic" feedback as user types
     if (!displaySearch) return baseData;
     
     const searchLower = displaySearch.toLowerCase();
@@ -255,12 +230,35 @@ export default function AssessmentsPage() {
     };
   }, [data, filters, pageSize, displaySearch, globalRubricName]);
 
-  const counts = normalizedData.counts;
   const items = normalizedData.items;
   const pagination = normalizedData.pagination;
 
   const pageNumber = pagination?.page ?? 1;
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1;
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (pageNumber > 3) pages.push('ellipsis');
+      
+      const start = Math.max(2, pageNumber - 1);
+      const end = Math.min(totalPages - 1, pageNumber + 1);
+      
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
+      }
+      
+      if (pageNumber < totalPages - 2) pages.push('ellipsis');
+      if (!pages.includes(totalPages)) pages.push(totalPages);
+    }
+    return pages;
+  };
 
   if (isLoading && !data) {
     return <AssessmentsPageSkeleton />;
@@ -283,28 +281,30 @@ export default function AssessmentsPage() {
     );
   }
 
+  const showingStart = (pageNumber - 1) * pageSize + 1;
+  const showingEnd = Math.min(pageNumber * pageSize, pagination?.total ?? 0);
+
   return (
-    <div className="w-full">
+    <div className="w-full space-y-8">
       <OnboardingTour />
       <PageHeader
         title="Assignments"
         description="Select an assignment and choose which student's work to grade. All assignments use one shared rubric."
         actions={
-          <Button id="onboarding-new-assessment" asChild>
-            <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4" strokeWidth={2.5} /> New Assignment</Link>
+          <Button id="onboarding-new-assessment" asChild className="rounded-xl h-11 px-6 bg-primary hover:opacity-90 font-bold shadow-md shadow-primary/20">
+            <Link href="/teacher/assessments/new"><FilePlus className="mr-2 h-4 w-4 stroke-[3]" /> New Assignment</Link>
           </Button>
         }
       />
       
-      <Card id="onboarding-assessment-list" className="border-border shadow-sm overflow-hidden rounded-2xl bg-card">
-        <CardHeader className="bg-card pb-8 border-b border-border">
-            {/* Filter Bar */}
+      <Card id="onboarding-assessment-list" className="border-border shadow-sm overflow-hidden rounded-[2rem] bg-card">
+        <CardHeader className="bg-card pb-8 px-8 pt-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                  <div className="relative w-full max-w-sm">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                         placeholder="Search assignments..."
-                        className="w-full rounded-xl bg-secondary border-none focus:ring-2 focus:ring-primary/20 pl-12 h-12 text-base transition-all placeholder:text-muted-foreground font-medium"
+                        className="w-full rounded-2xl bg-secondary/50 border-none focus:ring-2 focus:ring-primary/20 pl-12 h-12 text-base transition-all placeholder:text-muted-foreground font-medium"
                         value={displaySearch}
                         onChange={handleSearchChange}
                     />
@@ -313,43 +313,80 @@ export default function AssessmentsPage() {
         </CardHeader>
         <CardContent className="p-0">
             {items.length > 0 ? (
-                <Table>
-                    <TableHeader className="bg-secondary/30">
-                    <TableRow className="hover:bg-transparent border-b border-border">
-                        <TableHead className="font-bold text-foreground h-14 pl-8">Assignment</TableHead>
-                        <TableHead className="font-bold text-foreground h-14">Notes</TableHead>
-                        <TableHead className="text-right w-12 pr-8 h-14"><span className="sr-only">View</span></TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {items.map((item) => (
-                        <TableRow key={item.assessmentId} onClick={() => handleRowClick(item.assessmentId)} className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0">
-                        <TableCell className="font-bold text-foreground py-5 pl-8 text-sm">{item.title}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-5">{item.notes || '-'}</TableCell>
-                        <TableCell className="text-right py-5 pr-8">
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
+                <div className="space-y-6">
+                  <Table>
+                      <TableHeader className="bg-secondary/30">
+                      <TableRow className="hover:bg-transparent border-b border-border">
+                          <TableHead className="font-bold text-foreground h-14 pl-8 uppercase tracking-widest text-[10px]">Assignment</TableHead>
+                          <TableHead className="font-bold text-foreground h-14 uppercase tracking-widest text-[10px]">Notes</TableHead>
+                          <TableHead className="text-right w-12 pr-8 h-14"><span className="sr-only">View</span></TableHead>
+                      </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                      {items.map((item) => (
+                          <TableRow key={item.assessmentId} onClick={() => handleRowClick(item.assessmentId)} className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0">
+                          <TableCell className="font-bold text-foreground py-6 pl-8 text-sm">{item.title}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-6">{item.notes || '-'}</TableCell>
+                          <TableCell className="text-right py-6 pr-8">
+                              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                          </TableCell>
+                          </TableRow>
+                      ))}
+                      </TableBody>
+                  </Table>
+
+                  {/* Premium Pill Pagination */}
+                  {pagination && pagination.total > 0 && (
+                    <div className="px-8 pb-10">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-2 px-6">
+                        <Pagination className="mx-0 w-auto">
+                          <PaginationContent className="gap-2">
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                onClick={() => pageNumber > 1 && handlePageChange(pageNumber - 1)}
+                                disabled={pageNumber <= 1}
+                                className={cn(pageNumber <= 1 && "pointer-events-none opacity-50")}
+                              />
+                            </PaginationItem>
+                            
+                            <div className="hidden sm:flex items-center gap-1 mx-2">
+                              {getPageNumbers().map((page, idx) => (
+                                <PaginationItem key={idx}>
+                                  {page === 'ellipsis' ? (
+                                    <PaginationEllipsis />
+                                  ) : (
+                                    <PaginationLink 
+                                      isActive={page === pageNumber}
+                                      onClick={() => handlePageChange(page as number)}
+                                    >
+                                      {page}
+                                    </PaginationLink>
+                                  )}
+                                </PaginationItem>
+                              ))}
+                            </div>
+
+                            <PaginationItem>
+                              <PaginationNext 
+                                onClick={() => pageNumber < totalPages && handlePageChange(pageNumber + 1)}
+                                disabled={pageNumber >= totalPages}
+                                className={cn(pageNumber >= totalPages && "pointer-events-none opacity-50")}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap">
+                          Showing <span className="text-foreground">{showingStart}-{showingEnd}</span> of <span className="text-foreground">{pagination.total}</span> results
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
             ) : (
                 <EmptyState />
             )}
         </CardContent>
-        {pagination && pagination.total > pagination.pageSize && (
-            <div className="flex items-center justify-end gap-2 border-t p-4 px-8">
-                <span className="text-sm text-muted-foreground mr-4">
-                    Page {pageNumber} of {totalPages}
-                </span>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 px-4" onClick={() => handlePageChange('prev')} disabled={pageNumber <= 1}>
-                    Previous
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 px-4" onClick={() => handlePageChange('next')} disabled={pageNumber >= totalPages}>
-                    Next
-                </Button>
-            </div>
-        )}
       </Card>
     </div>
   );
