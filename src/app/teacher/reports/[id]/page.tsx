@@ -1,15 +1,27 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar } from "lucide-react";
+import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Download, Loader2 } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import { Separator } from '@/components/ui/separator';
+import { dynamic } from 'next/dynamic';
+
+// Dynamic import for PDF components to avoid SSR issues
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
+
+const ReportPDFTemplate = dynamic(
+  () => import('@/components/reports/report-pdf-template').then((mod) => mod.ReportPDFTemplate),
+  { ssr: false }
+);
 
 const formatProficiencyLevel = (score: number): string => {
   const rounded = Math.max(1, Math.min(8, Math.round(Number(score))));
@@ -56,6 +68,11 @@ export default function ReportDetailPage() {
     const params = useParams();
     const router = useRouter();
     const reportId = params.id as string;
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     
     const { data: reportsList } = useWebhook<{}, any>({
         eventName: 'REPORTS_LIST',
@@ -124,6 +141,7 @@ export default function ReportDetailPage() {
     }
 
     const dateString = (report.Timestamp ?? report.timestamp ?? report.created_at);
+    const formattedDate = dateString ? new Date(dateString).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'N/A';
 
     return (
         <div className="w-full space-y-8 pb-20">
@@ -170,15 +188,46 @@ export default function ReportDetailPage() {
                             <div>
                                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none mb-1">Issue Date</p>
                                 <p className="text-sm font-bold text-foreground">
-                                    {dateString ? new Date(dateString).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'N/A'}
+                                    {formattedDate}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <Button variant="outline" className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50">
-                        Download PDF Copy
-                    </Button>
+                    {isClient && (
+                        <PDFDownloadLink
+                            document={
+                                <ReportPDFTemplate
+                                    studentName={report.student_name}
+                                    assignmentTitle={report.assignment_title}
+                                    date={formattedDate}
+                                    rubricGrades={report.rubric_grades || []}
+                                    teacherFeedback={report.teacher_feedback || ''}
+                                />
+                            }
+                            fileName={`Report_${report.student_name.replace(/\s+/g, '_')}.pdf`}
+                        >
+                            {({ loading }) => (
+                                <Button 
+                                    variant="outline" 
+                                    disabled={loading}
+                                    className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Preparing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Download PDF Copy
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                        </PDFDownloadLink>
+                    )}
                 </div>
             </div>
 
