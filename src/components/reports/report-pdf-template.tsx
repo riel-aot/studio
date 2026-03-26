@@ -1,115 +1,118 @@
 'use client';
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 50,
     backgroundColor: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
   headerBar: {
-    height: 4,
+    height: 3,
     backgroundColor: '#FF764D',
-    marginBottom: 25,
+    marginBottom: 30,
   },
   brandRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 50,
+    alignItems: 'flex-end',
+    marginBottom: 60,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 24,
   },
   brandText: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
     letterSpacing: -1,
   },
   xiContainer: {
-    width: 16,
-    height: 12,
+    width: 18,
+    height: 14,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    marginHorizontal: 2,
+    marginHorizontal: 3,
     marginTop: 4,
   },
   xiBar: {
-    height: 2.5,
+    height: 3,
     backgroundColor: '#FF764D',
-    borderRadius: 1.25,
+    borderRadius: 1.5,
   },
   recordLabel: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#94a3b8',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
     letterSpacing: 2,
+    paddingBottom: 4,
   },
   summaryBlock: {
     marginBottom: 40,
   },
   studentName: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: 'Helvetica-Bold',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   assignmentTitle: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#64748b',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    marginBottom: 25,
   },
   metaGrid: {
     flexDirection: 'row',
-    marginTop: 20,
     borderTop: 1,
     borderBottom: 1,
     borderColor: '#f1f5f9',
-    paddingVertical: 15,
+    paddingVertical: 20,
+    gap: 50,
   },
   metaItem: {
-    marginRight: 40,
+    flexDirection: 'column',
   },
   metaLabel: {
-    fontSize: 6,
+    fontSize: 7,
     color: '#94a3b8',
     textTransform: 'uppercase',
     fontFamily: 'Helvetica-Bold',
-    marginBottom: 4,
-    letterSpacing: 1,
+    marginBottom: 6,
+    letterSpacing: 1.2,
   },
   metaValue: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#111827',
     fontFamily: 'Helvetica-Bold',
   },
   sectionTitle: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#FF764D',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginTop: 30,
-    marginBottom: 15,
+    letterSpacing: 2,
+    marginTop: 40,
+    marginBottom: 20,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 12,
   },
   scoreCard: {
-    width: '48%',
-    padding: 14,
+    width: '48.5%',
+    padding: 16,
     backgroundColor: '#f8fafc',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#f1f5f9',
     flexDirection: 'row',
@@ -117,42 +120,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   criterionName: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    color: '#111827',
+    color: '#334155',
   },
   scoreBadge: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
   },
   narrativeBox: {
-    padding: 24,
+    padding: 25,
     backgroundColor: '#f8fafc',
-    borderRadius: 14,
+    borderRadius: 16,
     marginTop: 5,
     borderWidth: 1,
     borderColor: '#f1f5f9',
   },
   narrativeText: {
-    fontSize: 10,
+    fontSize: 11,
     lineHeight: 1.6,
-    color: '#334155',
+    color: '#475569',
     fontStyle: 'italic',
   },
   footer: {
     position: 'absolute',
     bottom: 40,
-    left: 40,
-    right: 40,
+    left: 50,
+    right: 50,
     textAlign: 'center',
     borderTop: 1,
     borderColor: '#f1f5f9',
     paddingTop: 20,
   },
   footerText: {
-    fontSize: 7,
-    color: '#94a3b8',
+    fontSize: 8,
+    color: '#cbd5e1',
     letterSpacing: 0.5,
   }
 });
@@ -230,26 +233,30 @@ export function ReportPDFTemplate({
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Academic Achievement</Text>
-        <View style={styles.gridContainer}>
-          {rubricGrades.map((grade, index) => (
-            <View key={index} style={styles.scoreCard}>
-              <Text style={styles.criterionName}>{grade.criterionName}</Text>
-              <Text style={styles.scoreBadge}>Level {formatProficiencyLevel(normalizeScore(grade.score, grade.maxScore))}</Text>
-            </View>
-          ))}
+        <View>
+          <Text style={styles.sectionTitle}>Academic Achievement</Text>
+          <View style={styles.gridContainer}>
+            {rubricGrades.map((grade, index) => (
+              <View key={index} style={styles.scoreCard}>
+                <Text style={styles.criterionName}>{grade.criterionName}</Text>
+                <Text style={styles.scoreBadge}>Level {formatProficiencyLevel(normalizeScore(grade.score, grade.maxScore))}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Teacher Narrative Feedback</Text>
-        <View style={styles.narrativeBox}>
-          <Text style={styles.narrativeText}>
-            {teacherFeedback ? `"${teacherFeedback}"` : 'No additional narrative provided for this record.'}
-          </Text>
+        <View>
+          <Text style={styles.sectionTitle}>Teacher Narrative Feedback</Text>
+          <View style={styles.narrativeBox}>
+            <Text style={styles.narrativeText}>
+              {teacherFeedback ? `"${teacherFeedback}"` : 'No additional narrative provided for this record.'}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            &copy; 2026 Athena Education Platform | This report is an official academic summary generated for parent review.
+            &copy; 2026 Athena Education Platform | Generated via ATHΞNA Assessment Systems
           </Text>
         </View>
       </Page>
