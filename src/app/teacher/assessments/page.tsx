@@ -336,12 +336,12 @@ export default function AssessmentsPage() {
                       </TableBody>
                   </Table>
 
-                  {/* Premium Pill Pagination */}
+                  {/* Refined Pill Pagination */}
                   {pagination && pagination.total > 0 && (
                     <div className="px-8 pb-10">
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-2 px-6">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-1.5 px-5">
                         <Pagination className="mx-0 w-auto">
-                          <PaginationContent className="gap-2">
+                          <PaginationContent className="gap-1.5">
                             <PaginationItem>
                               <PaginationPrevious 
                                 onClick={() => pageNumber > 1 && handlePageChange(pageNumber - 1)}
@@ -350,7 +350,7 @@ export default function AssessmentsPage() {
                               />
                             </PaginationItem>
                             
-                            <div className="hidden sm:flex items-center gap-1 mx-2">
+                            <div className="hidden sm:flex items-center gap-1 mx-1.5">
                               {getPageNumbers().map((page, idx) => (
                                 <PaginationItem key={idx}>
                                   {page === 'ellipsis' ? (
@@ -377,8 +377,8 @@ export default function AssessmentsPage() {
                           </PaginationContent>
                         </Pagination>
 
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap">
-                          Showing <span className="text-foreground">{showingStart}-{showingEnd}</span> of <span className="text-foreground">{pagination.total}</span> results
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap">
+                          Showing <span className="text-foreground">{showingStart}-{showingEnd}</span> of <span className="text-foreground">{pagination.total}</span>
                         </div>
                       </div>
                     </div>
