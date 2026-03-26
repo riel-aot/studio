@@ -13,9 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWebhook } from '@/lib/hooks';
 import { useAuth } from '@/hooks/use-auth';
-import type { DashboardKpis, ReviewQueueItem, ReportListItem } from '@/lib/events';
+import type { DashboardKpis, ReviewQueueItem, ReportListItem, ActivityItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb, Loader2 } from 'lucide-react';
+import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb, Loader2, UserPlus, FileCheck2, FileEdit } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid } from 'recharts';
 import { Progress } from '@/components/ui/progress';
@@ -120,6 +120,11 @@ export default function TeacherDashboard() {
   
   const { data: reviewQueueData, isLoading: reviewQueueLoading, error: reviewQueueError, trigger: refetchReviewQueue } = useWebhook<{ limit: number }, { items: ReviewQueueItem[] }>({
     eventName: 'GET_REVIEW_QUEUE',
+    payload: { limit: 5 },
+  });
+
+  const { data: activityData, isLoading: activityLoading } = useWebhook<{ limit: number }, { items: ActivityItem[] }>({
+    eventName: 'GET_RECENT_ACTIVITY',
     payload: { limit: 5 },
   });
 
@@ -267,7 +272,7 @@ export default function TeacherDashboard() {
     onSuccess: handleNewAssessmentStart,
   });
 
-  const isLoading = kpiLoading || reviewQueueLoading || reportsListLoading;
+  const isLoading = kpiLoading || reviewQueueLoading || reportsListLoading || activityLoading;
   const hasError = kpiError || reviewQueueError;
 
   const handleRetry = () => {
@@ -294,6 +299,35 @@ export default function TeacherDashboard() {
       suggestion: `Focus next assessments on ${weakestOnes.slice(0, 2).join(' and ')} tasks to bridge the proficiency gap.`
     };
   }, [classPerformance]);
+
+  const getActivityIcon = (type: ActivityItem['type']) => {
+    switch (type) {
+      case 'student_added': return UserPlus;
+      case 'report_generated': return FileCheck2;
+      case 'assessment_finalized': return GraduationCap;
+      case 'draft_updated': return FileEdit;
+      case 'assessment_created': return FilePlus;
+      default: return Activity;
+    }
+  };
+
+  const handleActivityClick = (activity: ActivityItem) => {
+    switch (activity.type) {
+      case 'report_generated':
+      case 'assessment_finalized':
+        router.push('/teacher/reports');
+        break;
+      case 'student_added':
+        router.push('/teacher/students');
+        break;
+      case 'assessment_created':
+      case 'draft_updated':
+        router.push('/teacher/assessments');
+        break;
+      default:
+        break;
+    }
+  };
 
   if (isLoading) return <DashboardLoadingSkeleton />;
   if (hasError) return <ErrorState onRetry={handleRetry} />;
@@ -421,38 +455,37 @@ export default function TeacherDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2rem]">
-            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-6 px-10">
-              <CardTitle className="text-lg font-bold text-foreground">Class Progress</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Recent finalized assessment scores.</CardDescription>
+          <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2.5rem]">
+            <CardHeader className="py-8 px-10">
+              <CardTitle className="text-lg font-bold">Activity Feed</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">Recent changes in your classroom.</CardDescription>
             </CardHeader>
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Average Proficiency</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-extrabold text-foreground">{classPerformance?.avgScore.toFixed(1) || '—'}</span>
-                    <span className="text-sm font-bold text-muted-foreground">/ 8</span>
-                  </div>
-                </div>
-                <div className="h-14 w-14 rounded-full border-4 border-secondary border-t-primary flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary">{Math.round(((classPerformance?.avgScore || 0) / 8) * 100)}%</span>
-                </div>
-              </div>
-              <Progress value={((classPerformance?.avgScore || 0) / 8) * 100} className="h-3 bg-secondary rounded-full" />
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-6 mb-4">Recent Reports</p>
-              <div className="space-y-3">
-                {reports.slice(0, 3).map((report, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold shadow-sm">
-                        {(report.studentName || 'S').charAt(0)}
+            <CardContent className="px-10 pb-10">
+              <div className="space-y-6">
+                {activityData?.items && activityData.items.length > 0 ? (
+                  activityData.items.map((activity) => {
+                    const Icon = getActivityIcon(activity.type);
+                    return (
+                      <div 
+                        key={activity.id} 
+                        className="flex gap-4 group cursor-pointer" 
+                        onClick={() => handleActivityClick(activity)}
+                      >
+                        <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold text-foreground">{activity.title}</p>
+                          <p className="text-[10px] text-muted-foreground leading-tight">
+                            {activity.subtitle} &middot; {activity.updatedAt ? format(new Date(activity.updatedAt), 'h:mm a') : 'N/A'}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xs font-bold truncate max-w-[120px]">{report.studentName || 'Student'}</span>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-bold border-border">{(report.status || 'Generated').toUpperCase()}</Badge>
-                  </div>
-                ))}
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-muted-foreground italic text-center py-4">No recent activity.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -669,22 +702,35 @@ export default function TeacherDashboard() {
             </Card>
 
             <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2.5rem]">
-              <CardHeader className="py-8 px-10">
-                <CardTitle className="text-lg font-bold">Activity Feed</CardTitle>
+              <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-6 px-10">
+                <CardTitle className="text-lg font-bold text-foreground">Class Progress</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">Recent finalized assessment scores.</CardDescription>
               </CardHeader>
-              <CardContent className="px-10 pb-10">
-                <div className="space-y-6">
-                  {reports.slice(0, 4).map((report, i) => (
-                    <div key={i} className="flex gap-4 group cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
-                      <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                        <CheckCircle2 className="h-5 w-5" />
+              <CardContent className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Average Proficiency</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-extrabold text-foreground">{classPerformance?.avgScore.toFixed(1) || '—'}</span>
+                      <span className="text-sm font-bold text-muted-foreground">/ 8</span>
+                    </div>
+                  </div>
+                  <div className="h-14 w-14 rounded-full border-4 border-secondary border-t-primary flex items-center justify-center">
+                    <span className="text-xs font-bold text-primary">{Math.round(((classPerformance?.avgScore || 0) / 8) * 100)}%</span>
+                  </div>
+                </div>
+                <Progress value={((classPerformance?.avgScore || 0) / 8) * 100} className="h-3 bg-secondary rounded-full" />
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-6 mb-4">Recent Reports</p>
+                <div className="space-y-3">
+                  {reports.slice(0, 3).map((report, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold shadow-sm">
+                          {(report.studentName || 'S').charAt(0)}
+                        </div>
+                        <span className="text-xs font-bold truncate max-w-[120px]">{report.studentName || 'Student'}</span>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-bold text-foreground">Report Generated</p>
-                        <p className="text-[10px] text-muted-foreground leading-tight">
-                          {report.studentName || 'Student'} &middot; {report.generatedAt ? format(new Date(report.generatedAt), 'h:mm a') : 'N/A'}
-                        </p>
-                      </div>
+                      <Badge variant="outline" className="text-[10px] font-bold border-border">{(report.status || 'Generated').toUpperCase()}</Badge>
                     </div>
                   ))}
                 </div>

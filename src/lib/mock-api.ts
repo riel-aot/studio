@@ -1,4 +1,4 @@
-import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData, ParentChildrenListResponse, ParentChild, ParentReportsListPayload, ParentReportData, DashboardKpis, ReviewQueueItem, DraftItem } from './events';
+import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData, ParentChildrenListResponse, ParentChild, ParentReportsListPayload, ParentReportData, DashboardKpis, ReviewQueueItem, DraftItem, ActivityItem } from './events';
 import { studentListData as initialStudentData, getStudentByIdNumber, assessmentWorkspaceData as initialAssessmentData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems, reportListItems, fullReportData, GLOBAL_RUBRIC_NAME } from './placeholder-data';
 
 let students: StudentListItem[] = [...initialStudentData];
@@ -15,6 +15,44 @@ const kpis: DashboardKpis = {
   drafts: 3,
   finalizedThisWeek: 12,
 };
+
+const recentActivity: ActivityItem[] = [
+  {
+    id: 'act_01',
+    type: 'report_generated',
+    title: 'Report Generated',
+    subtitle: 'Amelia Johnson · Unit 3: Fractions',
+    updatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'act_02',
+    type: 'student_added',
+    title: 'New Student Added',
+    subtitle: 'Felix Green enrolled in Grade 5',
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'act_03',
+    type: 'assessment_finalized',
+    title: 'Assessment Finalized',
+    subtitle: 'Benjamin Carter · History Mid-Term',
+    updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'act_04',
+    type: 'draft_updated',
+    title: 'Draft Updated',
+    subtitle: 'Creative Writing Assignment',
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'act_05',
+    type: 'assessment_created',
+    title: 'New Assignment Created',
+    subtitle: 'Solar System Project · Schoolwide Rubric',
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
 
 const reviewQueue: ReviewQueueItem[] = [
     {
@@ -154,6 +192,7 @@ const handlers: { [key: string]: (payload: any, actor: WebhookRequest['actor']) 
     'GET_DASHBOARD_SUMMARY': () => ({ kpis }),
     'GET_REVIEW_QUEUE': () => ({ items: reviewQueue }),
     'GET_DRAFTS': () => ({ items: drafts }),
+    'GET_RECENT_ACTIVITY': () => ({ items: recentActivity }),
     'HEALTH_CHECK': () => healthCheck,
     'STUDENT_LIST': () => studentList(),
     'STUDENT_GET': (payload: { studentId: string }) => getStudent(payload),
