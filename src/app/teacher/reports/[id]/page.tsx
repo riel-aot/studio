@@ -7,20 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Loader2 } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import { Separator } from '@/components/ui/separator';
 import dynamic from 'next/dynamic';
 
-// Dynamic import for PDF components to avoid SSR issues
-const PDFDownloadLink = dynamic(
-  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
-  { ssr: false }
-);
-
-const ReportPDFTemplate = dynamic(
-  () => import('@/components/reports/report-pdf-template').then((mod) => mod.ReportPDFTemplate),
-  { ssr: false }
+// Dynamically import the wrapper to prevent SSR issues and React 19 reconciliation errors with react-pdf
+const ReportDownloadButton = dynamic(
+  () => import('@/components/reports/report-download-button'),
+  { 
+    ssr: false,
+    loading: () => (
+      <Button variant="outline" disabled className="h-11 rounded-xl font-bold border-border bg-card shadow-sm">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Initialising PDF...
+      </Button>
+    )
+  }
 );
 
 const formatProficiencyLevel = (score: number): string => {
@@ -195,38 +198,10 @@ export default function ReportDetailPage() {
                     </div>
 
                     {isClient && (
-                        <PDFDownloadLink
-                            document={
-                                <ReportPDFTemplate
-                                    studentName={report.student_name}
-                                    assignmentTitle={report.assignment_title}
-                                    date={formattedDate}
-                                    rubricGrades={report.rubric_grades || []}
-                                    teacherFeedback={report.teacher_feedback || ''}
-                                />
-                            }
-                            fileName={`Report_${report.student_name.replace(/\s+/g, '_')}.pdf`}
-                        >
-                            {({ loading }) => (
-                                <Button 
-                                    variant="outline" 
-                                    disabled={loading}
-                                    className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Preparing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Download PDF Copy
-                                        </>
-                                    )}
-                                </Button>
-                            )}
-                        </PDFDownloadLink>
+                        <ReportDownloadButton 
+                            report={report}
+                            formattedDate={formattedDate}
+                        />
                     )}
                 </div>
             </div>
