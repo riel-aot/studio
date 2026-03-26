@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -315,81 +314,79 @@ export default function AssessmentsPage() {
         </CardHeader>
         <CardContent className="p-0">
             {items.length > 0 ? (
-                <div className="space-y-6">
-                  <Table>
-                      <TableHeader className="bg-secondary/30">
-                      <TableRow className="hover:bg-transparent border-b border-border">
-                          <TableHead className="font-bold text-foreground h-14 pl-8 uppercase tracking-widest text-[10px]">Assignment</TableHead>
-                          <TableHead className="font-bold text-foreground h-14 uppercase tracking-widest text-[10px]">Notes</TableHead>
-                          <TableHead className="text-right w-12 pr-8 h-14"><span className="sr-only">View</span></TableHead>
-                      </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                      {items.map((item) => (
-                          <TableRow key={item.assessmentId} onClick={() => handleRowClick(item.assessmentId)} className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0">
-                          <TableCell className="font-bold text-foreground py-6 pl-8 text-sm">{item.title}</TableCell>
-                          <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-6">{item.notes || '-'}</TableCell>
-                          <TableCell className="text-right py-6 pr-8">
-                              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                          </TableCell>
-                          </TableRow>
-                      ))}
-                      </TableBody>
-                  </Table>
-
-                  {/* Refined Pill Pagination - Moved below list and width reduced */}
-                  {pagination && pagination.total > 0 && (
-                    <div className="flex justify-center px-8 pb-10">
-                      <div className="flex items-center gap-6 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-1.5 px-5 w-fit">
-                        <Pagination className="mx-0 w-auto">
-                          <PaginationContent className="gap-1.5">
-                            <PaginationItem>
-                              <PaginationPrevious 
-                                onClick={() => pageNumber > 1 && handlePageChange(pageNumber - 1)}
-                                disabled={pageNumber <= 1}
-                                className={cn(pageNumber <= 1 && "pointer-events-none opacity-50")}
-                              />
-                            </PaginationItem>
-                            
-                            <div className="hidden sm:flex items-center gap-1 mx-1.5">
-                              {getPageNumbers().map((page, idx) => (
-                                <PaginationItem key={idx}>
-                                  {page === 'ellipsis' ? (
-                                    <PaginationEllipsis />
-                                  ) : (
-                                    <PaginationLink 
-                                      isActive={page === pageNumber}
-                                      onClick={() => handlePageChange(page as number)}
-                                    >
-                                      {page}
-                                    </PaginationLink>
-                                  )}
-                                </PaginationItem>
-                              ))}
-                            </div>
-
-                            <PaginationItem>
-                              <PaginationNext 
-                                onClick={() => pageNumber < totalPages && handlePageChange(pageNumber + 1)}
-                                disabled={pageNumber >= totalPages}
-                                className={cn(pageNumber >= totalPages && "pointer-events-none opacity-50")}
-                              />
-                            </PaginationItem>
-                          </PaginationContent>
-                        </Pagination>
-
-                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap pl-4 border-l border-border pr-2">
-                          <span className="text-foreground">{showingStart}-{showingEnd}</span> / <span className="text-foreground">{pagination.total}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <Table>
+                    <TableHeader className="bg-secondary/30">
+                    <TableRow className="hover:bg-transparent border-b border-border">
+                        <TableHead className="font-bold text-foreground h-14 pl-8 uppercase tracking-widest text-[10px]">Assignment</TableHead>
+                        <TableHead className="font-bold text-foreground h-14 uppercase tracking-widest text-[10px]">Notes</TableHead>
+                        <TableHead className="text-right w-12 pr-8 h-14"><span className="sr-only">View</span></TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {items.map((item) => (
+                        <TableRow key={item.assessmentId} onClick={() => handleRowClick(item.assessmentId)} className="group cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border last:border-0">
+                        <TableCell className="font-bold text-foreground py-6 pl-8 text-sm">{item.title}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm max-w-xs truncate py-6">{item.notes || '-'}</TableCell>
+                        <TableCell className="text-right py-6 pr-8">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
             ) : (
                 <EmptyState />
             )}
         </CardContent>
       </Card>
+
+      {/* Refined Pill Pagination - Moved below the card island */}
+      {pagination && pagination.total > 0 && (
+        <div className="flex justify-center mt-8">
+          <div className="flex items-center gap-6 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-1.5 px-5 w-fit">
+            <Pagination className="mx-0 w-auto">
+              <PaginationContent className="gap-1.5">
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => pageNumber > 1 && handlePageChange(pageNumber - 1)}
+                    disabled={pageNumber <= 1}
+                    className={cn(pageNumber <= 1 && "pointer-events-none opacity-50")}
+                  />
+                </PaginationItem>
+                
+                <div className="hidden sm:flex items-center gap-1 mx-1.5">
+                  {getPageNumbers().map((page, idx) => (
+                    <PaginationItem key={idx}>
+                      {page === 'ellipsis' ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <PaginationLink 
+                          isActive={page === pageNumber}
+                          onClick={() => handlePageChange(page as number)}
+                        >
+                          {page}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+                </div>
+
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => pageNumber < totalPages && handlePageChange(pageNumber + 1)}
+                    disabled={pageNumber >= totalPages}
+                    className={cn(pageNumber >= totalPages && "pointer-events-none opacity-50")}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap pl-4 border-l border-border pr-2">
+              <span className="text-foreground">{showingStart}-{showingEnd}</span> / <span className="text-foreground">{pagination.total}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
