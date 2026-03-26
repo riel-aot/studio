@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
 
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Button } from '@/components/ui/button';
@@ -18,15 +19,15 @@ import { normalizeAssessmentIdentifier } from '@/lib/utils';
 import { activityTracker } from '@/lib/activity-tracker';
 import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb, Loader2, UserPlus, FileCheck2, FileEdit } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid, Rectangle } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const COLORS = {
-  red: '#EF4444',
-  orange: '#F59E0B',
-  green: '#10B981',
+  red: '#F87171',
+  orange: '#FB923C',
+  green: '#34D399',
 };
 
 const formatProficiencyLevel = (score: number): string => {
@@ -45,15 +46,52 @@ const formatProficiencyLevel = (score: number): string => {
 };
 
 const getLevelGradientId = (levelStr: string) => {
-  if (['A', 'B', '1', '2'].includes(levelStr)) return 'url(#barRed)';
-  if (['3', '4'].includes(levelStr)) return 'url(#barOrange)';
-  return 'url(#barGreen)';
+  if (['A', 'B', '1', '2'].includes(levelStr)) return 'url(#barRedLight)';
+  if (['3', '4'].includes(levelStr)) return 'url(#barOrangeLight)';
+  return 'url(#barGreenLight)';
 };
 
-const getLevelColor = (levelStr: string) => {
-  if (['A', 'B', '1', '2'].includes(levelStr)) return COLORS.red;
-  if (['3', '4'].includes(levelStr)) return COLORS.orange;
-  return COLORS.green;
+// Custom shape to add breathing animation
+const BreathingBar = (props: any) => {
+  const { fill, x, y, width, height } = props;
+  
+  return (
+    <motion.g
+      initial={{ scaleY: 0, opacity: 0 }}
+      animate={{ 
+        scaleY: 1, 
+        opacity: 1,
+      }}
+      transition={{ 
+        type: 'spring', 
+        stiffness: 100, 
+        damping: 20,
+        delay: props.index * 0.1 
+      }}
+      style={{ transformOrigin: 'bottom' }}
+    >
+      <motion.rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        rx={10}
+        ry={10}
+        animate={{
+          opacity: [0.85, 1, 0.85],
+          scaleY: [1, 1.015, 1],
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: props.index * 0.5
+        }}
+        style={{ transformOrigin: `${x + width / 2}px ${y + height}px` }}
+      />
+    </motion.g>
+  );
 };
 
 type ClassPerformanceView = {
@@ -425,7 +463,7 @@ export default function TeacherDashboard() {
                         onClick={() => openReview({ assessmentId: normalizeAssessmentIdentifier(item.assessmentId) ?? item.assessmentId })}
                         className="group cursor-pointer hover:bg-secondary/10 transition-colors border-b border-border last:border-0"
                       >
-                        <TableCell className="font-bold text-foreground py-4 pl-6 text-sm">{item.studentName}</TableCell>
+                        <TableCell className="font-bold text-foreground py-4 pl-6 text-sm">{item.studentName || 'Student'}</TableCell>
                         <TableCell className="text-muted-foreground py-4 text-sm">{item.assessmentName}</TableCell>
                         <TableCell className="py-4 text-right pr-6">
                           <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'warning'} className="rounded-full px-2 text-[9px]">
@@ -529,7 +567,7 @@ export default function TeacherDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <Card className="lg:col-span-8 border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl">
+          <Card className="lg:col-span-8 border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl self-start">
             <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-4 px-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -565,19 +603,19 @@ export default function TeacherDashboard() {
                 <div className="h-[220px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     {view === 'performance' ? (
-                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ top: 20, bottom: 5 }}>
+                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ top: 25, bottom: 5 }}>
                         <defs>
-                          <linearGradient id="barRed" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#EF4444" stopOpacity={1}/>
-                            <stop offset="100%" stopColor="#B91C1C" stopOpacity={1}/>
+                          <linearGradient id="barRedLight" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FEF2F2" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#F87171" stopOpacity={1}/>
                           </linearGradient>
-                          <linearGradient id="barOrange" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#F59E0B" stopOpacity={1}/>
-                            <stop offset="100%" stopColor="#B45309" stopOpacity={1}/>
+                          <linearGradient id="barOrangeLight" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FFF7ED" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#FB923C" stopOpacity={1}/>
                           </linearGradient>
-                          <linearGradient id="barGreen" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#10B981" stopOpacity={1}/>
-                            <stop offset="100%" stopColor="#047857" stopOpacity={1}/>
+                          <linearGradient id="barGreenLight" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#F0FDF4" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#34D399" stopOpacity={1}/>
                           </linearGradient>
                         </defs>
                         <XAxis 
@@ -589,20 +627,20 @@ export default function TeacherDashboard() {
                         />
                         <YAxis domain={[0, 8]} hide />
                         <Tooltip 
-                          cursor={{ fill: 'hsl(var(--secondary) / 0.3)', radius: 8 }}
+                          cursor={{ fill: 'hsl(var(--secondary) / 0.2)', radius: 8 }}
                           content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               const data = payload[0].payload;
                               const level = formatProficiencyLevel(data.averageScore);
                               return (
-                                <div className="bg-[#111827] text-white p-3 rounded-xl shadow-xl border border-white/10 ring-1 ring-black/5">
-                                  <p className="text-[9px] font-bold uppercase tracking-widest text-primary mb-1">{data.criterion}</p>
+                                <div className="bg-white dark:bg-[#111827] p-3 rounded-2xl shadow-2xl border border-border ring-1 ring-black/5">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">{data.criterion}</p>
                                   <div className="space-y-0.5">
-                                    <p className="text-base font-extrabold flex items-baseline gap-1">
+                                    <p className="text-base font-extrabold text-foreground flex items-baseline gap-1">
                                       Level {level}
-                                      <span className="text-[9px] font-bold text-slate-400 font-mono">({data.averageScore.toFixed(1)})</span>
+                                      <span className="text-[10px] font-bold text-muted-foreground font-mono">({data.averageScore.toFixed(1)})</span>
                                     </p>
-                                    <p className="text-[8px] font-medium text-slate-400 uppercase tracking-wider">From {data.count} assessments</p>
+                                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">From {data.count} assessments</p>
                                   </div>
                                 </div>
                               );
@@ -612,10 +650,8 @@ export default function TeacherDashboard() {
                         />
                         <Bar 
                           dataKey="averageScore" 
-                          radius={[8, 8, 0, 0]} 
-                          barSize={40}
-                          animationDuration={1500}
-                          animationBegin={200}
+                          barSize={45}
+                          shape={<BreathingBar />}
                         >
                           {classPerformance.criteriaBreakdown.map((entry, index) => {
                             const levelStr = formatProficiencyLevel(entry.averageScore);
@@ -626,7 +662,7 @@ export default function TeacherDashboard() {
                             position="top" 
                             formatter={(v: number) => formatProficiencyLevel(v)}
                             style={{ fill: '#64748b', fontSize: 11, fontWeight: 800 }}
-                            offset={8}
+                            offset={12}
                           />
                         </Bar>
                       </BarChart>
@@ -656,9 +692,9 @@ export default function TeacherDashboard() {
                           content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               return (
-                                <div className="bg-[#111827] text-white p-2 rounded-lg border border-white/10 shadow-lg">
+                                <div className="bg-white dark:bg-[#111827] p-2 rounded-xl border border-border shadow-lg">
                                   <p className="text-[9px] font-bold text-primary uppercase">{payload[0].payload.criterion}</p>
-                                  <p className="text-xs font-bold">Level {formatProficiencyLevel(payload[0].value as number)}</p>
+                                  <p className="text-xs font-bold text-foreground">Level {formatProficiencyLevel(payload[0].value as number)}</p>
                                 </div>
                               );
                             }
