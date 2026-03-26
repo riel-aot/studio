@@ -48,15 +48,37 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
       animate="visible"
       className={cn("flex flex-col", isCentered ? "items-center text-center" : "items-start")}
     >
-      <motion.span
-        variants={itemVariants}
-        className={cn(
-          isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
-          "font-semibold text-primary tracking-tight leading-none font-sans"
-        )}
-      >
-        ATHΞNA
-      </motion.span>
+      <div className="flex items-center">
+        <motion.span
+          variants={itemVariants}
+          className={cn(
+            isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
+            "font-semibold text-primary tracking-tight leading-none font-sans"
+          )}
+        >
+          ATH
+        </motion.span>
+        <motion.div 
+          variants={itemVariants}
+          className={cn(
+            "flex flex-col justify-between mx-1 md:mx-1.5",
+            isSmall ? 'h-[12px] w-[12px] py-[1px]' : isCentered ? 'h-[28px] w-[28px] md:h-[32px] md:w-[32px] py-[3px]' : 'h-[18px] w-[18px] md:h-[22px] md:w-[22px] py-[2px]'
+          )}
+        >
+          <div className="h-[20%] w-full rounded-full bg-primary" />
+          <div className="h-[20%] w-full rounded-full bg-primary" />
+          <div className="h-[20%] w-full rounded-full bg-primary" />
+        </motion.div>
+        <motion.span
+          variants={itemVariants}
+          className={cn(
+            isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
+            "font-semibold text-primary tracking-tight leading-none font-sans"
+          )}
+        >
+          NA
+        </motion.span>
+      </div>
       <motion.span
         variants={itemVariants}
         className={cn(
