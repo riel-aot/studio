@@ -24,41 +24,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  logoCircle: {
-    width: 28,
-    height: 28,
-    backgroundColor: '#FF764D',
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoA: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  brandWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 10,
-  },
   brandText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FF764D',
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   xiContainer: {
-    width: 14,
-    height: 14,
+    width: 18,
+    height: 15,
+    flexDirection: 'column',
     justifyContent: 'space-between',
-    paddingVertical: 2,
-    marginHorizontal: 1,
+    paddingVertical: 1,
+    marginHorizontal: 3,
+    // Align with the middle of the text
+    marginTop: 2, 
   },
   xiBar: {
-    height: 2.2,
+    height: 2.8,
     backgroundColor: '#FF764D',
-    borderRadius: 1,
+    borderRadius: 1.4,
   },
   recordLabel: {
     fontSize: 7,
@@ -219,18 +204,13 @@ export function ReportPDFTemplate({
         
         <View style={styles.brandRow}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoA}>A</Text>
+            <Text style={styles.brandText}>ATH</Text>
+            <View style={styles.xiContainer}>
+              <View style={styles.xiBar} />
+              <View style={styles.xiBar} />
+              <View style={styles.xiBar} />
             </View>
-            <View style={styles.brandWrapper}>
-              <Text style={styles.brandText}>ATH</Text>
-              <View style={styles.xiContainer}>
-                <View style={styles.xiBar} />
-                <View style={styles.xiBar} />
-                <View style={styles.xiBar} />
-              </View>
-              <Text style={styles.brandText}>NA</Text>
-            </View>
+            <Text style={styles.brandText}>NA</Text>
           </View>
           <Text style={styles.recordLabel}>Official Academic Record</Text>
         </View>
