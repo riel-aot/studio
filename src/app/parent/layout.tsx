@@ -39,21 +39,24 @@ export default function ParentLayout({
       {navLinks.map(({ href, icon: Icon, label }) => {
         const isActive = pathname.startsWith(href);
         return (
-          <SidebarMenuItem key={href}>
+          <SidebarMenuItem key={href} className="flex justify-center px-2">
             <SidebarMenuButton
               asChild
               isActive={isActive}
               tooltip={label}
               className={cn(
-                "h-11 px-4 rounded-xl transition-all duration-200 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center",
+                "h-11 w-full flex items-center transition-all duration-200 rounded-xl px-4",
+                "group-data-[state=collapsed]:w-11 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:rounded-full group-data-[state=collapsed]:px-0",
                 isActive 
                   ? "bg-white/10 text-white font-bold shadow-sm" 
                   : "text-white/70 hover:bg-white/5 hover:text-white"
               )}
             >
-              <Link href={href} className="flex items-center gap-3 w-full group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0">
+              <Link href={href} className="flex items-center w-full">
                 <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-white/60")} />
-                <span className="text-sm group-data-[state=collapsed]:hidden whitespace-nowrap">{label}</span>
+                <span className="text-sm ml-3 transition-opacity duration-300 group-data-[state=collapsed]:hidden whitespace-nowrap overflow-hidden">
+                  {label}
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

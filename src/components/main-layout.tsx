@@ -11,8 +11,6 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-  SidebarTrigger,
-  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Button } from './ui/button';
 import { LogOut, Bell, Sun, Moon, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -72,7 +70,7 @@ export function MainLayout({
               </Link>
             </SidebarHeader>
             
-            <SidebarContent className="px-2 overflow-visible">
+            <SidebarContent className="px-0 overflow-visible">
               {navItems}
             </SidebarContent>
 

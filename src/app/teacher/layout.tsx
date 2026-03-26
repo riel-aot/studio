@@ -51,21 +51,24 @@ export default function TeacherLayout({
         {mainNavLinks.map(({ href, icon: Icon, label }) => {
           const isActive = pathname.startsWith(href);
           return (
-            <SidebarMenuItem key={href} className="flex justify-center">
+            <SidebarMenuItem key={href} className="flex justify-center px-2">
               <SidebarMenuButton
                 asChild
                 isActive={isActive}
                 tooltip={label}
                 className={cn(
-                  "h-12 w-12 flex items-center justify-center rounded-full transition-all duration-300 group-data-[state=collapsed]:p-0",
+                  "h-12 w-full flex items-center transition-all duration-300 rounded-xl px-3",
+                  "group-data-[state=collapsed]:w-12 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:rounded-full group-data-[state=collapsed]:px-0",
                   isActive 
-                    ? "bg-white/15 text-white shadow-lg scale-110" 
+                    ? "bg-white/15 text-white shadow-lg" 
                     : "text-white/50 hover:bg-white/5 hover:text-white"
                 )}
               >
-                <Link href={href}>
+                <Link href={href} className="flex items-center w-full">
                   <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "text-white/60")} />
-                  <span className="text-sm group-data-[state=collapsed]:hidden ml-3">{label}</span>
+                  <span className="text-sm font-bold ml-3 transition-opacity duration-300 group-data-[state=collapsed]:hidden whitespace-nowrap overflow-hidden">
+                    {label}
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -78,11 +81,16 @@ export default function TeacherLayout({
           <SidebarMenuButton
             asChild
             tooltip="New Assignment"
-            className="h-12 w-12 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-primary hover:text-white transition-all duration-300"
+            className={cn(
+              "h-12 w-full flex items-center transition-all duration-300 rounded-xl px-3 bg-white/5 text-white/60 hover:bg-primary hover:text-white",
+              "group-data-[state=collapsed]:w-12 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:rounded-full group-data-[state=collapsed]:px-0"
+            )}
           >
             <Link href="/teacher/assessments/new">
-              <Plus className="h-6 w-6" />
-              <span className="text-sm group-data-[state=collapsed]:hidden ml-3 font-bold">New Assignment</span>
+              <Plus className="h-6 w-6 shrink-0" />
+              <span className="text-sm ml-3 font-bold transition-opacity duration-300 group-data-[state=collapsed]:hidden whitespace-nowrap overflow-hidden">
+                New Assignment
+              </span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
