@@ -13,8 +13,8 @@ import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
- * Brand component: ATHΞNA with refined typography and reveal logic.
- * Primary brand color: Coral Orange (from theme)
+ * Brand component: ATHΞNA with Inter typography.
+ * Signature subtext: "by ClassPulse"
  */
 function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolean; isCentered?: boolean }) {
   const containerVariants = {
@@ -53,7 +53,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
           variants={itemVariants}
           className={cn(
             isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
-            "font-bold text-primary tracking-tight leading-none font-sans"
+            "font-extrabold text-primary tracking-tight leading-none font-sans"
           )}
         >
           ATH
@@ -73,7 +73,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
           variants={itemVariants}
           className={cn(
             isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
-            "font-bold text-primary tracking-tight leading-none font-sans"
+            "font-extrabold text-primary tracking-tight leading-none font-sans"
           )}
         >
           NA
@@ -82,11 +82,11 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
       <motion.span
         variants={itemVariants}
         className={cn(
-          "text-slate-400 font-bold mt-1 font-sans uppercase tracking-[0.3em]",
+          "text-slate-400 font-bold mt-1 font-sans tracking-[0.1em]",
           isSmall ? 'text-[8px]' : isCentered ? 'text-[10px] md:text-xs' : 'text-[9px] md:text-[10px]'
         )}
       >
-        Portal
+        by ClassPulse
       </motion.span>
     </motion.div>
   );
@@ -295,7 +295,7 @@ export default function AthenaLandingPage() {
                         <h2 className="text-2xl font-bold text-foreground tracking-tight">
                           Sign In
                         </h2>
-                        <p className="text-muted-foreground text-xs mt-2 font-normal uppercase tracking-widest">ATHΞNA Portal</p>
+                        <p className="text-muted-foreground text-xs mt-2 font-normal uppercase tracking-widest">ATHΞNA by ClassPulse</p>
                       </div>
 
                       <form onSubmit={handleLogin} className="space-y-5 flex-1 flex flex-col">
