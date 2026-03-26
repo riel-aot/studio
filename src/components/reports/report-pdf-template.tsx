@@ -29,21 +29,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
   xiContainer: {
-    width: 15,
-    height: 13,
+    width: 16,
+    height: 14,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    marginHorizontal: 2,
+    marginHorizontal: 1,
     paddingVertical: 1,
-    marginTop: 2, // Fine-tuned baseline alignment
+    marginTop: 3, // Baseline alignment for Helvetica-Bold
   },
   xiBar: {
-    height: 2.2,
+    height: 2.8,
     backgroundColor: '#FF764D',
-    borderRadius: 1,
+    borderRadius: 1.4, // Perfectly rounded ends like the reference image
   },
   recordLabel: {
     fontSize: 7,
