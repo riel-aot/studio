@@ -66,7 +66,8 @@ export function MainLayout({
             
             <SidebarHeader className="h-24 flex items-center justify-center pt-8 mb-4">
               <Link href={dashboardLink} className="transition-transform hover:scale-105 active:scale-95">
-                <Logo light />
+                {/* Logo updated to use brand orange by removing the 'light' prop */}
+                <Logo />
               </Link>
             </SidebarHeader>
             
