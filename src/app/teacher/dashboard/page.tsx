@@ -443,33 +443,33 @@ export default function TeacherDashboard() {
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-8">
-          <Card id="onboarding-quick-actions" className="bg-primary text-white border-none shadow-2xl shadow-primary/20 overflow-hidden relative rounded-[2rem]">
-            <div className="absolute top-[-40px] right-[-40px] h-60 w-60 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-            <CardHeader className="py-8 px-10 relative z-10">
-              <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                <Activity className="h-6 w-6 text-white" />
+        <div className="lg:col-span-4 space-y-6">
+          <Card id="onboarding-quick-actions" className="bg-primary text-white border-none shadow-xl shadow-primary/20 overflow-hidden relative rounded-[1.5rem]">
+            <div className="absolute top-[-20px] right-[-20px] h-40 w-40 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+            <CardHeader className="p-6 relative z-10">
+              <div className="h-9 w-9 bg-white/20 rounded-xl flex items-center justify-center mb-3">
+                <Activity className="h-5 w-5 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold">Quick Actions</CardTitle>
-              <CardDescription className="text-white/80 text-xs">Execute common classroom tasks.</CardDescription>
+              <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
+              <CardDescription className="text-white/80 text-[10px] uppercase tracking-wider font-bold">Classroom Tasks</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 relative z-10 px-10 pb-10">
-              <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white text-primary hover:bg-slate-50 h-14 font-bold rounded-2xl transition-all border-none shadow-lg">
-                <FilePlus className="mr-2 h-5 w-5 stroke-[2.5]" /> New Assignment
+            <CardContent className="grid gap-3 relative z-10 px-6 pb-6">
+              <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white text-primary hover:bg-slate-50 h-11 font-bold rounded-xl transition-all border-none shadow-md">
+                <FilePlus className="mr-2 h-4 w-4 stroke-[2.5]" /> New Assignment
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 h-14 font-bold rounded-2xl transition-all">
-                <Link href="/teacher/assessments"><PenSquare className="mr-2 h-5 w-5 stroke-[2.5]" /> Manage History</Link>
+              <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 h-11 font-bold rounded-xl transition-all">
+                <Link href="/teacher/assessments"><PenSquare className="mr-2 h-4 w-4 stroke-[2.5]" /> Manage History</Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2.5rem]">
-            <CardHeader className="py-8 px-10">
+          <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[1.5rem]">
+            <CardHeader className="py-6 px-8">
               <CardTitle className="text-lg font-bold">Activity Feed</CardTitle>
               <CardDescription className="text-xs text-muted-foreground">Recent changes in your classroom.</CardDescription>
             </CardHeader>
-            <CardContent className="px-10 pb-10">
-              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            <CardContent className="px-8 pb-8">
+              <div className="space-y-5 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
                 {localActivity.length > 0 ? (
                   localActivity.map((activity) => {
                     const Icon = getActivityIcon(activity.type);
@@ -479,10 +479,10 @@ export default function TeacherDashboard() {
                         className="flex gap-4 group cursor-pointer" 
                         onClick={() => handleActivityClick(activity)}
                       >
-                        <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                          <Icon className="h-5 w-5" />
+                        <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <Icon className="h-4.5 w-4.5" />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           <p className="text-xs font-bold text-foreground">{activity.title}</p>
                           <p className="text-[10px] text-muted-foreground leading-tight">
                             {activity.subtitle} &middot; {activity.updatedAt ? format(new Date(activity.updatedAt), 'h:mm a') : 'N/A'}
