@@ -17,7 +17,7 @@ import type { DashboardKpis, ReviewQueueItem, ReportListItem } from '@/lib/event
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
 import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid, Defs, LinearGradient, Stop } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -205,12 +205,12 @@ export default function TeacherDashboard() {
 
       if (!isMounted) return;
 
-      if (gradedReports.length === 0) {
-        setClassPerformance({ avgScore: 0, completionRate, masteryAchieved: 0, criteriaBreakdown: [] });
-        return;
-      }
-
+      const baseCriteria = ['Listening', 'Speaking', 'Reading', 'Writing'];
       const criteriaMap = new Map<string, { scoreSum: number; count: number; values: number[]; maxScore: number }>();
+      
+      // Pre-populate with base criteria
+      baseCriteria.forEach(c => criteriaMap.set(c, { scoreSum: 0, count: 0, values: [], maxScore: 8 }));
+
       for (const gradedReport of gradedReports) {
         for (const grade of gradedReport.grades) {
           const criterionName = grade?.criterionName ?? grade?.criterion_name;
@@ -225,12 +225,14 @@ export default function TeacherDashboard() {
         }
       }
 
-      const criteriaBreakdown = Array.from(criteriaMap.entries()).map(([criterion, stats]) => {
-        const averageScore = Number((stats.scoreSum / stats.count).toFixed(2));
-        const delta = stats.values.length > 1 ? stats.values[stats.values.length - 1] - stats.values[0] : 0;
-        const trend = delta > 0.15 ? 'up' : delta < -0.15 ? 'down' : 'stable';
-        return { criterion, averageScore, maxScore: 8, trend, count: stats.count } as const;
-      });
+      const criteriaBreakdown = Array.from(criteriaMap.entries())
+        .filter(([c]) => baseCriteria.includes(c))
+        .map(([criterion, stats]) => {
+          const averageScore = stats.count > 0 ? Number((stats.scoreSum / stats.count).toFixed(2)) : 5.0; // Default to Level 3 if no data
+          const delta = stats.values.length > 1 ? stats.values[stats.values.length - 1] - stats.values[0] : 0;
+          const trend = delta > 0.15 ? 'up' : delta < -0.15 ? 'down' : 'stable';
+          return { criterion, averageScore, maxScore: 8, trend, count: stats.count } as const;
+        });
 
       const avgScore = criteriaBreakdown.length > 0
         ? Number((criteriaBreakdown.reduce((sum, item) => sum + item.averageScore, 0) / criteriaBreakdown.length).toFixed(1))
@@ -277,14 +279,19 @@ export default function TeacherDashboard() {
     if (!classPerformance?.criteriaBreakdown.length) return null;
     const sorted = [...classPerformance.criteriaBreakdown].sort((a, b) => b.averageScore - a.averageScore);
     const strongest = sorted[0];
-    const weakest = sorted[sorted.length - 1];
+    const weakestOnes = classPerformance.criteriaBreakdown
+      .filter(item => item.criterion !== strongest.criterion)
+      .map(item => item.criterion);
     
+    const weakestLabel = weakestOnes.length > 1 
+      ? `${weakestOnes.slice(0, -1).join(', ')} and ${weakestOnes[weakestOnes.length - 1]}`
+      : weakestOnes[0] || 'other skills';
+
     return {
       strongest: strongest.criterion,
       strongestLevel: formatProficiencyLevel(strongest.averageScore),
-      weakest: weakest.criterion,
-      weakestLevel: formatProficiencyLevel(weakest.averageScore),
-      suggestion: `Focus next assessments on ${weakest.criterion} tasks to bridge the proficiency gap.`
+      weakestLabel,
+      suggestion: `Focus next assessments on ${weakestOnes.slice(0, 2).join(' and ')} tasks to bridge the proficiency gap.`
     };
   }, [classPerformance]);
 
@@ -439,9 +446,9 @@ export default function TeacherDashboard() {
                   <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold shadow-sm">
-                        {report.studentName.charAt(0)}
+                        {(report.studentName || 'S').charAt(0)}
                       </div>
-                      <span className="text-xs font-bold truncate max-w-[120px]">{report.studentName}</span>
+                      <span className="text-xs font-bold truncate max-w-[120px]">{report.studentName || 'Student'}</span>
                     </div>
                     <Badge variant="outline" className="text-[10px] font-bold border-border">{report.status.toUpperCase()}</Badge>
                   </div>
@@ -461,7 +468,7 @@ export default function TeacherDashboard() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">Class Performance</h2>
-              <p className="text-xs text-muted-foreground font-medium">Aggregated data across all core skill assessments.</p>
+              <p className="text-xs text-muted-foreground font-medium">Aggregated data across core skill assessments.</p>
             </div>
           </div>
           
@@ -492,15 +499,15 @@ export default function TeacherDashboard() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-[#EF4444]" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">1-2</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Levels 1-2</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-[#F59E0B]" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">3-4</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Levels 3-4</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-[#10B981]" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">5+</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Levels 5-6</span>
                   </div>
                 </div>
               </div>
@@ -524,11 +531,7 @@ export default function TeacherDashboard() {
                         />
                         <YAxis 
                           domain={[0, 8]} 
-                          ticks={[0, 2, 4, 6, 8]}
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 600 }}
-                          tickFormatter={(v) => formatProficiencyLevel(v)}
+                          hide
                         />
                         <Tooltip 
                           cursor={{ fill: 'hsl(var(--secondary) / 0.3)', radius: 12 }}
@@ -640,15 +643,11 @@ export default function TeacherDashboard() {
                   <>
                     <div className="space-y-4">
                       <p className="text-sm leading-relaxed text-foreground font-medium">
-                        Students are showing strong consistency, with the peak performance currently in <span className="text-primary font-bold">{insightData.strongest} (Level {insightData.strongestLevel})</span>.
+                        Students are consistent across all skills, with strongest performance in <span className="text-primary font-bold">{insightData.strongest} (Level {insightData.strongestLevel})</span>.
                       </p>
-                      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-border shadow-sm flex items-center gap-4">
-                        <TrendingUp className="h-5 w-5 text-green-500 shrink-0" />
-                        <div>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Target for Mastery</p>
-                          <p className="text-sm font-bold text-foreground">{insightData.weakest} is currently at Level {insightData.weakestLevel}.</p>
-                        </div>
-                      </div>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {insightData.weakestLabel} are below target for mastery.
+                      </p>
                     </div>
 
                     <div className="pt-6 border-t border-border/50">
@@ -682,7 +681,9 @@ export default function TeacherDashboard() {
                       </div>
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-foreground">Report Generated</p>
-                        <p className="text-[10px] text-muted-foreground leading-tight">{report.studentName} &middot; {format(new Date(report.generatedAt), 'h:mm a')}</p>
+                        <p className="text-[10px] text-muted-foreground leading-tight">
+                          {report.studentName || 'Student'} &middot; {report.generatedAt ? format(new Date(report.generatedAt), 'h:mm a') : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   ))}
