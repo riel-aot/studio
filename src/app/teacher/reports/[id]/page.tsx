@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Download, Loader2 } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import { Separator } from '@/components/ui/separator';
-import { dynamic } from 'next/dynamic';
+import dynamic from 'next/dynamic';
 
 // Dynamic import for PDF components to avoid SSR issues
 const PDFDownloadLink = dynamic(
