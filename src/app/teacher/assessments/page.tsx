@@ -123,19 +123,25 @@ function normalizeAssessmentList(
 ): AssessmentListResponse {
   if (!data || Array.isArray(data)) {
     const itemsArray = Array.isArray(data) ? data : [];
-    const items: AssessmentListItem[] = itemsArray.map((item, index) => {
-      const resolvedRubricName = item.rubricName || (item as { rubricId?: string; rubric_id?: string }).rubricId || (item as { rubric_id?: string }).rubric_id;
+    
+    // Explicitly enforce client-side slicing for array-only responses
+    const currentPage = filters.page ?? 1;
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginatedArray = itemsArray.slice(startIndex, startIndex + pageSize);
+
+    const items: AssessmentListItem[] = paginatedArray.map((item, index) => {
+      const resolvedRubricName = item.rubricName || (item as any).rubricId || (item as any).rubric_id;
 
       return {
-      assessmentId: item.id || item.title || `assignment-${index + 1}`,
-      title: item.title || 'Untitled Assignment',
-      student: { id: 'all', name: 'All Students' },
-      rubric: {
-        name: resolveRubricName(resolvedRubricName, globalRubricName),
-      },
-      status: 'draft',
-      updatedAt: new Date().toISOString(),
-      notes: item.notes ?? undefined,
+        assessmentId: item.id || item.title || `assignment-${startIndex + index + 1}`,
+        title: item.title || 'Untitled Assignment',
+        student: { id: 'all', name: 'All Students' },
+        rubric: {
+          name: resolveRubricName(resolvedRubricName, globalRubricName),
+        },
+        status: 'draft' as AssessmentStatus,
+        updatedAt: new Date().toISOString(),
+        notes: item.notes ?? undefined,
       };
     });
 
@@ -143,13 +149,13 @@ function normalizeAssessmentList(
       items,
       counts: {
         needsReview: 0,
-        drafts: items.length,
+        drafts: itemsArray.length,
         finalizedThisWeek: 0,
       },
       pagination: {
-        page: filters.page ?? 1,
+        page: currentPage,
         pageSize,
-        total: items.length,
+        total: itemsArray.length,
       },
     };
   }
@@ -210,26 +216,10 @@ export default function AssessmentsPage() {
   };
 
   const normalizedData = useMemo(() => {
-    const baseData = normalizeAssessmentList(data ?? null, filters, pageSize, globalRubricName);
-    
-    if (!displaySearch) return baseData;
-    
-    const searchLower = displaySearch.toLowerCase();
-    const filteredItems = baseData.items.filter(item => 
-      item.title.toLowerCase().includes(searchLower) ||
-      item.rubric.name.toLowerCase().includes(searchLower) ||
-      (item.notes && item.notes.toLowerCase().includes(searchLower))
-    );
-    
-    return {
-      ...baseData,
-      items: filteredItems,
-      pagination: {
-        ...baseData.pagination,
-        total: filteredItems.length
-      }
-    };
-  }, [data, filters, pageSize, displaySearch, globalRubricName]);
+    // If backend handles search/page, we just normalize. 
+    // If it's a mock array, our helper handles slicing.
+    return normalizeAssessmentList(data ?? null, filters, pageSize, globalRubricName);
+  }, [data, filters, pageSize, globalRubricName]);
 
   const items = normalizedData.items;
   const pagination = normalizedData.pagination;
