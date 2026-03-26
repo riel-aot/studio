@@ -14,7 +14,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 /**
  * Brand component: ATHΞNA with refined typography and reveal logic.
- * Primary brand color: #2F5BEA
+ * Primary brand color: Coral Orange (from theme)
  */
 function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolean; isCentered?: boolean }) {
   const containerVariants = {
@@ -52,7 +52,7 @@ function AthenaBrand({ isSmall = false, isCentered = false }: { isSmall?: boolea
         variants={itemVariants}
         className={cn(
           isSmall ? 'text-lg' : isCentered ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
-          "font-semibold text-[#2F5BEA] tracking-tight leading-none font-sans"
+          "font-semibold text-primary tracking-tight leading-none font-sans"
         )}
       >
         ATHΞNA
@@ -152,14 +152,14 @@ export default function AthenaLandingPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center bg-[#F7F8FB] dark:bg-[#0F172A] p-4 md:p-8 font-sans overflow-hidden relative">
+    <main className="min-h-screen w-full flex items-center justify-center bg-secondary dark:bg-[#0F172A] p-4 md:p-8 font-sans overflow-hidden relative">
       
       {/* Absolute Theme Toggle for Entry */}
       <div className="absolute top-6 right-6 md:top-10 md:right-10 z-[60]">
         <Button 
           variant="ghost" 
           size="icon" 
-          className="text-slate-400 dark:text-slate-500 hover:bg-white/10 dark:hover:bg-slate-800 rounded-full h-10 w-10 shadow-sm border border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827]"
+          className="text-muted-foreground hover:bg-white/10 rounded-full h-10 w-10 shadow-sm border border-border bg-white dark:bg-[#111827]"
           onClick={toggleTheme}
         >
           {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
@@ -184,7 +184,7 @@ export default function AthenaLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-[#E5E7EB] dark:border-[#1F2937]"
+            className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-border"
           >
             {/* Left Column: Value Proposition */}
             <div className="pt-10 md:pt-16 px-10 md:px-16 pb-10 md:pb-16 flex flex-col justify-between bg-white dark:bg-[#111827]">
@@ -192,10 +192,10 @@ export default function AthenaLandingPage() {
                 <AthenaBrand />
 
                 <div className="space-y-4">
-                  <h1 className="text-2xl md:text-4xl font-bold text-[#111827] dark:text-[#E5E7EB] tracking-tight leading-tight">
+                  <h1 className="text-2xl md:text-4xl font-bold text-foreground tracking-tight leading-tight">
                     Smarter grading starts here.
                   </h1>
-                  <p className="text-[#6B7280] dark:text-slate-400 max-w-lg text-base leading-relaxed font-normal">
+                  <p className="text-muted-foreground max-w-lg text-base leading-relaxed font-normal">
                     Athena helps {role === 'teacher' ? 'teachers' : 'parents'} {role === 'teacher' ? 'grade faster, track student progress,' : 'track their child\'s progress'} and gain insights from classroom data.
                   </p>
 
@@ -205,9 +205,9 @@ export default function AthenaLandingPage() {
                       role === 'teacher' ? "Student progress insights" : "Performance trends",
                       role === 'teacher' ? "Simple classroom management" : "Direct teacher communication"
                     ].map((item) => (
-                      <li key={item} className="flex items-center gap-3 text-[#111827] dark:text-[#E5E7EB] text-base font-medium">
-                        <div className="h-5 w-5 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center shrink-0">
-                          <Check className="text-[#2F5BEA] h-3 w-3 stroke-[3]" />
+                      <li key={item} className="flex items-center gap-3 text-foreground text-base font-medium">
+                        <div className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                          <Check className="text-primary h-3 w-3 stroke-[3]" />
                         </div>
                         {item}
                       </li>
@@ -230,15 +230,15 @@ export default function AthenaLandingPage() {
             </div>
 
             {/* Right Column: Login Card Area */}
-            <div className="bg-[#F7F8FB] dark:bg-[#0F172A] p-8 md:p-16 flex flex-col items-center justify-center relative">
+            <div className="bg-secondary dark:bg-[#0F172A] p-8 md:p-16 flex flex-col items-center justify-center relative">
               
               {/* Role Switcher Pill */}
-              <div className="absolute top-12 flex bg-white dark:bg-[#111827] p-1 rounded-full shadow-sm border border-[#E5E7EB] dark:border-[#1F2937] z-10">
+              <div className="absolute top-12 flex bg-white dark:bg-[#111827] p-1 rounded-full shadow-sm border border-border z-10">
                 <button
                   onClick={() => toggleRole('teacher')}
                   className={cn(
                     "px-5 py-1.5 rounded-full text-xs font-bold transition-all",
-                    role === 'teacher' ? "bg-[#2F5BEA] text-white" : "text-[#6B7280] dark:text-slate-500 hover:text-[#111827] dark:hover:text-[#E5E7EB]"
+                    role === 'teacher' ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   Teacher
@@ -247,7 +247,7 @@ export default function AthenaLandingPage() {
                   onClick={() => toggleRole('parent')}
                   className={cn(
                     "px-5 py-1.5 rounded-full text-xs font-bold transition-all",
-                    role === 'parent' ? "bg-[#2F5BEA] text-white" : "text-[#6B7280] dark:text-slate-500 hover:text-[#111827] dark:hover:text-[#E5E7EB]"
+                    role === 'parent' ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   Parent
@@ -259,7 +259,7 @@ export default function AthenaLandingPage() {
                 animate={isError ? "error" : "idle"}
                 className="w-full max-w-[420px] space-y-6 mt-12"
               >
-                <div className="bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-lg border border-[#E5E7EB] dark:border-[#1F2937] min-h-[480px] flex flex-col">
+                <div className="bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-lg border border-border min-h-[480px] flex flex-col">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={role}
@@ -270,16 +270,16 @@ export default function AthenaLandingPage() {
                       className="flex-1 flex flex-col"
                     >
                       <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB] tracking-tight">
+                        <h2 className="text-2xl font-bold text-foreground tracking-tight">
                           Sign In
                         </h2>
-                        <p className="text-[#6B7280] dark:text-slate-500 text-xs mt-2 font-normal uppercase tracking-widest">ATHΞNA Portal</p>
+                        <p className="text-muted-foreground text-xs mt-2 font-normal uppercase tracking-widest">ATHΞNA Portal</p>
                       </div>
 
                       <form onSubmit={handleLogin} className="space-y-5 flex-1 flex flex-col">
                         <div className="space-y-4">
                           <div className="space-y-1.5">
-                            <Label htmlFor="email" className="text-[#111827] dark:text-[#E5E7EB] font-bold text-[10px] uppercase tracking-wider">Email</Label>
+                            <Label htmlFor="email" className="text-foreground font-bold text-[10px] uppercase tracking-wider">Email</Label>
                             <Input 
                               id="email" 
                               name="email"
@@ -287,13 +287,13 @@ export default function AthenaLandingPage() {
                               required
                               placeholder={role === 'teacher' ? "teacher@school.edu" : "parent@email.com"}
                               className={cn(
-                                "h-12 rounded-xl bg-white dark:bg-[#0F172A] border-[#E5E7EB] dark:border-[#1F2937] focus:border-[#2F5BEA] focus:ring-[#2F5BEA] transition-all px-4 text-sm dark:text-white",
+                                "h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary transition-all px-4 text-sm dark:text-white",
                                 isError && "border-destructive focus:border-destructive focus:ring-destructive"
                               )} 
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label htmlFor="password" className="text-[#111827] dark:text-[#E5E7EB] font-bold text-[10px] uppercase tracking-wider">Password</Label>
+                            <Label htmlFor="password" className="text-foreground font-bold text-[10px] uppercase tracking-wider">Password</Label>
                             <Input 
                               id="password" 
                               name="password"
@@ -301,7 +301,7 @@ export default function AthenaLandingPage() {
                               required
                               placeholder="••••••••" 
                               className={cn(
-                                "h-12 rounded-xl bg-white dark:bg-[#0F172A] border-[#E5E7EB] dark:border-[#1F2937] focus:border-[#2F5BEA] focus:ring-[#2F5BEA] transition-all px-4 text-sm dark:text-white",
+                                "h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary transition-all px-4 text-sm dark:text-white",
                                 isError && "border-destructive focus:border-destructive focus:ring-destructive"
                               )} 
                             />
@@ -317,7 +317,7 @@ export default function AthenaLandingPage() {
                         <Button 
                           type="submit" 
                           disabled={isLoading}
-                          className="w-full bg-[#2F5BEA] hover:bg-[#2447C6] h-12 text-base font-bold rounded-xl transition-all shadow-sm mt-2"
+                          className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm mt-2"
                         >
                           {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
                         </Button>
@@ -328,28 +328,28 @@ export default function AthenaLandingPage() {
                             variant="outline"
                             onClick={handleDevBypass}
                             disabled={isLoading}
-                            className="w-full h-11 rounded-xl border-dashed border-[#2F5BEA]/50 text-[#2F5BEA] hover:bg-blue-50 dark:hover:bg-blue-500/10 font-semibold text-sm"
+                            className="w-full h-11 rounded-xl border-dashed border-primary/50 text-primary hover:bg-secondary font-semibold text-sm"
                           >
                             {isLoading ? 'Signing in...' : `Developer Skip Login (${role})`}
                           </Button>
                         )}
 
                         <div className="text-center mt-auto">
-                          <button type="button" className="text-xs font-semibold text-[#2F5BEA] hover:underline">
+                          <button type="button" className="text-xs font-semibold text-primary hover:underline">
                             Forgot password?
                           </button>
                         </div>
 
                         <div className="relative py-2">
                           <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-[#E5E7EB] dark:border-[#1F2937]"></span>
+                            <span className="w-full border-t border-border"></span>
                           </div>
                           <div className="relative flex justify-center text-[10px]">
-                            <span className="bg-white dark:bg-[#111827] px-4 text-[#6B7280] dark:text-slate-500 font-bold uppercase tracking-wider">Or</span>
+                            <span className="bg-white dark:bg-[#111827] px-4 text-muted-foreground font-bold uppercase tracking-wider">Or</span>
                           </div>
                         </div>
 
-                        <Button variant="outline" type="button" className="w-full h-12 rounded-xl border-[#E5E7EB] dark:border-[#1F2937] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-3 font-semibold text-[#6B7280] dark:text-slate-400 shadow-sm text-sm">
+                        <Button variant="outline" type="button" className="w-full h-12 rounded-xl border-border hover:bg-muted flex items-center justify-center gap-3 font-semibold text-muted-foreground shadow-sm text-sm">
                           <svg className="h-4 w-4" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -363,10 +363,10 @@ export default function AthenaLandingPage() {
                   </AnimatePresence>
                 </div>
 
-                <footer className="text-center text-[10px] text-[#6B7280] dark:text-slate-500 font-bold uppercase tracking-widest">
+                <footer className="text-center text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                   <span>© 2026 ATHΞNA | </span>
-                  <button className="hover:text-[#111827] dark:hover:text-[#E5E7EB] transition-colors">Privacy</button> | 
-                  <button className="hover:text-[#111827] dark:hover:text-[#E5E7EB] transition-colors"> Terms</button>
+                  <button className="hover:text-foreground transition-colors">Privacy</button> | 
+                  <button className="hover:text-foreground transition-colors"> Terms</button>
                 </footer>
               </motion.div>
             </div>
