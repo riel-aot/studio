@@ -524,7 +524,7 @@ export default function TeacherDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <Card className="lg:col-span-8 border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl">
-            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-5 px-8">
+            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-4 px-6">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg font-bold text-foreground">
@@ -550,13 +550,13 @@ export default function TeacherDashboard() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-8">
+            <CardContent className="p-6">
               {classPerformanceLoading ? (
-                <div className="h-[280px] flex items-center justify-center">
+                <div className="h-[220px] flex items-center justify-center">
                   <Loader2 className="h-6 w-6 animate-spin text-primary opacity-20" />
                 </div>
               ) : classPerformance?.criteriaBreakdown.length ? (
-                <div className="h-[280px] w-full">
+                <div className="h-[220px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     {view === 'performance' ? (
                       <BarChart data={classPerformance.criteriaBreakdown} margin={{ top: 20, bottom: 5 }}>
@@ -653,7 +653,7 @@ export default function TeacherDashboard() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-[280px] flex flex-col items-center justify-center text-center px-8">
+                <div className="h-[220px] flex flex-col items-center justify-center text-center px-6">
                   <div className="h-12 w-12 bg-secondary/50 rounded-xl flex items-center justify-center mb-4">
                     <Activity className="h-6 w-6 text-muted-foreground opacity-30" />
                   </div>
