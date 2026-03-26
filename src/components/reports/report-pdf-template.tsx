@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-between',
     marginHorizontal: 2,
-    marginTop: 4, // Aligns with the visual center of Helvetica-Bold caps
+    marginTop: 4,
   },
   xiBar: {
     height: 2.5,
@@ -214,7 +214,7 @@ export function ReportPDFTemplate({
           <Text style={styles.recordLabel}>Official Academic Record</Text>
         </View>
 
-        <View style={summaryBlock}>
+        <View style={styles.summaryBlock}>
           <Text style={styles.studentName}>{studentName}</Text>
           <Text style={styles.assignmentTitle}>{assignmentTitle}</Text>
           
