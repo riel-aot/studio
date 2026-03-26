@@ -44,6 +44,12 @@ const formatProficiencyLevel = (score: number): string => {
   }
 };
 
+const getLevelGradientId = (levelStr: string) => {
+  if (['A', 'B', '1', '2'].includes(levelStr)) return 'url(#barRed)';
+  if (['3', '4'].includes(levelStr)) return 'url(#barOrange)';
+  return 'url(#barGreen)';
+};
+
 const getLevelColor = (levelStr: string) => {
   if (['A', 'B', '1', '2'].includes(levelStr)) return COLORS.red;
   if (['3', '4'].includes(levelStr)) return COLORS.orange;
@@ -560,6 +566,20 @@ export default function TeacherDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     {view === 'performance' ? (
                       <BarChart data={classPerformance.criteriaBreakdown} margin={{ top: 20, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="barRed" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#EF4444" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#B91C1C" stopOpacity={1}/>
+                          </linearGradient>
+                          <linearGradient id="barOrange" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#F59E0B" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#B45309" stopOpacity={1}/>
+                          </linearGradient>
+                          <linearGradient id="barGreen" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10B981" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#047857" stopOpacity={1}/>
+                          </linearGradient>
+                        </defs>
                         <XAxis 
                           dataKey="criterion" 
                           axisLine={false} 
@@ -590,10 +610,16 @@ export default function TeacherDashboard() {
                             return null;
                           }}
                         />
-                        <Bar dataKey="averageScore" radius={[6, 6, 6, 6]} barSize={40}>
+                        <Bar 
+                          dataKey="averageScore" 
+                          radius={[8, 8, 0, 0]} 
+                          barSize={40}
+                          animationDuration={1500}
+                          animationBegin={200}
+                        >
                           {classPerformance.criteriaBreakdown.map((entry, index) => {
                             const levelStr = formatProficiencyLevel(entry.averageScore);
-                            return <Cell key={`cell-${index}`} fill={getLevelColor(levelStr)} />;
+                            return <Cell key={`cell-${index}`} fill={getLevelGradientId(levelStr)} />;
                           })}
                           <LabelList 
                             dataKey="averageScore" 
