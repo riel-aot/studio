@@ -66,7 +66,6 @@ export function MainLayout({
             
             <SidebarHeader className="h-24 flex items-center justify-center pt-8 mb-4">
               <Link href={dashboardLink} className="transition-transform hover:scale-105 active:scale-95">
-                {/* Logo updated to use brand orange by removing the 'light' prop */}
                 <Logo />
               </Link>
             </SidebarHeader>
@@ -86,8 +85,8 @@ export function MainLayout({
             </SidebarFooter>
           </Sidebar>
 
-          <div className="flex flex-1 flex-col min-w-0 bg-[#F1F2F6] dark:bg-[#0F172A]">
-            <header className="sticky top-0 z-10 flex h-20 items-center gap-4 bg-transparent px-4 sm:px-8">
+          <div className="flex flex-1 flex-col h-screen min-w-0 bg-[#F1F2F6] dark:bg-[#0F172A] overflow-y-auto">
+            <header className="flex h-20 items-center gap-4 px-4 sm:px-8 shrink-0">
                 <div className="w-full flex-1" />
                 <div className="flex items-center gap-3 pr-2">
                   {/* Floating Circular Theme Toggle */}
@@ -118,7 +117,7 @@ export function MainLayout({
                   <UserNav />
                 </div>
             </header>
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1">
               <div className="mx-auto w-full max-w-7xl p-6 sm:p-10">
                 {children}
               </div>
