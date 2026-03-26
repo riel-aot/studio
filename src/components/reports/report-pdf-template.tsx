@@ -25,24 +25,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoCircle: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     backgroundColor: '#FF764D',
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
   },
   logoA: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
   },
+  brandWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
   brandText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FF764D',
-    letterSpacing: 1.5,
+    letterSpacing: 0.5,
+  },
+  xiContainer: {
+    width: 14,
+    height: 14,
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+    marginHorizontal: 1,
+  },
+  xiBar: {
+    height: 2.2,
+    backgroundColor: '#FF764D',
+    borderRadius: 1,
   },
   recordLabel: {
     fontSize: 7,
@@ -206,7 +222,15 @@ export function ReportPDFTemplate({
             <View style={styles.logoCircle}>
               <Text style={styles.logoA}>A</Text>
             </View>
-            <Text style={styles.brandText}>THENA</Text>
+            <View style={styles.brandWrapper}>
+              <Text style={styles.brandText}>ATH</Text>
+              <View style={styles.xiContainer}>
+                <View style={styles.xiBar} />
+                <View style={styles.xiBar} />
+                <View style={styles.xiBar} />
+              </View>
+              <Text style={styles.brandText}>NA</Text>
+            </View>
           </View>
           <Text style={styles.recordLabel}>Official Academic Record</Text>
         </View>
