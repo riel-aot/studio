@@ -234,13 +234,12 @@ export function useWebhook<P, R>({
         return responseData;
       }
 
-      // --- ACTIVITY ENGINE MONITORING ---
-      // Intercept successful mutations to log them to the Activity Feed
+      // --- ACTIVITY ENGINE INTERCEPTOR ---
       const mutationEvents: Record<string, (p: any) => { type: any, title: string, subtitle: string }> = {
         'STUDENT_CREATE': (p) => ({ 
           type: 'student_added', 
           title: 'New Student Added', 
-          subtitle: `${p.name} enrolled in ${p.grade}` 
+          subtitle: `${p.name} enrolled` 
         }),
         'ASSESSMENT_FINALIZE': (p) => ({ 
           type: 'assessment_finalized', 
@@ -250,12 +249,12 @@ export function useWebhook<P, R>({
         'REPORT_GENERATE': (p) => ({ 
           type: 'report_generated', 
           title: 'Report Compiled', 
-          subtitle: `Summary generated for ${p.studentId}` 
+          subtitle: `Summary for student ${p.studentId}` 
         }),
         'ASSESSMENT_CREATE_DRAFT': (p) => ({ 
           type: 'assessment_created', 
           title: 'New Assignment Created', 
-          subtitle: `${p.title} · ${p.rubricName || 'Master Rubric'}` 
+          subtitle: `${p.title}` 
         }),
       };
 

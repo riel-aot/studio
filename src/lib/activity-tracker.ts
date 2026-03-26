@@ -46,7 +46,7 @@ export const activityTracker = {
     const updated = [newEntry, ...entries].slice(0, 50);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     
-    // Dispatch a custom event so the dashboard can refresh instantly if it wants
+    // Dispatch a custom event so the dashboard can refresh instantly
     window.dispatchEvent(new CustomEvent('athena_activity_updated'));
   },
 

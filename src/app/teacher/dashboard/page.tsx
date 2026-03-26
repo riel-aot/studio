@@ -15,6 +15,7 @@ import { useWebhook } from '@/lib/hooks';
 import { useAuth } from '@/hooks/use-auth';
 import type { DashboardKpis, ReviewQueueItem, ReportListItem, ActivityItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
+import { activityTracker } from '@/lib/activity-tracker';
 import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles, MessageSquare, Lightbulb, Loader2, UserPlus, FileCheck2, FileEdit } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, LabelList, Area, AreaChart, CartesianGrid } from 'recharts';
@@ -113,6 +114,7 @@ export default function TeacherDashboard() {
   const router = useRouter();
   const { user } = useAuth();
   const [view, setView] = useState<'performance' | 'progress'>('performance');
+  const [localActivity, setLocalActivity] = useState<any[]>([]);
 
   const { data: kpiData, isLoading: kpiLoading, error: kpiError, trigger: refetchKpis } = useWebhook<{ }, { kpis: DashboardKpis }>({
     eventName: 'GET_DASHBOARD_SUMMARY',
@@ -123,17 +125,17 @@ export default function TeacherDashboard() {
     payload: { limit: 5 },
   });
 
-  const { data: activityData, isLoading: activityLoading, trigger: refetchActivity } = useWebhook<{ limit: number }, { items: ActivityItem[] }>({
-    eventName: 'GET_RECENT_ACTIVITY',
-    payload: { limit: 5 },
-  });
-
-  // Listen for the activity update event to refresh the feed instantly
+  // Sync with Activity Engine
   useEffect(() => {
-    const handleActivityUpdate = () => refetchActivity();
+    setLocalActivity(activityTracker.get());
+    
+    const handleActivityUpdate = () => {
+      setLocalActivity(activityTracker.get());
+    };
+    
     window.addEventListener('athena_activity_updated', handleActivityUpdate);
     return () => window.removeEventListener('athena_activity_updated', handleActivityUpdate);
-  }, [refetchActivity]);
+  }, []);
 
   const { data: reportsListData, isLoading: reportsListLoading } = useWebhook<{}, any>({
     eventName: 'REPORTS_LIST',
@@ -220,7 +222,6 @@ export default function TeacherDashboard() {
       const baseCriteria = ['Listening', 'Speaking', 'Reading', 'Writing'];
       const criteriaMap = new Map<string, { scoreSum: number; count: number; values: number[]; maxScore: number }>();
       
-      // Pre-populate with base criteria
       baseCriteria.forEach(c => criteriaMap.set(c, { scoreSum: 0, count: 0, values: [], maxScore: 8 }));
 
       for (const gradedReport of gradedReports) {
@@ -240,7 +241,7 @@ export default function TeacherDashboard() {
       const criteriaBreakdown = Array.from(criteriaMap.entries())
         .filter(([c]) => baseCriteria.includes(c))
         .map(([criterion, stats]) => {
-          const averageScore = stats.count > 0 ? Number((stats.scoreSum / stats.count).toFixed(2)) : 5.0; // Default to Level 3 if no data
+          const averageScore = stats.count > 0 ? Number((stats.scoreSum / stats.count).toFixed(2)) : 5.0; 
           const delta = stats.values.length > 1 ? stats.values[stats.values.length - 1] - stats.values[0] : 0;
           const trend = delta > 0.15 ? 'up' : delta < -0.15 ? 'down' : 'stable';
           return { criterion, averageScore, maxScore: 8, trend, count: stats.count } as const;
@@ -279,7 +280,7 @@ export default function TeacherDashboard() {
     onSuccess: handleNewAssessmentStart,
   });
 
-  const isLoading = kpiLoading || reviewQueueLoading || reportsListLoading || activityLoading;
+  const isLoading = kpiLoading || reviewQueueLoading || reportsListLoading;
   const hasError = kpiError || reviewQueueError;
 
   const handleRetry = () => {
@@ -307,7 +308,7 @@ export default function TeacherDashboard() {
     };
   }, [classPerformance]);
 
-  const getActivityIcon = (type: ActivityItem['type']) => {
+  const getActivityIcon = (type: string) => {
     switch (type) {
       case 'student_added': return UserPlus;
       case 'report_generated': return FileCheck2;
@@ -318,7 +319,7 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleActivityClick = (activity: ActivityItem) => {
+  const handleActivityClick = (activity: any) => {
     switch (activity.type) {
       case 'report_generated':
       case 'assessment_finalized':
@@ -469,8 +470,8 @@ export default function TeacherDashboard() {
             </CardHeader>
             <CardContent className="px-10 pb-10">
               <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {activityData?.items && activityData.items.length > 0 ? (
-                  activityData.items.map((activity) => {
+                {localActivity.length > 0 ? (
+                  localActivity.map((activity) => {
                     const Icon = getActivityIcon(activity.type);
                     return (
                       <div 
