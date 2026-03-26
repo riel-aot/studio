@@ -15,8 +15,21 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Button } from './ui/button';
-import { LogOut, Bell, Sun, Moon, Settings } from 'lucide-react';
+import { LogOut, Bell, Sun, Moon, ChevronRight, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useSidebar } from '@/components/ui/sidebar';
+
+function CustomSidebarTrigger() {
+  const { toggleSidebar, state } = useSidebar();
+  return (
+    <button
+      onClick={toggleSidebar}
+      className="absolute -right-3.5 top-8 z-50 h-7 w-7 rounded-full bg-[#0F172A] border-2 border-white dark:border-[#0F172A] text-white flex items-center justify-center shadow-md hover:scale-110 transition-all"
+    >
+      {state === 'collapsed' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+    </button>
+  );
+}
 
 export function MainLayout({
   children,
@@ -29,7 +42,6 @@ export function MainLayout({
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   
   useEffect(() => {
-    // Initial theme check
     const isDark = document.documentElement.classList.contains('dark');
     setTheme(isDark ? 'dark' : 'light');
   }, []);
@@ -49,73 +61,60 @@ export function MainLayout({
   const dashboardLink = user.role === 'teacher' ? '/teacher/dashboard' : '/parent/dashboard';
 
   return (
-    <SidebarProvider>
-        <Sidebar collapsible="icon" className="border-none shadow-xl bg-sidebar" id="onboarding-sidebar">
-          <SidebarHeader className="h-24 flex items-start justify-center px-8 pt-8 transition-all duration-200 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:items-center">
-            <Link href={dashboardLink} className="transition-transform hover:scale-[1.02] active:scale-[0.98]">
-              <Logo light />
-            </Link>
-          </SidebarHeader>
-          
-          <div className="px-4 group-data-[state=collapsed]:px-2">
-            <SidebarSeparator className="bg-white/10 dark:bg-slate-800" />
-          </div>
+    <SidebarProvider defaultOpen={false}>
+        <div className="relative flex min-h-screen w-full">
+          <Sidebar collapsible="icon" className="border-none shadow-2xl bg-[#0F172A] z-40 transition-all duration-300 ease-in-out group-data-[state=collapsed]:w-[4.5rem]" id="onboarding-sidebar">
+            <CustomSidebarTrigger />
+            
+            <SidebarHeader className="h-24 flex items-center justify-center pt-8 mb-4">
+              <Link href={dashboardLink} className="transition-transform hover:scale-105 active:scale-95">
+                <Logo light />
+              </Link>
+            </SidebarHeader>
+            
+            <SidebarContent className="px-2 overflow-visible">
+              {navItems}
+            </SidebarContent>
 
-          <SidebarContent className="px-4 py-6 group-data-[state=collapsed]:px-2">
-            {navItems}
-          </SidebarContent>
+            <SidebarFooter className="p-4 mt-auto border-none flex justify-center pb-8">
+              <button 
+                className="flex items-center justify-center h-10 w-10 text-primary hover:text-white hover:bg-primary/20 rounded-full transition-all duration-300"
+                onClick={logout}
+                title="Sign Out"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </SidebarFooter>
+          </Sidebar>
 
-          <SidebarFooter className="p-8 mt-auto border-none transition-all duration-200 group-data-[state=collapsed]:p-2 group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:items-center">
-            <button 
-              className="flex items-center gap-3 text-primary hover:opacity-80 transition-colors font-bold text-sm group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:w-full"
-              onClick={logout}
-            >
-              <LogOut className="h-5 w-5 shrink-0" />
-              <span className="group-data-[state=collapsed]:hidden whitespace-nowrap">Sign Out</span>
-            </button>
-          </SidebarFooter>
-        </Sidebar>
-        <div className="flex flex-1 flex-col min-w-0">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-border bg-white dark:bg-[#0F172A]/80 dark:backdrop-blur-md px-4 sm:px-8">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-                <div className="h-6 w-px bg-border" />
-              </div>
-              <div className="w-full flex-1" />
-              <div className="flex items-center gap-4 pr-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground"
-                  onClick={toggleTheme}
-                >
-                  {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-                </Button>
-                <div className="relative">
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <Bell className="h-5 w-5" />
+          <div className="flex flex-1 flex-col min-w-0 bg-[#F1F2F6] dark:bg-[#0F172A]">
+            <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-border bg-white dark:bg-[#0F172A]/80 dark:backdrop-blur-md px-4 sm:px-8">
+                <div className="w-full flex-1" />
+                <div className="flex items-center gap-4 pr-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-muted-foreground hover:bg-secondary rounded-full"
+                    onClick={toggleTheme}
+                  >
+                    {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
                   </Button>
-                  <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border-2 border-white dark:border-[#0F172A]" />
+                  <div className="relative">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-secondary rounded-full">
+                      <Bell className="h-5 w-5" />
+                    </Button>
+                    <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border-2 border-white dark:border-[#0F172A]" />
+                  </div>
+                  <div className="h-6 w-px bg-border mx-2" />
+                  <UserNav />
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground"
-                  asChild
-                >
-                  <Link href="/teacher/settings">
-                    <Settings className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <div className="h-6 w-px bg-border mx-2" />
-                <UserNav />
+            </header>
+            <main className="flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-7xl p-6 sm:p-10">
+                {children}
               </div>
-          </header>
-          <main className="flex-1 bg-[#F1F2F6] dark:bg-[#0F172A]">
-            <div className="mx-auto w-full max-w-7xl p-6 sm:p-10">
-              {children}
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
     </SidebarProvider>
   );

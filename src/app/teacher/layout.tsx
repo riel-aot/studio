@@ -11,6 +11,8 @@ import {
   Users,
   FileText,
   Home,
+  Settings,
+  Plus,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
@@ -21,6 +23,7 @@ const mainNavLinks = [
   { href: '/teacher/students', icon: Users, label: 'Students' },
   { href: '/teacher/assessments', icon: FileText, label: 'Assignments' },
   { href: '/teacher/reports', icon: BarChart, label: 'Reports' },
+  { href: '/teacher/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function TeacherLayout({
@@ -43,31 +46,48 @@ export default function TeacherLayout({
   }
 
   const navItems = (
-    <SidebarMenu className="gap-2">
-      {mainNavLinks.map(({ href, icon: Icon, label }) => {
-        const isActive = pathname.startsWith(href);
-        return (
-          <SidebarMenuItem key={href}>
-            <SidebarMenuButton
-              asChild
-              isActive={isActive}
-              tooltip={label}
-              className={cn(
-                "h-11 px-4 rounded-xl transition-all duration-200 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center",
-                isActive 
-                  ? "bg-white/10 text-white font-bold shadow-sm" 
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <Link href={href} className="flex items-center gap-3 w-full group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0">
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-white/60")} />
-                <span className="text-sm group-data-[state=collapsed]:hidden whitespace-nowrap">{label}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        );
-      })}
-    </SidebarMenu>
+    <div className="flex flex-col h-full justify-between pb-4">
+      <SidebarMenu className="gap-4">
+        {mainNavLinks.map(({ href, icon: Icon, label }) => {
+          const isActive = pathname.startsWith(href);
+          return (
+            <SidebarMenuItem key={href} className="flex justify-center">
+              <SidebarMenuButton
+                asChild
+                isActive={isActive}
+                tooltip={label}
+                className={cn(
+                  "h-12 w-12 flex items-center justify-center rounded-full transition-all duration-300 group-data-[state=collapsed]:p-0",
+                  isActive 
+                    ? "bg-white/15 text-white shadow-lg scale-110" 
+                    : "text-white/50 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <Link href={href}>
+                  <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "text-white/60")} />
+                  <span className="text-sm group-data-[state=collapsed]:hidden ml-3">{label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+      </SidebarMenu>
+
+      <div className="mt-auto px-2">
+        <SidebarMenuItem className="flex justify-center">
+          <SidebarMenuButton
+            asChild
+            tooltip="New Assignment"
+            className="h-12 w-12 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-primary hover:text-white transition-all duration-300"
+          >
+            <Link href="/teacher/assessments/new">
+              <Plus className="h-6 w-6" />
+              <span className="text-sm group-data-[state=collapsed]:hidden ml-3 font-bold">New Assignment</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </div>
+    </div>
   );
 
   return <MainLayout navItems={navItems}>{children}</MainLayout>;
