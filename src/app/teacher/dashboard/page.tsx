@@ -369,7 +369,7 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Quick Actions & KPIs Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 space-y-6">
           <div id="onboarding-kpis" className="grid gap-4 sm:grid-cols-2">
             <StatCard 
@@ -522,7 +522,7 @@ export default function TeacherDashboard() {
           </Tabs>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <Card className="lg:col-span-8 border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl">
             <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-4 px-6">
               <div className="flex items-center justify-between">
