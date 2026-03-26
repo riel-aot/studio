@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -336,10 +337,10 @@ export default function AssessmentsPage() {
                       </TableBody>
                   </Table>
 
-                  {/* Refined Pill Pagination */}
+                  {/* Refined Pill Pagination - Moved below list and width reduced */}
                   {pagination && pagination.total > 0 && (
-                    <div className="px-8 pb-10">
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-1.5 px-5">
+                    <div className="flex justify-center px-8 pb-10">
+                      <div className="flex items-center gap-6 bg-white dark:bg-slate-900 border border-border shadow-lg rounded-full p-1.5 px-5 w-fit">
                         <Pagination className="mx-0 w-auto">
                           <PaginationContent className="gap-1.5">
                             <PaginationItem>
@@ -377,8 +378,8 @@ export default function AssessmentsPage() {
                           </PaginationContent>
                         </Pagination>
 
-                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap">
-                          Showing <span className="text-foreground">{showingStart}-{showingEnd}</span> of <span className="text-foreground">{pagination.total}</span>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap pl-4 border-l border-border pr-2">
+                          <span className="text-foreground">{showingStart}-{showingEnd}</span> / <span className="text-foreground">{pagination.total}</span>
                         </div>
                       </div>
                     </div>
