@@ -562,7 +562,6 @@ export default function GradingPage() {
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary group-hover:bg-primary transition-colors" />
                   <div className="space-y-0.5 pl-2">
                     <h4 className="text-xs font-bold text-foreground leading-tight">{criterion.title}</h4>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Criterion {criterion.id}</p>
                   </div>
                   <div className="shrink-0">
                     <Select
