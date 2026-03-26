@@ -15,6 +15,16 @@ import { Input } from '@/components/ui/input';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Badge } from '@/components/ui/badge';
 import { useWebhook } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 function StudentListSkeleton() {
     return (
@@ -70,11 +80,14 @@ export default function StudentsPage() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [displaySearch, setDisplaySearch] = useState('');
     const [dbSearch, setDbSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
 
     // Debounce search input to avoid spamming the database
     useEffect(() => {
         const timer = setTimeout(() => {
             setDbSearch(displaySearch);
+            setCurrentPage(1); // Reset page on search
         }, 500);
         return () => clearTimeout(timer);
     }, [displaySearch]);
@@ -88,8 +101,8 @@ export default function StudentsPage() {
         fallbackToCacheOnError: true,
     });
 
-    const students = useMemo(() => {
-        if (!data) return [];
+    const { items, pagination } = useMemo(() => {
+        if (!data) return { items: [], pagination: { page: 1, pageSize, total: 0 } };
         let baseList: StudentListItem[] = [];
         
         // Parse the data from the webhook response
@@ -101,8 +114,8 @@ export default function StudentsPage() {
                 studentEmail: student.student_email ?? student.studentEmail,
                 parentEmail: student.parent_email ?? student.parentEmail,
             }));
-        } else if (data.success && data.data?.students) {
-            baseList = data.data.students.map((student: any) => ({
+        } else if ((data as any).success && (data as any).data?.students) {
+            baseList = (data as any).data.students.map((student: any) => ({
                 name: student.name,
                 studentIdNumber: student.student_id ?? student.studentIdNumber,
                 grade: student.grade,
@@ -112,13 +125,26 @@ export default function StudentsPage() {
         }
 
         // Apply local filtering for immediate "dynamic" feedback
-        if (!displaySearch) return baseList;
-        const searchLower = displaySearch.toLowerCase();
-        return baseList.filter(student => 
-            student.name.toLowerCase().includes(searchLower) || 
-            student.studentIdNumber.toLowerCase().includes(searchLower)
-        );
-    }, [data, displaySearch]);
+        const filteredList = displaySearch 
+            ? baseList.filter(student => 
+                student.name.toLowerCase().includes(displaySearch.toLowerCase()) || 
+                student.studentIdNumber.toLowerCase().includes(displaySearch.toLowerCase())
+              )
+            : baseList;
+
+        const total = filteredList.length;
+        const startIndex = (currentPage - 1) * pageSize;
+        const slicedItems = filteredList.slice(startIndex, startIndex + pageSize);
+
+        return {
+            items: slicedItems,
+            pagination: {
+                page: currentPage,
+                pageSize,
+                total
+            }
+        };
+    }, [data, displaySearch, currentPage]);
 
     const handleRowClick = (studentIdNumber: string) => {
         router.push(`/teacher/students/${encodeURIComponent(studentIdNumber)}`);
@@ -128,6 +154,10 @@ export default function StudentsPage() {
         if (e.key === 'Enter') {
             handleRowClick(studentIdNumber);
         }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
     };
 
     if (isLoading && !data) return (
@@ -152,6 +182,31 @@ export default function StudentsPage() {
             </div>
         </div>
     );
+
+    const totalPages = Math.ceil(pagination.total / pagination.pageSize);
+    const showingStart = (currentPage - 1) * pageSize + 1;
+    const showingEnd = Math.min(currentPage * pageSize, pagination.total);
+
+    // Generate page numbers for pagination
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (currentPage > 3) pages.push('ellipsis');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (currentPage < totalPages - 2) pages.push('ellipsis');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+        return pages;
+    };
 
     return (
         <div className="space-y-10">
@@ -194,7 +249,7 @@ export default function StudentsPage() {
                                 <div>
                                     <CardTitle className="text-2xl font-bold text-foreground">Active Enrollment</CardTitle>
                                     <CardDescription className="text-muted-foreground font-medium">
-                                        {students.length} {students.length === 1 ? 'student' : 'students'} tracked in the system
+                                        {pagination.total} {pagination.total === 1 ? 'student' : 'students'} tracked in the system
                                     </CardDescription>
                                 </div>
                             </div>
@@ -210,7 +265,7 @@ export default function StudentsPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        {students.length > 0 ? (
+                        {items.length > 0 ? (
                             <Table>
                                 <TableHeader className="bg-secondary/30">
                                     <TableRow className="hover:bg-transparent border-b border-border">
@@ -221,7 +276,7 @@ export default function StudentsPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {students.map((student: StudentListItem) => (
+                                    {items.map((student: StudentListItem) => (
                                         <TableRow 
                                             key={student.studentIdNumber}
                                             role="link"
@@ -267,6 +322,68 @@ export default function StudentsPage() {
                 </Card>
             ) : (
                 <EmptyState onAddStudent={() => setIsDrawerOpen(true)} />
+            )}
+
+            {/* Premium Luxury Pagination Pill */}
+            {pagination.total > 0 && (
+                <div className="flex justify-center mt-8">
+                    <div className="flex items-center bg-white dark:bg-slate-900 border border-border shadow-[0_15px_40px_rgba(0,0,0,0.12)] rounded-full p-1.5 px-6 w-fit min-w-[480px]">
+                        <Pagination className="mx-0 w-auto">
+                            <PaginationContent className="gap-2">
+                                <PaginationItem>
+                                    <PaginationPrevious 
+                                        onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                                        disabled={currentPage <= 1}
+                                        className={cn(
+                                            "text-foreground hover:bg-secondary/50 h-9 px-4 transition-colors",
+                                            currentPage <= 1 && "pointer-events-none opacity-30"
+                                        )}
+                                    />
+                                </PaginationItem>
+                                
+                                <div className="flex items-center gap-1 mx-4">
+                                    {getPageNumbers().map((page, idx) => (
+                                        <PaginationItem key={idx}>
+                                            {page === 'ellipsis' ? (
+                                                <PaginationEllipsis className="text-muted-foreground" />
+                                            ) : (
+                                                <PaginationLink 
+                                                    isActive={page === currentPage}
+                                                    onClick={() => handlePageChange(page as number)}
+                                                    className={cn(
+                                                        "h-9 w-9 font-bold transition-all",
+                                                        page === currentPage 
+                                                            ? "bg-primary text-white shadow-md shadow-primary/30" 
+                                                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                                                    )}
+                                                >
+                                                    {page}
+                                                </PaginationLink>
+                                            )}
+                                        </PaginationItem>
+                                    ))}
+                                </div>
+
+                                <PaginationItem>
+                                    <PaginationNext 
+                                        onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                                        disabled={currentPage >= totalPages}
+                                        className={cn(
+                                            "text-foreground hover:bg-secondary/50 h-9 px-4 transition-colors",
+                                            currentPage >= totalPages && "pointer-events-none opacity-30"
+                                        )}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+
+                        <div className="flex items-center gap-4 ml-6 pl-6 border-l border-border h-6">
+                            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                                Showing <span className="text-foreground">{showingStart}-{showingEnd}</span> of <span className="text-foreground">{pagination.total}</span> results
+                            </span>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
