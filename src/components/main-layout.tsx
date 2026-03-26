@@ -86,24 +86,34 @@ export function MainLayout({
           </Sidebar>
 
           <div className="flex flex-1 flex-col min-w-0 bg-[#F1F2F6] dark:bg-[#0F172A]">
-            <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-border bg-white dark:bg-[#0F172A]/80 dark:backdrop-blur-md px-4 sm:px-8">
+            <header className="sticky top-0 z-10 flex h-20 items-center gap-4 bg-transparent px-4 sm:px-8">
                 <div className="w-full flex-1" />
-                <div className="flex items-center gap-4 pr-2">
+                <div className="flex items-center gap-3 pr-2">
+                  {/* Floating Circular Theme Toggle */}
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-muted-foreground hover:bg-secondary rounded-full"
+                    className="h-10 w-10 bg-white dark:bg-slate-800 shadow-sm rounded-full hover:bg-slate-50 dark:hover:bg-slate-700 transition-all border border-border/40"
                     onClick={toggleTheme}
                   >
-                    {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                    {theme === 'light' ? <Moon className="h-5 w-5 text-slate-600" /> : <Sun className="h-5 w-5 text-slate-300" />}
                   </Button>
+
+                  {/* Floating Circular Notifications */}
                   <div className="relative">
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-secondary rounded-full">
-                      <Bell className="h-5 w-5" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-10 w-10 bg-white dark:bg-slate-800 shadow-sm rounded-full hover:bg-slate-50 dark:hover:bg-slate-700 transition-all border border-border/40"
+                    >
+                      <Bell className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                     </Button>
-                    <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border-2 border-white dark:border-[#0F172A]" />
+                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-[#F1F2F6] dark:border-[#0F172A]" />
                   </div>
-                  <div className="h-6 w-px bg-border mx-2" />
+
+                  <div className="h-6 w-px bg-slate-300/50 mx-1 hidden sm:block" />
+                  
+                  {/* Floating Pill Profile */}
                   <UserNav />
                 </div>
             </header>
