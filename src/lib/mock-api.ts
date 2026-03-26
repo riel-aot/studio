@@ -1,5 +1,6 @@
 import type { WebhookRequest, WebhookResponse, StudentListItem, StudentCreatePayload, AssessmentWorkspaceData, RubricListItem, AssessmentListPayload, ReportListItem, ReportGeneratePayload, ReportData, ParentChildrenListResponse, ParentChild, ParentReportsListPayload, ParentReportData, DashboardKpis, ReviewQueueItem, DraftItem, ActivityItem } from './events';
 import { studentListData as initialStudentData, getStudentByIdNumber, assessmentWorkspaceData as initialAssessmentData, fullAssessment, aiSuggestions, rubricGrades, mockRubrics, assessmentListItems, reportListItems, fullReportData, GLOBAL_RUBRIC_NAME } from './placeholder-data';
+import { activityTracker } from './activity-tracker';
 
 let students: StudentListItem[] = [...initialStudentData];
 let reports: ReportListItem[] = [...reportListItems];
@@ -15,78 +16,6 @@ const kpis: DashboardKpis = {
   drafts: 3,
   finalizedThisWeek: 12,
 };
-
-const recentActivity: ActivityItem[] = [
-  {
-    id: 'act_01',
-    type: 'report_generated',
-    title: 'Report Generated',
-    subtitle: 'Amelia Johnson · Unit 3: Fractions',
-    updatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'act_02',
-    type: 'student_added',
-    title: 'New Student Added',
-    subtitle: 'Felix Green enrolled in Grade 5',
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'act_03',
-    type: 'assessment_finalized',
-    title: 'Assessment Finalized',
-    subtitle: 'Benjamin Carter · History Mid-Term',
-    updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'act_04',
-    type: 'draft_updated',
-    title: 'Draft Updated',
-    subtitle: 'Creative Writing Assignment',
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'act_05',
-    type: 'assessment_created',
-    title: 'New Assignment Created',
-    subtitle: 'Solar System Project · Schoolwide Rubric',
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-const reviewQueue: ReviewQueueItem[] = [
-    {
-      studentName: 'Amelia Johnson',
-      studentId: 'S00123',
-      assessmentName: 'Unit 3: Fractions',
-      assessmentId: 'asm_01',
-      status: 'pending_review',
-      updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      studentName: 'Benjamin Carter',
-      studentId: 'S00124',
-      assessmentName: 'History Mid-Term Essay',
-      assessmentId: 'asm_02',
-      status: 'ai_draft_ready',
-      updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-];
-
-const drafts: DraftItem[] = [
-    {
-      assessmentId: 'asm_draft_01',
-      assessmentName: 'Creative Writing Assignment',
-      studentName: 'Olivia Martinez',
-      updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      assessmentId: 'asm_draft_02',
-      assessmentName: 'Algebra II Quiz',
-      studentName: 'Liam Garcia',
-      updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-];
 
 const healthCheck = {
     authConfigured: true,
@@ -190,9 +119,45 @@ const listAssessments = (payload: AssessmentListPayload) => {
 
 const handlers: { [key: string]: (payload: any, actor: WebhookRequest['actor']) => any } = {
     'GET_DASHBOARD_SUMMARY': () => ({ kpis }),
-    'GET_REVIEW_QUEUE': () => ({ items: reviewQueue }),
-    'GET_DRAFTS': () => ({ items: drafts }),
-    'GET_RECENT_ACTIVITY': () => ({ items: recentActivity }),
+    'GET_REVIEW_QUEUE': () => ({ items: [
+        {
+          studentName: 'Amelia Johnson',
+          studentId: 'S00123',
+          assessmentName: 'Unit 3: Fractions',
+          assessmentId: 'asm_01',
+          status: 'pending_review',
+          updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          studentName: 'Benjamin Carter',
+          studentId: 'S00124',
+          assessmentName: 'History Mid-Term Essay',
+          assessmentId: 'asm_02',
+          status: 'ai_draft_ready',
+          updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        },
+    ] }),
+    'GET_DRAFTS': () => ({ items: [
+        {
+          assessmentId: 'asm_draft_01',
+          assessmentName: 'Creative Writing Assignment',
+          studentName: 'Olivia Martinez',
+          updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          assessmentId: 'asm_draft_02',
+          assessmentName: 'Algebra II Quiz',
+          studentName: 'Liam Garcia',
+          updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+    ] }),
+    'GET_RECENT_ACTIVITY': (payload) => {
+        // --- REAL ACTIVITY MONITORING ---
+        // Fetch activity from the actual tracker engine
+        const realActivity = activityTracker.get();
+        const limit = payload?.limit || 5;
+        return { items: realActivity.slice(0, limit) };
+    },
     'HEALTH_CHECK': () => healthCheck,
     'STUDENT_LIST': () => studentList(),
     'STUDENT_GET': (payload: { studentId: string }) => getStudent(payload),

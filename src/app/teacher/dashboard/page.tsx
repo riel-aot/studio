@@ -123,10 +123,17 @@ export default function TeacherDashboard() {
     payload: { limit: 5 },
   });
 
-  const { data: activityData, isLoading: activityLoading } = useWebhook<{ limit: number }, { items: ActivityItem[] }>({
+  const { data: activityData, isLoading: activityLoading, trigger: refetchActivity } = useWebhook<{ limit: number }, { items: ActivityItem[] }>({
     eventName: 'GET_RECENT_ACTIVITY',
     payload: { limit: 5 },
   });
+
+  // Listen for the activity update event to refresh the feed instantly
+  useEffect(() => {
+    const handleActivityUpdate = () => refetchActivity();
+    window.addEventListener('athena_activity_updated', handleActivityUpdate);
+    return () => window.removeEventListener('athena_activity_updated', handleActivityUpdate);
+  }, [refetchActivity]);
 
   const { data: reportsListData, isLoading: reportsListLoading } = useWebhook<{}, any>({
     eventName: 'REPORTS_LIST',
@@ -461,7 +468,7 @@ export default function TeacherDashboard() {
               <CardDescription className="text-xs text-muted-foreground">Recent changes in your classroom.</CardDescription>
             </CardHeader>
             <CardContent className="px-10 pb-10">
-              <div className="space-y-6">
+              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {activityData?.items && activityData.items.length > 0 ? (
                   activityData.items.map((activity) => {
                     const Icon = getActivityIcon(activity.type);
@@ -484,7 +491,7 @@ export default function TeacherDashboard() {
                     );
                   })
                 ) : (
-                  <p className="text-xs text-muted-foreground italic text-center py-4">No recent activity.</p>
+                  <p className="text-xs text-muted-foreground italic text-center py-4">No recent activity detected.</p>
                 )}
               </div>
             </CardContent>

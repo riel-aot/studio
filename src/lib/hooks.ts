@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import type { EventName, WebhookRequest, WebhookResponse } from './events';
 import { useToast } from '@/hooks/use-toast';
 import { devLogger } from './logger';
+import { activityTracker } from './activity-tracker';
 
 interface UseWebhookOptions<P> {
   eventName: EventName;
@@ -233,6 +234,36 @@ export function useWebhook<P, R>({
         return responseData;
       }
 
+      // --- ACTIVITY ENGINE MONITORING ---
+      // Intercept successful mutations to log them to the Activity Feed
+      const mutationEvents: Record<string, (p: any) => { type: any, title: string, subtitle: string }> = {
+        'STUDENT_CREATE': (p) => ({ 
+          type: 'student_added', 
+          title: 'New Student Added', 
+          subtitle: `${p.name} enrolled in ${p.grade}` 
+        }),
+        'ASSESSMENT_FINALIZE': (p) => ({ 
+          type: 'assessment_finalized', 
+          title: 'Assessment Finalized', 
+          subtitle: `${p.student_name || 'Student'} · ${p.assignment_title || 'Work'}` 
+        }),
+        'REPORT_GENERATE': (p) => ({ 
+          type: 'report_generated', 
+          title: 'Report Compiled', 
+          subtitle: `Summary generated for ${p.studentId}` 
+        }),
+        'ASSESSMENT_CREATE_DRAFT': (p) => ({ 
+          type: 'assessment_created', 
+          title: 'New Assignment Created', 
+          subtitle: `${p.title} · ${p.rubricName || 'Master Rubric'}` 
+        }),
+      };
+
+      if (mutationEvents[eventName]) {
+        const info = mutationEvents[eventName](finalPayload);
+        activityTracker.add(info.type, info.title, info.subtitle);
+      }
+
       console.log(`[useWebhook] ${eventName} - Success`);
       setData(responseData.data as R);
       if (resolvedCacheKey && typeof window !== 'undefined') {
@@ -266,7 +297,6 @@ export function useWebhook<P, R>({
           description: errorMessage || err.message || 'Could not connect to the server.',
         });
       }
-      // We don't reject here to avoid unhandled rejections in background effects
     } finally {
       setIsLoading(false);
     }
