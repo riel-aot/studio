@@ -83,9 +83,9 @@ type FinalizedReport = {
 
 function DashboardLoadingSkeleton() {
   return (
-    <div className="space-y-10">
-      <div className="h-64 w-full rounded-2xl bg-white dark:bg-[#111827] animate-pulse" />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-6">
+      <div className="h-48 w-full rounded-2xl bg-white dark:bg-[#111827] animate-pulse" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
@@ -341,27 +341,27 @@ export default function TeacherDashboard() {
   if (hasError) return <ErrorState onRetry={handleRetry} />;
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-6 pb-12">
       <OnboardingTour />
       
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#111827] to-[#1F2937] text-white p-10 md:p-14 shadow-2xl border border-white/5">
-        <div className="max-w-lg space-y-5 relative z-10">
-          <Badge className="bg-primary text-white border-none px-4 py-1 rounded-full font-bold text-[10px] tracking-[0.2em] mb-2 uppercase">Teacher Dashboard</Badge>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#111827] to-[#1F2937] text-white p-8 md:p-10 shadow-xl border border-white/5">
+        <div className="max-w-lg space-y-4 relative z-10">
+          <Badge className="bg-primary text-white border-none px-3 py-0.5 rounded-full font-bold text-[9px] tracking-[0.2em] mb-1 uppercase">Teacher Dashboard</Badge>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
             Welcome back, {user?.name.split(' ')[0] || 'Teacher'}
           </h1>
-          <p className="text-slate-300 text-sm md:text-lg font-medium leading-relaxed max-w-sm">
-            You have <span className="text-primary font-bold">{kpiData?.kpis.pendingReview ?? 3} submissions</span> awaiting your expert feedback today.
+          <p className="text-slate-300 text-sm md:text-base font-medium leading-relaxed max-w-sm">
+            You have <span className="text-primary font-bold">{kpiData?.kpis.pendingReview ?? 3} submissions</span> awaiting your feedback.
           </p>
         </div>
 
-        <div className="absolute right-4 bottom-0 h-64 w-96 pointer-events-none opacity-90 dark:opacity-80">
+        <div className="absolute right-4 bottom-0 h-48 w-72 pointer-events-none opacity-90 dark:opacity-80">
           <Image 
             src="/images/athena-classroom.png" 
             alt="Classroom illustration"
             fill
-            className="object-contain scale-[2.2] origin-bottom-right translate-x-[40px] translate-y-[90px]"
+            className="object-contain scale-[1.8] origin-bottom-right translate-x-[20px] translate-y-[40px]"
             priority
             data-ai-hint="classroom illustration"
           />
@@ -369,15 +369,15 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Quick Actions & KPIs Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-8">
-          <div id="onboarding-kpis" className="grid gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 space-y-6">
+          <div id="onboarding-kpis" className="grid gap-4 sm:grid-cols-2">
             <StatCard 
               title="Grading Queue" 
               value={kpiData?.kpis.pendingReview ?? 0} 
               icon={PenSquare} 
               variant="amber"
-              description="Submissions ready for validation"
+              description="Ready for validation"
               onClick={() => router.push('/teacher/assessments?status=needs_review')}
             />
             <StatCard 
@@ -385,31 +385,31 @@ export default function TeacherDashboard() {
               value={kpiData?.kpis.drafts ?? 0} 
               icon={FilePlus} 
               variant="primary"
-              description="Unfinished evaluation records"
+              description="Unfinished evaluations"
               onClick={() => router.push('/teacher/assessments?status=draft')}
             />
           </div>
 
-          <Card id="onboarding-review-queue" className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2rem]">
-            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-6 px-10">
+          <Card id="onboarding-review-queue" className="border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-4 px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl font-bold text-foreground">Grading Priority</CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1">Direct access to the most recent student work.</CardDescription>
+                  <CardTitle className="text-lg font-bold text-foreground">Grading Priority</CardTitle>
+                  <CardDescription className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider font-bold">Recent Submissions</CardDescription>
                 </div>
-                <Badge variant="secondary" className="bg-secondary text-primary border-none font-bold text-[10px] px-4 py-1.5 rounded-full">
-                  {reviewQueueData?.items.length || 0} URGENT
+                <Badge variant="secondary" className="bg-secondary text-primary border-none font-bold text-[9px] px-3 py-1 rounded-full">
+                  {reviewQueueData?.items.length || 0} ITEMS
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="p-0">
               {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
                 <Table>
-                  <TableHeader className="bg-secondary/20">
+                  <TableHeader className="bg-secondary/10">
                     <TableRow className="hover:bg-transparent border-b border-border">
-                      <TableHead className="font-bold text-foreground h-14 text-[10px] uppercase tracking-widest pl-10">Student</TableHead>
-                      <TableHead className="font-bold text-foreground h-14 text-[10px] uppercase tracking-widest">Assignment</TableHead>
-                      <TableHead className="font-bold text-foreground h-14 text-[10px] uppercase tracking-widest text-right pr-10">Status</TableHead>
+                      <TableHead className="font-bold text-foreground h-10 text-[9px] uppercase tracking-widest pl-6">Student</TableHead>
+                      <TableHead className="font-bold text-foreground h-10 text-[9px] uppercase tracking-widest">Assignment</TableHead>
+                      <TableHead className="font-bold text-foreground h-10 text-[9px] uppercase tracking-widest text-right pr-6">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -417,12 +417,12 @@ export default function TeacherDashboard() {
                       <TableRow
                         key={item.assessmentId}
                         onClick={() => openReview({ assessmentId: normalizeAssessmentIdentifier(item.assessmentId) ?? item.assessmentId })}
-                        className="group cursor-pointer hover:bg-secondary/20 transition-colors border-b border-border last:border-0"
+                        className="group cursor-pointer hover:bg-secondary/10 transition-colors border-b border-border last:border-0"
                       >
-                        <TableCell className="font-bold text-foreground py-6 pl-10 text-sm">{item.studentName}</TableCell>
-                        <TableCell className="text-muted-foreground py-6 text-sm">{item.assessmentName}</TableCell>
-                        <TableCell className="py-6 text-right pr-10">
-                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'warning'} className="rounded-full px-3">
+                        <TableCell className="font-bold text-foreground py-4 pl-6 text-sm">{item.studentName}</TableCell>
+                        <TableCell className="text-muted-foreground py-4 text-sm">{item.assessmentName}</TableCell>
+                        <TableCell className="py-4 text-right pr-6">
+                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'warning'} className="rounded-full px-2 text-[9px]">
                             {item.status === 'ai_draft_ready' ? 'AI DRAFT' : 'NEEDS REVIEW'}
                           </Badge>
                         </TableCell>
@@ -431,12 +431,12 @@ export default function TeacherDashboard() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center px-8">
-                  <div className="h-16 w-16 bg-secondary rounded-full flex items-center justify-center mb-6">
-                    <Sparkles className="h-8 w-8 text-primary" />
+                <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                  <div className="h-12 w-12 bg-secondary rounded-full flex items-center justify-center mb-4">
+                    <Sparkles className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold text-foreground">All Caught Up</h3>
-                  <p className="text-sm text-muted-foreground max-w-xs mt-2 leading-relaxed">Your grading queue is currently empty. Great job staying on top of feedback!</p>
+                  <h3 className="text-base font-bold text-foreground">All Caught Up</h3>
+                  <p className="text-xs text-muted-foreground max-w-xs mt-1 leading-relaxed">Your grading queue is currently empty.</p>
                 </div>
               )}
             </CardContent>
@@ -444,47 +444,44 @@ export default function TeacherDashboard() {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          <Card id="onboarding-quick-actions" className="bg-primary text-white border-none shadow-xl shadow-primary/20 overflow-hidden relative rounded-[1.5rem]">
-            <div className="absolute top-[-20px] right-[-20px] h-40 w-40 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-            <CardHeader className="p-6 relative z-10">
-              <div className="h-9 w-9 bg-white/20 rounded-xl flex items-center justify-center mb-3">
-                <Activity className="h-5 w-5 text-white" />
-              </div>
-              <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
-              <CardDescription className="text-white/80 text-[10px] uppercase tracking-wider font-bold">Classroom Tasks</CardDescription>
+          <Card id="onboarding-quick-actions" className="bg-primary text-white border-none shadow-lg overflow-hidden relative rounded-2xl">
+            <div className="absolute top-[-10px] right-[-10px] h-24 w-24 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            <CardHeader className="p-5 pb-3 relative z-10">
+              <CardTitle className="text-base font-bold">Quick Actions</CardTitle>
+              <CardDescription className="text-white/70 text-[9px] uppercase tracking-wider font-bold">Classroom Tasks</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 relative z-10 px-6 pb-6">
-              <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white text-primary hover:bg-slate-50 h-11 font-bold rounded-xl transition-all border-none shadow-md">
+            <CardContent className="grid gap-2 relative z-10 px-5 pb-5">
+              <Button size="sm" onClick={() => startNewAssessment()} className="w-full bg-white text-primary hover:bg-slate-50 h-10 font-bold rounded-xl transition-all border-none shadow-sm">
                 <FilePlus className="mr-2 h-4 w-4 stroke-[2.5]" /> New Assignment
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 h-11 font-bold rounded-xl transition-all">
-                <Link href="/teacher/assessments"><PenSquare className="mr-2 h-4 w-4 stroke-[2.5]" /> Manage History</Link>
+              <Button asChild size="sm" variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 h-10 font-bold rounded-xl transition-all">
+                <Link href="/teacher/assessments"><PenSquare className="mr-2 h-4 w-4 stroke-[2.5]" /> History</Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[1.5rem]">
-            <CardHeader className="py-6 px-8">
-              <CardTitle className="text-lg font-bold">Activity Feed</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Recent changes in your classroom.</CardDescription>
+          <Card className="border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-2xl">
+            <CardHeader className="py-4 px-6">
+              <CardTitle className="text-base font-bold">Activity Feed</CardTitle>
+              <CardDescription className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold">Live Updates</CardDescription>
             </CardHeader>
-            <CardContent className="px-8 pb-8">
-              <div className="space-y-5 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
+            <CardContent className="px-6 pb-6">
+              <div className="space-y-4 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar">
                 {localActivity.length > 0 ? (
                   localActivity.map((activity) => {
                     const Icon = getActivityIcon(activity.type);
                     return (
                       <div 
                         key={activity.id} 
-                        className="flex gap-4 group cursor-pointer" 
+                        className="flex gap-3 group cursor-pointer" 
                         onClick={() => handleActivityClick(activity)}
                       >
-                        <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                          <Icon className="h-4.5 w-4.5" />
+                        <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <Icon className="h-4 w-4" />
                         </div>
-                        <div className="space-y-0.5">
-                          <p className="text-xs font-bold text-foreground">{activity.title}</p>
-                          <p className="text-[10px] text-muted-foreground leading-tight">
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-[11px] font-bold text-foreground truncate">{activity.title}</p>
+                          <p className="text-[9px] text-muted-foreground leading-tight truncate">
                             {activity.subtitle} &middot; {activity.updatedAt ? format(new Date(activity.updatedAt), 'h:mm a') : 'N/A'}
                           </p>
                         </div>
@@ -492,7 +489,7 @@ export default function TeacherDashboard() {
                     );
                   })
                 ) : (
-                  <p className="text-xs text-muted-foreground italic text-center py-4">No recent activity detected.</p>
+                  <p className="text-[10px] text-muted-foreground italic text-center py-2">No recent activity.</p>
                 )}
               </div>
             </CardContent>
@@ -501,94 +498,91 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Class Performance Visualization */}
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center">
-              <Activity className="h-6 w-6 text-primary" />
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
+              <Activity className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Class Performance</h2>
-              <p className="text-xs text-muted-foreground font-medium">Aggregated data across core skill assessments.</p>
+              <h2 className="text-xl font-bold text-foreground">Class Performance</h2>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Aggregated Skill Mastery</p>
             </div>
           </div>
           
-          <Tabs value={view} onValueChange={(v) => setView(v as any)} className="bg-secondary/30 p-1 rounded-xl border border-border">
-            <TabsList className="bg-transparent h-10 gap-1">
-              <TabsTrigger value="performance" className="rounded-lg font-bold text-xs uppercase tracking-wider h-8 data-[state=active]:shadow-md data-[state=active]:bg-background">
+          <Tabs value={view} onValueChange={(v) => setView(v as any)} className="bg-secondary/20 p-1 rounded-lg border border-border">
+            <TabsList className="bg-transparent h-8 gap-1">
+              <TabsTrigger value="performance" className="rounded-md font-bold text-[10px] uppercase tracking-wider h-6 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 Skill Mastery
               </TabsTrigger>
-              <TabsTrigger value="progress" className="rounded-lg font-bold text-xs uppercase tracking-wider h-8 data-[state=active]:shadow-md data-[state=active]:bg-background">
+              <TabsTrigger value="progress" className="rounded-md font-bold text-[10px] uppercase tracking-wider h-6 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 Progress Flow
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2.5rem]">
-            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-8 px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <Card className="lg:col-span-8 border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-5 px-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl font-bold text-foreground">
+                  <CardTitle className="text-lg font-bold text-foreground">
                     {view === 'performance' ? 'Core Skill Proficiency' : 'Progress Over Time'}
                   </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1">
-                    {view === 'performance' ? 'Current mastery levels across Listening, Speaking, Reading, and Writing.' : 'Trajectory of class performance across all finalized records.'}
+                  <CardDescription className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider font-bold">
+                    {view === 'performance' ? 'Current Skill Breakdown' : 'Academic Trajectory'}
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-[#EF4444]" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Levels 1-2</span>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#EF4444]" />
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">1-2</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-[#F59E0B]" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Levels 3-4</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#F59E0B]" />
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">3-4</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-[#10B981]" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Levels 5-6</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#10B981]" />
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">5-6</span>
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-10">
+            <CardContent className="p-8">
               {classPerformanceLoading ? (
-                <div className="h-[320px] flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary opacity-20" />
+                <div className="h-[280px] flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary opacity-20" />
                 </div>
               ) : classPerformance?.criteriaBreakdown.length ? (
-                <div className="h-[320px] w-full">
+                <div className="h-[280px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     {view === 'performance' ? (
-                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ top: 25, bottom: 10 }}>
+                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ top: 20, bottom: 5 }}>
                         <XAxis 
                           dataKey="criterion" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
-                          dy={10}
+                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                          dy={5}
                         />
-                        <YAxis 
-                          domain={[0, 8]} 
-                          hide
-                        />
+                        <YAxis domain={[0, 8]} hide />
                         <Tooltip 
-                          cursor={{ fill: 'hsl(var(--secondary) / 0.3)', radius: 12 }}
+                          cursor={{ fill: 'hsl(var(--secondary) / 0.3)', radius: 8 }}
                           content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               const data = payload[0].payload;
                               const level = formatProficiencyLevel(data.averageScore);
                               return (
-                                <div className="bg-[#111827] text-white p-4 rounded-2xl shadow-2xl border border-white/10 ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200">
-                                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">{data.criterion}</p>
-                                  <div className="space-y-1">
-                                    <p className="text-lg font-extrabold flex items-baseline gap-1">
+                                <div className="bg-[#111827] text-white p-3 rounded-xl shadow-xl border border-white/10 ring-1 ring-black/5">
+                                  <p className="text-[9px] font-bold uppercase tracking-widest text-primary mb-1">{data.criterion}</p>
+                                  <div className="space-y-0.5">
+                                    <p className="text-base font-extrabold flex items-baseline gap-1">
                                       Level {level}
-                                      <span className="text-[10px] font-bold text-slate-400 font-mono">({data.averageScore.toFixed(1)})</span>
+                                      <span className="text-[9px] font-bold text-slate-400 font-mono">({data.averageScore.toFixed(1)})</span>
                                     </p>
-                                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Based on {data.count} assessments</p>
+                                    <p className="text-[8px] font-medium text-slate-400 uppercase tracking-wider">From {data.count} assessments</p>
                                   </div>
                                 </div>
                               );
@@ -596,7 +590,7 @@ export default function TeacherDashboard() {
                             return null;
                           }}
                         />
-                        <Bar dataKey="averageScore" radius={[10, 10, 10, 10]} barSize={48}>
+                        <Bar dataKey="averageScore" radius={[6, 6, 6, 6]} barSize={40}>
                           {classPerformance.criteriaBreakdown.map((entry, index) => {
                             const levelStr = formatProficiencyLevel(entry.averageScore);
                             return <Cell key={`cell-${index}`} fill={getLevelColor(levelStr)} />;
@@ -605,13 +599,13 @@ export default function TeacherDashboard() {
                             dataKey="averageScore" 
                             position="top" 
                             formatter={(v: number) => formatProficiencyLevel(v)}
-                            style={{ fill: '#64748b', fontSize: 12, fontWeight: 800 }}
-                            offset={12}
+                            style={{ fill: '#64748b', fontSize: 11, fontWeight: 800 }}
+                            offset={8}
                           />
                         </Bar>
                       </BarChart>
                     ) : (
-                      <AreaChart data={classPerformance.criteriaBreakdown} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <AreaChart data={classPerformance.criteriaBreakdown} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorProgress" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -623,22 +617,22 @@ export default function TeacherDashboard() {
                           dataKey="criterion" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                          tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 700 }}
                         />
                         <YAxis 
                           domain={[0, 8]}
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#cbd5e1', fontSize: 10 }}
+                          tick={{ fill: '#cbd5e1', fontSize: 9 }}
                           tickFormatter={(v) => formatProficiencyLevel(v)}
                         />
                         <Tooltip 
                           content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               return (
-                                <div className="bg-[#111827] text-white p-3 rounded-xl border border-white/10 shadow-xl">
-                                  <p className="text-[10px] font-bold text-primary uppercase mb-1">{payload[0].payload.criterion}</p>
-                                  <p className="text-sm font-bold">Level {formatProficiencyLevel(payload[0].value as number)}</p>
+                                <div className="bg-[#111827] text-white p-2 rounded-lg border border-white/10 shadow-lg">
+                                  <p className="text-[9px] font-bold text-primary uppercase">{payload[0].payload.criterion}</p>
+                                  <p className="text-xs font-bold">Level {formatProficiencyLevel(payload[0].value as number)}</p>
                                 </div>
                               );
                             }
@@ -649,7 +643,7 @@ export default function TeacherDashboard() {
                           type="monotone" 
                           dataKey="averageScore" 
                           stroke="hsl(var(--primary))" 
-                          strokeWidth={4}
+                          strokeWidth={3}
                           fillOpacity={1} 
                           fill="url(#colorProgress)" 
                           animationDuration={1500}
@@ -659,86 +653,86 @@ export default function TeacherDashboard() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-[320px] flex flex-col items-center justify-center text-center px-10">
-                  <div className="h-16 w-16 bg-secondary/50 rounded-2xl flex items-center justify-center mb-6">
-                    <Activity className="h-8 w-8 text-muted-foreground opacity-30" />
+                <div className="h-[280px] flex flex-col items-center justify-center text-center px-8">
+                  <div className="h-12 w-12 bg-secondary/50 rounded-xl flex items-center justify-center mb-4">
+                    <Activity className="h-6 w-6 text-muted-foreground opacity-30" />
                   </div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">Insufficient Class Data</h3>
-                  <p className="text-sm text-muted-foreground max-sm leading-relaxed">Finalize more student assessments to unlock class-wide proficiency tracking and insights.</p>
+                  <h3 className="text-base font-bold text-foreground">Insufficient Data</h3>
+                  <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">Finalize more student assessments to unlock class-wide insights.</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <div className="lg:col-span-4 space-y-8">
-            <Card className="border-none bg-secondary/30 dark:bg-primary/5 shadow-none overflow-hidden rounded-[2.5rem]">
-              <CardHeader className="pb-4 px-10 pt-10">
-                <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-                  <Lightbulb className="h-5 w-5 text-primary" />
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="border-none bg-secondary/20 dark:bg-primary/5 shadow-none overflow-hidden rounded-3xl">
+              <CardHeader className="pb-2 px-8 pt-8">
+                <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+                  <Lightbulb className="h-4 w-4 text-primary" />
                 </div>
-                <CardTitle className="text-xl font-bold">Class Insight</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Automated Analysis</CardDescription>
+                <CardTitle className="text-lg font-bold">Class Insight</CardTitle>
+                <CardDescription className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Automated Analysis</CardDescription>
               </CardHeader>
-              <CardContent className="px-10 pb-10 space-y-8">
+              <CardContent className="px-8 pb-8 space-y-6">
                 {insightData ? (
                   <>
-                    <div className="space-y-4">
-                      <p className="text-sm leading-relaxed text-foreground font-medium">
-                        Students are consistent across all skills, with strongest performance in <span className="text-primary font-bold">{insightData.strongest} (Level {insightData.strongestLevel})</span>.
+                    <div className="space-y-3">
+                      <p className="text-xs leading-relaxed text-foreground font-medium">
+                        Strongest performance in <span className="text-primary font-bold">{insightData.strongest} (Level {insightData.strongestLevel})</span>.
                       </p>
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {insightData.weakestLabel} are below target for mastery.
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        {insightData.weakestLabel} are priority growth areas.
                       </p>
                     </div>
 
-                    <div className="pt-6 border-t border-border/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Action Suggestion</p>
+                    <div className="pt-4 border-t border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                        <p className="text-[9px] font-bold text-primary uppercase tracking-widest">Strategy</p>
                       </div>
-                      <p className="text-sm italic text-muted-foreground leading-relaxed">
+                      <p className="text-xs italic text-muted-foreground leading-relaxed">
                         &ldquo;{insightData.suggestion}&rdquo;
                       </p>
                     </div>
                   </>
                 ) : (
-                  <div className="py-10 text-center">
-                    <p className="text-xs text-muted-foreground italic">Generating insights...</p>
+                  <div className="py-6 text-center">
+                    <p className="text-[10px] text-muted-foreground italic">Generating insights...</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-white dark:bg-[#111827] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden rounded-[2.5rem]">
-              <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-6 px-10">
-                <CardTitle className="text-lg font-bold text-foreground">Class Progress</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">Recent finalized assessment scores.</CardDescription>
+            <Card className="border-border bg-white dark:bg-[#111827] shadow-lg overflow-hidden rounded-3xl">
+              <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-4 px-6">
+                <CardTitle className="text-base font-bold text-foreground">Class Progress</CardTitle>
+                <CardDescription className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Recent Scores</CardDescription>
               </CardHeader>
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Average Proficiency</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-extrabold text-foreground">{classPerformance?.avgScore.toFixed(1) || '—'}</span>
-                      <span className="text-sm font-bold text-muted-foreground">/ 8</span>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Avg. Proficiency</p>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-extrabold text-foreground">{classPerformance?.avgScore.toFixed(1) || '—'}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground">/ 8</span>
                     </div>
                   </div>
-                  <div className="h-14 w-14 rounded-full border-4 border-secondary border-t-primary flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary">{Math.round(((classPerformance?.avgScore || 0) / 8) * 100)}%</span>
+                  <div className="h-10 w-10 rounded-full border-2 border-secondary border-t-primary flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-primary">{Math.round(((classPerformance?.avgScore || 0) / 8) * 100)}%</span>
                   </div>
                 </div>
-                <Progress value={((classPerformance?.avgScore || 0) / 8) * 100} className="h-3 bg-secondary rounded-full" />
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-6 mb-4">Recent Reports</p>
-                <div className="space-y-3">
-                  {reports.slice(0, 3).map((report, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold shadow-sm">
+                <Progress value={((classPerformance?.avgScore || 0) / 8) * 100} className="h-2 bg-secondary rounded-full" />
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-5 mb-3">Recent Reports</p>
+                <div className="space-y-2">
+                  {reports.slice(0, 2).map((report, i) => (
+                    <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-secondary/10 hover:bg-secondary/20 transition-colors cursor-pointer" onClick={() => router.push(`/teacher/reports/${report.reportId}`)}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center text-[9px] font-bold shadow-sm">
                           {(report.studentName || 'S').charAt(0)}
                         </div>
-                        <span className="text-xs font-bold truncate max-w-[120px]">{report.studentName || 'Student'}</span>
+                        <span className="text-[11px] font-bold truncate max-w-[100px]">{report.studentName || 'Student'}</span>
                       </div>
-                      <Badge variant="outline" className="text-[10px] font-bold border-border">{(report.status || 'Generated').toUpperCase()}</Badge>
+                      <Badge variant="outline" className="text-[8px] font-bold border-border px-1.5 h-4">{(report.status || 'Generated').toUpperCase()}</Badge>
                     </div>
                   ))}
                 </div>
