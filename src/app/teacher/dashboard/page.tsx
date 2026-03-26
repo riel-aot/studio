@@ -15,7 +15,7 @@ import { useWebhook } from '@/lib/hooks';
 import { useAuth } from '@/hooks/use-auth';
 import type { DashboardKpis, ReviewQueueItem, ReportListItem } from '@/lib/events';
 import { normalizeAssessmentIdentifier } from '@/lib/utils';
-import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
+import { FilePlus, PenSquare, AlertCircle, ChevronRight, Activity, GraduationCap, CheckCircle2, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { Progress } from '@/components/ui/progress';
@@ -153,7 +153,6 @@ export default function TeacherDashboard() {
         return;
       }
 
-      // First try: extract rubric grades directly from list items (avoids extra REPORT_GET calls)
       const reportsWithGrades = completedReports.filter((report) => {
         const grades = (report as any).rubric_grades ?? (report as any).rubricGrades;
         return Array.isArray(grades) && grades.length > 0;
@@ -164,7 +163,6 @@ export default function TeacherDashboard() {
         grades: (report as any).rubric_grades ?? (report as any).rubricGrades,
       }));
 
-      // Fallback: call REPORT_GET if list items don't have rubric grades
       if (gradedReports.length === 0) {
         setClassPerformanceLoading(true);
         try {
@@ -200,7 +198,7 @@ export default function TeacherDashboard() {
             });
           }
         } catch {
-          // fall through to empty state
+          // fall through
         } finally {
           if (isMounted) setClassPerformanceLoading(false);
         }
@@ -220,11 +218,10 @@ export default function TeacherDashboard() {
           const rawScore = Number(grade?.score);
           const rawMaxScore = Number(grade?.maxScore ?? grade?.max_score);
           if (!criterionName || Number.isNaN(rawScore)) continue;
-          // If maxScore is 6 (old 1-6 scale), map to 1-8 internal scale: 1→3, 2→4, 3→5, 4→6, 5→7, 6→8
           const maxScore = rawMaxScore > 0 ? rawMaxScore : 8;
           let normalizedScore = rawScore;
           if (maxScore === 6) {
-            normalizedScore = rawScore + 2; // Convert 1-6 to 3-8 (mapping: 1→3, 2→4, 3→5, etc.)
+            normalizedScore = rawScore + 2; 
           }
           const existing = criteriaMap.get(criterionName) ?? { scoreSum: 0, count: 0, values: [], maxScore: 8 };
           existing.scoreSum += normalizedScore;
@@ -255,7 +252,7 @@ export default function TeacherDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [reports]);  // fetchReportDetails intentionally omitted — accessed via ref to avoid re-firing
+  }, [reports]);
 
   const handleReviewOpen = useCallback((_: any, payload?: { assessmentId: string }) => {
     const normalized = normalizeAssessmentIdentifier(payload?.assessmentId) ?? payload?.assessmentId;
@@ -295,13 +292,13 @@ export default function TeacherDashboard() {
     <div className="space-y-10">
       <OnboardingTour />
       
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#3B6EF5] to-[#2F5BEA] dark:from-[#1D4ED8] dark:to-[#1E3A8A] text-white p-10 md:p-14 shadow-lg min-h-[260px] flex items-center border border-white/10">
+      {/* Welcome Banner: Updated to Navy/Mint aesthetic */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#111827] to-[#1F2937] text-white p-10 md:p-14 shadow-lg min-h-[260px] flex items-center border border-white/5">
         <div className="max-w-lg space-y-5 relative z-10">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
             Welcome back, {user?.name || 'Teacher'}
           </h1>
-          <p className="text-blue-50 dark:text-blue-200 text-sm md:text-lg font-medium leading-relaxed max-w-sm">
+          <p className="text-primary/90 text-sm md:text-lg font-medium leading-relaxed max-w-sm">
             You have {kpiData?.kpis.pendingReview ?? 3} assignments pending review. Check your queue to provide feedback.
           </p>
         </div>
@@ -320,17 +317,17 @@ export default function TeacherDashboard() {
 
         <div className="mt-6 flex justify-end">
           <div className="w-full lg:w-[420px]">
-            <Card id="onboarding-quick-actions" className="bg-[#2F5BEA] dark:bg-[#1E293B] text-white border-none shadow-xl shadow-blue-500/10 overflow-hidden relative rounded-2xl">
-              <div className="absolute top-[-20px] right-[-20px] h-40 w-40 bg-white/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+            <Card id="onboarding-quick-actions" className="bg-primary text-white border-none shadow-xl shadow-primary/10 overflow-hidden relative rounded-2xl">
+              <div className="absolute top-[-20px] right-[-20px] h-40 w-40 bg-white/10 rounded-full blur-3xl pointer-events-none" />
               <CardHeader className="py-6 px-8">
                 <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
-                <CardDescription className="text-blue-100 dark:text-slate-400 text-xs">Common administrative tasks.</CardDescription>
+                <CardDescription className="text-white/80 text-xs">Common administrative tasks.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3 relative z-10 px-8 pb-8">
-                <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white dark:bg-[#3B82F6] text-[#2F5BEA] dark:text-white hover:bg-blue-50 dark:hover:bg-[#2563EB] h-12 font-bold rounded-xl transition-all border-none shadow-md">
+                <Button size="lg" onClick={() => startNewAssessment()} className="w-full bg-white text-primary hover:bg-secondary h-12 font-bold rounded-xl transition-all border-none shadow-md">
                   <FilePlus className="mr-2 h-4 w-4 stroke-[2.5]" /> New Assignment
                 </Button>
-                <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 dark:border-slate-700 text-white hover:bg-white/20 dark:hover:bg-slate-800 h-12 font-bold rounded-xl transition-all">
+                <Button asChild size="lg" variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 h-12 font-bold rounded-xl transition-all">
                   <Link href="/teacher/assessments"><PenSquare className="mr-2 h-4 w-4 stroke-[2.5]" /> All Assignments</Link>
                 </Button>
               </CardContent>
@@ -341,12 +338,12 @@ export default function TeacherDashboard() {
       {/* Today's Teacher Brief */}
       <div id="onboarding-kpis" className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="h-7 w-7 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-[#2F5BEA] dark:text-[#3B82F6]" />
+          <div className="h-7 w-7 rounded-full bg-secondary flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-[#111827] dark:text-[#E5E7EB]">Today&apos;s Teacher Brief</h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Priority Action Items</p>
+            <h2 className="text-lg font-bold text-foreground">Today&apos;s Teacher Brief</h2>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Priority Action Items</p>
           </div>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -362,196 +359,187 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-10">
-        {/* Main Feed: Priority Tasks */}
-        <div className="space-y-10">
-          <Card id="onboarding-review-queue" className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm overflow-hidden rounded-2xl">
-            <CardHeader className="bg-white dark:bg-[#111827] border-b border-slate-50 dark:border-[#1F2937] py-5 px-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-bold text-[#111827] dark:text-[#E5E7EB]">Grading Priority</CardTitle>
-                  <CardDescription className="text-xs text-slate-500 dark:text-slate-500">Student submissions ready for teacher validation.</CardDescription>
-                </div>
-                <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-500/10 text-[#2F5BEA] dark:text-[#3B82F6] border-none font-bold text-[10px] px-3">
-                  {reviewQueueData?.items.length || 0} SUBMISSIONS
-                </Badge>
+        <Card id="onboarding-review-queue" className="border-border bg-white dark:bg-[#111827] shadow-sm overflow-hidden rounded-2xl">
+          <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-5 px-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-bold text-foreground">Grading Priority</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">Student submissions ready for teacher validation.</CardDescription>
               </div>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
-                <Table>
-                  <TableHeader className="bg-slate-50/30 dark:bg-[#1F2937]/30">
-                    <TableRow className="hover:bg-transparent border-b border-slate-50 dark:border-[#1F2937]">
-                      <TableHead className="font-bold text-[#111827] dark:text-slate-400 h-12 text-[10px] uppercase tracking-wider pl-8">Student</TableHead>
-                      <TableHead className="font-bold text-[#111827] dark:text-slate-400 h-12 text-[10px] uppercase tracking-wider">Assessment</TableHead>
-                      <TableHead className="font-bold text-[#111827] dark:text-slate-400 h-12 text-[10px] uppercase tracking-wider">Status</TableHead>
-                      <TableHead className="hidden md:table-cell text-right font-bold text-[#111827] dark:text-slate-400 h-12 text-[10px] uppercase tracking-wider">Activity</TableHead>
-                      <TableHead className="w-12"></TableHead>
+              <Badge variant="secondary" className="bg-secondary text-primary border-none font-bold text-[10px] px-3">
+                {reviewQueueData?.items.length || 0} SUBMISSIONS
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            {reviewQueueData?.items && reviewQueueData.items.length > 0 ? (
+              <Table>
+                <TableHeader className="bg-secondary/30">
+                  <TableRow className="hover:bg-transparent border-b border-border">
+                    <TableHead className="font-bold text-foreground h-12 text-[10px] uppercase tracking-wider pl-8">Student</TableHead>
+                    <TableHead className="font-bold text-foreground h-12 text-[10px] uppercase tracking-wider">Assessment</TableHead>
+                    <TableHead className="font-bold text-foreground h-12 text-[10px] uppercase tracking-wider">Status</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reviewQueueData.items.map((item) => (
+                    <TableRow
+                      key={item.assessmentId}
+                      onClick={() => openReview({ assessmentId: normalizeAssessmentIdentifier(item.assessmentId) ?? item.assessmentId })}
+                      className="group cursor-pointer hover:bg-secondary/30 transition-colors border-b border-border last:border-0"
+                    >
+                      <TableCell className="font-bold text-foreground py-5 pl-8 text-sm">{item.studentName}</TableCell>
+                      <TableCell className="text-muted-foreground py-5 text-sm">{item.assessmentName}</TableCell>
+                      <TableCell className="py-5">
+                        <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'warning'}>
+                          {item.status === 'ai_draft_ready' ? 'AI DRAFT' : 'NEEDS REVIEW'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right py-5 pr-6">
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reviewQueueData.items.map((item) => (
-                      <TableRow
-                        key={item.assessmentId}
-                        onClick={() => openReview({ assessmentId: normalizeAssessmentIdentifier(item.assessmentId) ?? item.assessmentId })}
-                        className="group cursor-pointer hover:bg-blue-50/30 dark:hover:bg-slate-800/20 transition-colors border-b border-slate-50 dark:border-[#1F2937] last:border-0"
-                      >
-                        <TableCell className="font-bold text-[#111827] dark:text-[#E5E7EB] py-5 pl-8 text-sm">{item.studentName}</TableCell>
-                        <TableCell className="text-slate-500 dark:text-slate-400 py-5 text-sm">{item.assessmentName}</TableCell>
-                        <TableCell className="py-5">
-                          <Badge variant={item.status === 'ai_draft_ready' ? 'default' : 'warning'}>
-                            {item.status === 'ai_draft_ready' ? 'AI DRAFT' : 'NEEDS REVIEW'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-right text-slate-400 dark:text-slate-500 py-5 font-medium text-xs">
-                          {formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true }).replace('about ', '')}
-                        </TableCell>
-                        <TableCell className="text-right py-5 pr-6">
-                          <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-700 group-hover:text-[#2F5BEA] dark:group-hover:text-[#3B82F6] group-hover:translate-x-1 transition-all" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                <div className="h-12 w-12 bg-secondary rounded-full flex items-center justify-center mb-4">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-base font-bold text-foreground">All Caught Up</h3>
+                <p className="text-xs text-muted-foreground max-w-xs mt-2 leading-relaxed">There are no submissions waiting for review.</p>
+                <Button size="sm" onClick={() => startNewAssessment()} className="mt-6 bg-primary font-bold text-xs h-10 px-6 rounded-xl">
+                  <FilePlus className="mr-2 h-4 w-4" /> New Assessment
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-white dark:bg-[#111827] shadow-sm overflow-hidden rounded-2xl">
+          <CardHeader className="bg-white dark:bg-[#111827] border-b border-border py-5 px-8">
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg font-bold text-foreground">Class Performance</CardTitle>
+            </div>
+            <CardDescription className="text-xs text-muted-foreground">Aggregated rubric scores across all generated reports.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-10">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <GraduationCap className="h-4 w-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Avg. Score</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">{classPerformance?.avgScore ?? '—'}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground">/ 6</span>
+                </div>
+                <Progress value={((classPerformance?.avgScore ?? 0) / 6) * 100} className="h-1.5 bg-secondary" />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Reports Complete</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">{classPerformance?.completionRate ?? '—'}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground">completed</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <GraduationCap className="h-4 w-4 text-emerald-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Mastery Achieved</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-emerald-600">{classPerformance?.masteryAchieved ?? '—'}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground">Level 6</span>
+                </div>
+                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div className="bg-emerald-500 h-full" style={{ width: `${classPerformance?.masteryAchieved ? (classPerformance.masteryAchieved / (classPerformance.criteriaBreakdown.length || 1)) * 100 : 0}%` }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-bold text-foreground flex items-center gap-2 uppercase tracking-widest">
+                Rubric Criteria Breakdown
+              </h4>
+              {classPerformanceLoading ? (
+                <div className="h-[180px] flex items-center justify-center">
+                  <p className="text-xs text-muted-foreground">Loading rubric data...</p>
+                </div>
+              ) : classPerformance?.criteriaBreakdown && classPerformance.criteriaBreakdown.length > 0 ? (
+                <div className="h-[180px] w-full pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={classPerformance.criteriaBreakdown} margin={{ left: -16, top: 10, bottom: 20 }}>
+                      <XAxis
+                        dataKey="criterion"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
+                      />
+                      <YAxis
+                        domain={[1, 8]}
+                        ticks={[1, 2, 3, 4, 5, 6, 7, 8]}
+                        interval={0}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(value) => {
+                          switch (value) {
+                            case 1: return 'A';
+                            case 2: return 'B';
+                            case 3: return '1';
+                            case 4: return '2';
+                            case 5: return '3';
+                            case 6: return '4';
+                            case 7: return '5';
+                            case 8: return '6';
+                            default: return '';
+                          }
+                        }}
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc' }}
+                        contentStyle={{ backgroundColor: '#111827', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', color: '#fff' }}
+                        itemStyle={{ color: '#E5E7EB' }}
+                        formatter={(value: number) => [`${formatProficiencyLevel(value)}`, 'Avg. Proficiency']}
+                      />
+                      <Bar dataKey="averageScore" radius={[4, 4, 0, 0]} barSize={32}>
+                        {classPerformance.criteriaBreakdown.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.averageScore >= 4.8 ? 'hsl(var(--primary))' : entry.averageScore >= 3 ? 'hsl(var(--primary) / 0.7)' : '#F59E0B'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-                  <div className="h-12 w-12 bg-blue-50 dark:bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
-                    <Sparkles className="h-6 w-6 text-[#2F5BEA] dark:text-[#3B82F6]" />
-                  </div>
-                  <h3 className="text-base font-bold text-[#111827] dark:text-[#E5E7EB]">All Caught Up</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-500 max-w-xs mt-2 leading-relaxed">There are no submissions waiting for review. You can start a new assessment or check your activity.</p>
-                  <Button size="sm" onClick={() => startNewAssessment()} className="mt-6 bg-[#2F5BEA] dark:bg-[#3B82F6] font-bold text-xs h-10 px-6 rounded-xl">
-                    <FilePlus className="mr-2 h-4 w-4" /> New Assessment
-                  </Button>
+                <div className="h-[180px] flex items-center justify-center">
+                  <p className="text-xs text-muted-foreground">No report data available yet.</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Class Performance */}
-          <Card className="border-[#E5E7EB] dark:border-[#1F2937] bg-white dark:bg-[#111827] shadow-sm overflow-hidden rounded-2xl">
-            <CardHeader className="bg-white dark:bg-[#111827] border-b border-slate-50 dark:border-[#1F2937] py-5 px-8">
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-[#2F5BEA] dark:text-[#3B82F6]" />
-                <CardTitle className="text-lg font-bold text-[#111827] dark:text-[#E5E7EB]">Class Performance</CardTitle>
+              <div className="flex flex-wrap gap-4 pt-1">
+                {classPerformance?.criteriaBreakdown.map((entry) => (
+                  <div key={entry.criterion} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    {entry.trend === 'up' ? <TrendingUp className="h-3 w-3 text-green-500" /> : entry.trend === 'down' ? <TrendingDown className="h-3 w-3 text-red-500" /> : <Minus className="h-3 w-3 text-muted-foreground" />}
+                    <span className="font-semibold">{entry.criterion}</span>
+                    <span className="text-border">·</span>
+                    <span>{formatProficiencyLevel(entry.averageScore)}</span>
+                  </div>
+                ))}
               </div>
-              <CardDescription className="text-xs text-slate-500 dark:text-slate-500">Aggregated rubric scores across all generated reports.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-10">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                    <GraduationCap className="h-4 w-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Avg. Score</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.avgScore ?? '—'}</span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">/ 6</span>
-                  </div>
-                  <Progress value={((classPerformance?.avgScore ?? 0) / 6) * 100} className="h-1.5 bg-slate-100 dark:bg-[#1F2937]" />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Reports Complete</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-[#111827] dark:text-[#E5E7EB]">{classPerformance?.completionRate ?? '—'}</span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">completed</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                    <GraduationCap className="h-4 w-4 text-emerald-500 dark:text-emerald-600" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Mastery Achieved</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{classPerformance?.masteryAchieved ?? '—'}</span>
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Level 6</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-100 dark:bg-[#1F2937] rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 dark:bg-emerald-600 h-full" style={{ width: `${classPerformance?.masteryAchieved ? (classPerformance.masteryAchieved / (classPerformance.criteriaBreakdown.length || 1)) * 100 : 0}%` }} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-slate-900 dark:text-slate-400 flex items-center gap-2 uppercase tracking-widest">
-                  Rubric Criteria Breakdown
-                </h4>
-                {classPerformanceLoading ? (
-                  <div className="h-[180px] flex items-center justify-center">
-                    <p className="text-xs text-slate-400">Loading rubric data...</p>
-                  </div>
-                ) : classPerformance?.criteriaBreakdown && classPerformance.criteriaBreakdown.length > 0 ? (
-                  <div className="h-[180px] w-full pt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={classPerformance.criteriaBreakdown} margin={{ left: -16, top: 10, bottom: 20 }}>
-                        <XAxis
-                          dataKey="criterion"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
-                        />
-                        <YAxis
-                          domain={[1, 8]}
-                          ticks={[1, 2, 3, 4, 5, 6, 7, 8]}
-                          interval={0}
-                          axisLine={false}
-                          tickLine={false}
-                          tickFormatter={(value) => {
-                            switch (value) {
-                              case 1: return 'A';
-                              case 2: return 'B';
-                              case 3: return '1';
-                              case 4: return '2';
-                              case 5: return '3';
-                              case 6: return '4';
-                              case 7: return '5';
-                              case 8: return '6';
-                              default: return '';
-                            }
-                          }}
-                          tick={{ fill: '#94a3b8', fontSize: 9 }}
-                        />
-                        <Tooltip
-                          cursor={{ fill: '#f8fafc' }}
-                          contentStyle={{ backgroundColor: '#111827', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', color: '#fff' }}
-                          itemStyle={{ color: '#E5E7EB' }}
-                          formatter={(value: number) => [`${formatProficiencyLevel(value)}`, 'Avg. Proficiency']}
-                        />
-                        <Bar dataKey="averageScore" radius={[4, 4, 0, 0]} barSize={32}>
-                          {classPerformance.criteriaBreakdown.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.averageScore >= 4.8 ? '#2F5BEA' : entry.averageScore >= 3 ? '#4F79F2' : '#F59E0B'}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <div className="h-[180px] flex items-center justify-center">
-                    <p className="text-xs text-slate-400">No report data available yet.</p>
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-4 pt-1">
-                  {classPerformance?.criteriaBreakdown.map((entry) => (
-                    <div key={entry.criterion} className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                      {entry.trend === 'up' ? <TrendingUp className="h-3 w-3 text-green-500" /> : entry.trend === 'down' ? <TrendingDown className="h-3 w-3 text-red-500" /> : <Minus className="h-3 w-3 text-slate-400" />}
-                      <span className="font-semibold">{entry.criterion}</span>
-                      <span className="text-slate-300">·</span>
-                      <span>{formatProficiencyLevel(entry.averageScore)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

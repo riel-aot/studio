@@ -10,7 +10,7 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   description?: string;
-  variant?: 'amber' | 'blue' | 'purple' | 'red';
+  variant?: 'amber' | 'primary' | 'purple' | 'red';
   onClick?: () => void;
 }
 
@@ -21,11 +21,11 @@ const variants = {
     iconColor: "text-amber-600 dark:text-amber-500",
     hover: "hover:bg-amber-50/30 dark:hover:bg-amber-500/5",
   },
-  blue: {
-    border: "border-l-blue-500",
-    iconBg: "bg-blue-100 dark:bg-blue-500/15",
-    iconColor: "text-blue-600 dark:text-blue-500",
-    hover: "hover:bg-blue-50/30 dark:hover:bg-blue-500/5",
+  primary: {
+    border: "border-l-primary",
+    iconBg: "bg-secondary dark:bg-primary/15",
+    iconColor: "text-primary dark:text-primary",
+    hover: "hover:bg-secondary/30 dark:hover:bg-primary/5",
   },
   purple: {
     border: "border-l-purple-500",
@@ -41,7 +41,7 @@ const variants = {
   },
 };
 
-export function StatCard({ title, value, icon: Icon, description, variant = 'blue', onClick }: StatCardProps) {
+export function StatCard({ title, value, icon: Icon, description, variant = 'primary', onClick }: StatCardProps) {
   const style = variants[variant];
 
   return (

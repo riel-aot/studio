@@ -132,8 +132,8 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
           <div className="px-8 pt-10 pb-6 shrink-0 bg-background">
             <SheetHeader className="text-left">
               <SheetTitle className="text-2xl font-bold flex items-center gap-3 text-foreground">
-                <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-                  <UserPlus className="h-5 w-5 text-[#2F5BEA]" />
+                <div className="h-10 w-10 rounded-xl bg-secondary dark:bg-primary/10 flex items-center justify-center">
+                  <UserPlus className="h-5 w-5 text-primary" />
                 </div>
                 Manage Enrollment
               </SheetTitle>
@@ -169,7 +169,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                           <FormItem>
                             <FormLabel className="text-foreground font-bold text-[10px] uppercase tracking-wider">Full Name</FormLabel>
                             <FormControl>
-                              <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-border focus:border-[#2F5BEA] focus:ring-1 focus:ring-[#2F5BEA] text-sm bg-background" {...field} />
+                              <Input id="student-name-field" placeholder="Enter student's legal full name" className="h-12 rounded-xl border-border focus:border-primary focus:ring-1 focus:ring-primary text-sm bg-background" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -258,7 +258,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                       >
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={isLoading} className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm flex-1 sm:flex-none">
+                      <Button type="submit" disabled={isLoading} className="bg-primary hover:opacity-90 h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-primary/20 text-sm flex-1 sm:flex-none">
                         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
                         Add Student
                       </Button>
@@ -271,13 +271,13 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
             {/* Bulk Import Section */}
             <TabsContent value="bulk" className="flex-1 flex flex-col m-0 min-h-0 data-[state=inactive]:hidden">
               <div className="flex-1 overflow-y-auto px-8 space-y-8 pb-10">
-                <div className="p-5 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl flex gap-4 mt-2">
-                  <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
-                    <Info className="h-5 w-5 text-[#2F5BEA]" />
+                <div className="p-5 bg-secondary/50 dark:bg-primary/10 border border-secondary dark:border-primary/20 rounded-2xl flex gap-4 mt-2">
+                  <div className="h-10 w-10 rounded-xl bg-secondary dark:bg-primary/20 flex items-center justify-center shrink-0">
+                    <Info className="h-5 w-5 text-primary" />
                   </div>
                   <div className="text-sm text-foreground leading-relaxed pt-1">
-                    <p className="font-bold text-[#2F5BEA] mb-1 uppercase tracking-wider text-[10px]">Import Guidelines</p>
-                    <p className="text-xs font-medium">Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">name</span>, <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">student_id</span>, <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">grade</span>, and <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">parent_email</span>.</p>
+                    <p className="font-bold text-primary mb-1 uppercase tracking-wider text-[10px]">Import Guidelines</p>
+                    <p className="text-xs font-medium">Upload a .csv or .xlsx file. Ensure columns include: <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">name</span>, <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">student_id</span>, <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">grade</span>, and <span className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">parent_email</span>.</p>
                   </div>
                 </div>
 
@@ -325,7 +325,7 @@ export function AddStudentDrawer({ isOpen, onOpenChange, onSuccess }: AddStudent
                   <Button 
                     onClick={handleBulkUpload} 
                     disabled={isLoading || bulkFiles.length === 0}
-                    className="bg-[#2F5BEA] hover:bg-[#2447C6] h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm flex-1 sm:flex-none"
+                    className="bg-primary hover:opacity-90 h-12 px-8 font-bold rounded-xl transition-all shadow-md shadow-primary/20 text-sm flex-1 sm:flex-none"
                   >
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                     Process Roster
