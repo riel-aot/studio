@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
-// Note: Standard fonts are used for maximum reliability without extra loading overhead
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -12,84 +11,105 @@ const styles = StyleSheet.create({
   },
   headerBar: {
     height: 4,
-    backgroundColor: '#FF764D', // Athena Primary
-    marginBottom: 20,
+    backgroundColor: '#FF764D',
+    marginBottom: 25,
   },
   brandRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 50,
   },
-  brandName: {
-    fontSize: 20,
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoCircle: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#FF764D',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  logoA: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  brandText: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FF764D',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   recordLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#94a3b8',
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
   summaryBlock: {
-    marginBottom: 30,
+    marginBottom: 40,
   },
   studentName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#111827',
     marginBottom: 4,
   },
   assignmentTitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#64748b',
-    marginBottom: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   metaGrid: {
     flexDirection: 'row',
-    marginTop: 10,
+    marginTop: 20,
     borderTop: 1,
     borderBottom: 1,
     borderColor: '#f1f5f9',
-    paddingVertical: 10,
+    paddingVertical: 15,
   },
   metaItem: {
-    marginRight: 30,
+    marginRight: 40,
   },
   metaLabel: {
-    fontSize: 7,
+    fontSize: 6,
     color: '#94a3b8',
     textTransform: 'uppercase',
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 4,
+    letterSpacing: 1,
   },
   metaValue: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#111827',
     fontWeight: 'bold',
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#FF764D',
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    marginTop: 25,
-    marginBottom: 12,
+    marginTop: 30,
+    marginBottom: 15,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 12,
   },
   scoreCard: {
     width: '48%',
-    padding: 12,
+    padding: 14,
     backgroundColor: '#f8fafc',
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#f1f5f9',
     flexDirection: 'row',
@@ -102,15 +122,17 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   scoreBadge: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#FF764D',
   },
   narrativeBox: {
-    padding: 20,
+    padding: 24,
     backgroundColor: '#f8fafc',
-    borderRadius: 12,
+    borderRadius: 14,
     marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
   narrativeText: {
     fontSize: 10,
@@ -126,11 +148,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     borderTop: 1,
     borderColor: '#f1f5f9',
-    paddingTop: 15,
+    paddingTop: 20,
   },
   footerText: {
     fontSize: 7,
     color: '#94a3b8',
+    letterSpacing: 0.5,
   }
 });
 
@@ -174,12 +197,17 @@ export function ReportPDFTemplate({
   teacherFeedback 
 }: ReportPDFTemplateProps) {
   return (
-    <Document title={`Report - ${studentName}`}>
+    <Document title={`Academic Report - ${studentName}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerBar} />
         
         <View style={styles.brandRow}>
-          <Text style={styles.brandName}>ATHΞNA</Text>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoA}>A</Text>
+            </View>
+            <Text style={styles.brandText}>THENA</Text>
+          </View>
           <Text style={styles.recordLabel}>Official Academic Record</Text>
         </View>
 
@@ -212,13 +240,13 @@ export function ReportPDFTemplate({
         <Text style={styles.sectionTitle}>Teacher Narrative Feedback</Text>
         <View style={styles.narrativeBox}>
           <Text style={styles.narrativeText}>
-            "{teacherFeedback || 'No additional narrative provided.'}"
+            {teacherFeedback ? `"${teacherFeedback}"` : 'No additional narrative provided for this record.'}
           </Text>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            © 2026 Athena Education Platform | This report is an official academic summary generated for parent review.
+            &copy; 2026 Athena Education Platform | This report is an official academic summary generated for parent review.
           </Text>
         </View>
       </Page>
