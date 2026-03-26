@@ -17,6 +17,7 @@ import type { AssessmentListItem, AssessmentListPayload, AssessmentListResponse,
 import { AlertCircle, ChevronRight, FilePlus, Search } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { OnboardingTour } from '@/components/onboarding-tour';
+import { cn } from '@/lib/utils';
 import {
   Pagination,
   PaginationContent,
