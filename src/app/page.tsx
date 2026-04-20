@@ -192,13 +192,13 @@ export default function AthenaLandingPage() {
                 </div>
               </div>
 
-              {/* Image Container - Showing more of the scene */}
-              <div className="relative h-48 md:h-56 w-full mt-8 overflow-hidden rounded-2xl">
+              {/* Image Container - Stabilized with fixed aspect ratio to prevent repositioning on resize */}
+              <div className="relative aspect-[16/8] w-full mt-8 overflow-hidden rounded-2xl">
                 <Image
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                   priority
                 />
               </div>
