@@ -198,7 +198,7 @@ export default function AthenaLandingPage() {
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover object-top scale-110 origin-top translate-y-[10px]"
+                  className="object-cover object-top scale-110 origin-top translate-y-[-70px]"
                   priority
                 />
               </div>
