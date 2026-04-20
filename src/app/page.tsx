@@ -199,7 +199,7 @@ export default function AthenaLandingPage() {
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover"
+                  className="object-cover scale-150"
                   priority
                 />
               </div>
