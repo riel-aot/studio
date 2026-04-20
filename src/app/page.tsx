@@ -192,13 +192,13 @@ export default function AthenaLandingPage() {
                 </div>
               </div>
 
-              {/* Image Container - Adjusted to show more of the top */}
+              {/* Image Container - Showing more of the scene */}
               <div className="relative h-48 md:h-56 w-full mt-8 overflow-hidden rounded-2xl">
                 <Image
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover object-top scale-110 origin-top translate-y-[-70px]"
+                  className="object-cover"
                   priority
                 />
               </div>
