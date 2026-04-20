@@ -253,10 +253,6 @@ export default function AthenaLandingPage() {
                       </div>
 
                       <form onSubmit={handleLogin} className="space-y-5 flex-1 flex flex-col">
-                        <p className="text-sm text-muted-foreground text-center leading-relaxed">
-                          Continue to AWS Cognito secure sign-in to access your {role === 'teacher' ? 'teacher' : 'parent'} workspace.
-                        </p>
-
                         {isError && (
                           <p className="text-xs font-medium text-destructive text-center">
                             Could not start secure sign-in. Please check Cognito configuration.
@@ -268,14 +264,8 @@ export default function AthenaLandingPage() {
                           disabled={isLoading}
                           className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm mt-2"
                         >
-                          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Continue To Secure Sign In"}
+                          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Continue to Sign In"}
                         </Button>
-
-                        <div className="text-center mt-auto">
-                          <button type="button" className="text-xs font-semibold text-primary hover:underline">
-                            Forgot password?
-                          </button>
-                        </div>
 
                         <div className="relative py-2">
                           <div className="absolute inset-0 flex items-center">
