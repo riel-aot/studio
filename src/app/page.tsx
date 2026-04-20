@@ -193,12 +193,12 @@ export default function AthenaLandingPage() {
               </div>
 
               {/* Image Container - Using overflow-hidden to prevent scaled image from moving off-screen */}
-              <div className="relative h-52 md:h-64 w-full mt-8 overflow-hidden rounded-2xl">
+              <div className="relative h-48 md:h-56 w-full mt-8 overflow-hidden rounded-2xl">
                 <Image
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover scale-150 origin-top object-top"
+                  className="object-cover scale-110 origin-center"
                   priority
                 />
               </div>
