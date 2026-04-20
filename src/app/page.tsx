@@ -89,11 +89,10 @@ export default function AthenaLandingPage() {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(newTheme);
+    localStorage.setItem('athena-theme', newTheme);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -164,7 +163,7 @@ export default function AthenaLandingPage() {
             className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-xl overflow-hidden grid lg:grid-cols-2 max-w-[1400px] w-full min-h-[750px] border border-border"
           >
             {/* Left Column: Value Proposition */}
-            <div className="pt-10 md:pt-16 px-10 md:px-16 pb-10 md:pb-16 flex flex-col justify-between bg-white dark:bg-[#111827]">
+            <div className="pt-10 md:pt-16 px-10 md:px-16 pb-10 md:px-16 flex flex-col justify-between bg-white dark:bg-[#111827]">
               <div className="space-y-8">
                 <AthenaBrand />
 
@@ -199,7 +198,7 @@ export default function AthenaLandingPage() {
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover scale-150"
+                  className="object-cover scale-150 origin-top object-top"
                   priority
                 />
               </div>
