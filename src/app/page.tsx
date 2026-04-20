@@ -244,13 +244,13 @@ export default function AthenaLandingPage() {
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       className="flex-1 flex flex-col"
                     >
-                      <div className="text-center mb-8">
+                      <div className="text-center mb-6">
                         <h2 className="text-2xl font-bold text-foreground tracking-tight uppercase">
                           Sign In
                         </h2>
                       </div>
 
-                      <form onSubmit={handleLogin} className="space-y-4 flex-1 flex flex-col">
+                      <form onSubmit={handleLogin} className="space-y-3 flex-1 flex flex-col">
                         {isError && (
                           <p className="text-xs font-medium text-destructive text-center">
                             Could not start secure sign-in. Please check Cognito configuration.
@@ -264,12 +264,12 @@ export default function AthenaLandingPage() {
                         <Button 
                           type="submit" 
                           disabled={isLoading}
-                          className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm mt-2"
+                          className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm"
                         >
                           {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
                         </Button>
 
-                        <div className="relative py-2">
+                        <div className="relative py-1">
                           <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-border"></span>
                           </div>
