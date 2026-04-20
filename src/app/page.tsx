@@ -264,9 +264,17 @@ export default function AthenaLandingPage() {
                         <Button 
                           type="submit" 
                           disabled={isLoading}
-                          className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm"
+                          className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm relative overflow-hidden group"
                         >
-                          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
+                            initial={{ x: '-100%' }}
+                            whileHover={{ x: '100%' }}
+                            transition={{ duration: 0.6, ease: "easeInOut" }}
+                          />
+                          <span className="relative z-10 flex items-center justify-center gap-2">
+                            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
+                          </span>
                         </Button>
 
                         <div className="relative py-1">
