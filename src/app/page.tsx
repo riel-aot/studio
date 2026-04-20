@@ -234,7 +234,7 @@ export default function AthenaLandingPage() {
                 animate={isError ? "error" : "idle"}
                 className="w-full max-w-[420px] space-y-6 mt-12"
               >
-                <div className="bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-lg border border-border flex flex-col h-fit">
+                <div className="bg-white dark:bg-[#111827] p-8 rounded-[2rem] shadow-lg border border-border flex flex-col h-fit">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={role}
@@ -248,7 +248,6 @@ export default function AthenaLandingPage() {
                         <h2 className="text-2xl font-bold text-foreground tracking-tight uppercase">
                           Sign In
                         </h2>
-                        <p className="text-muted-foreground text-xs mt-2 font-normal uppercase tracking-widest">ATHENA by ClassPulse</p>
                       </div>
 
                       <form onSubmit={handleLogin} className="space-y-4 flex-1 flex flex-col">
