@@ -73,7 +73,7 @@ export default function AthenaLandingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const { login } = useAuth();
+  const { login, skipLogin } = useAuth();
 
   useEffect(() => {
     // Show splash for 2.2 seconds then reveal page
@@ -307,6 +307,22 @@ export default function AthenaLandingPage() {
                   <button className="hover:text-foreground transition-colors">Privacy</button> | 
                   <button className="hover:text-foreground transition-colors"> Terms</button>
                 </footer>
+
+                {/* Developer Shortcuts */}
+                <div className="mt-6 flex items-center justify-center gap-3">
+                  <button 
+                    onClick={() => skipLogin('teacher')}
+                    className="px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 text-[9px] font-bold text-slate-500 uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Dev: Teacher
+                  </button>
+                  <button 
+                    onClick={() => skipLogin('parent')}
+                    className="px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 text-[9px] font-bold text-slate-500 uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Dev: Parent
+                  </button>
+                </div>
               </motion.div>
             </div>
           </motion.div>
