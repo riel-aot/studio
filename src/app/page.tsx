@@ -194,12 +194,12 @@ export default function AthenaLandingPage() {
               </div>
 
               {/* Image Container */}
-              <div className="relative h-52 md:h-64 w-full mt-8 rounded-2xl overflow-hidden border border-border/60 bg-secondary/30">
+              <div className="relative h-52 md:h-64 w-full mt-8 overflow-visible">
                 <Image
                   src="/images/athena-classroom.png"
                   alt="Athena classroom"
                   fill
-                  className="object-cover"
+                  className="object-cover scale-[2]"
                   priority
                 />
               </div>
