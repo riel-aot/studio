@@ -383,6 +383,11 @@ export function useWebhook<P, R>({
           title: 'New Assignment Created', 
           subtitle: `${p.title}` 
         }),
+        'PARENT_REPORT_OPENED': (p) => ({
+            type: 'report_generated',
+            title: 'Parent Viewed Report',
+            subtitle: `${p.studentName || 'Student'}'s record opened`
+        })
       };
 
       if (mutationEvents[eventName]) {

@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
+import { useAuth } from "@/hooks/use-auth";
 import type { ParentReportGetResponse } from "@/lib/events";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,11 +50,40 @@ export default function ParentReportPage() {
     const params = useParams();
     const reportId = params.id as string;
     const { toast } = useToast();
+    const { user } = useAuth();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const { data, isLoading, error } = useWebhook<{ reportId: string }, ParentReportGetResponse>({
         eventName: 'PARENT_REPORT_GET',
         payload: { reportId }
     });
+
+    const { trigger: notifyOpened } = useWebhook({
+        eventName: 'PARENT_REPORT_OPENED',
+        manual: true,
+    });
+
+    const report = data?.report;
+
+    useEffect(() => {
+        if (report && isClient && reportId) {
+            const storageKey = `athena_report_notified_${reportId}`;
+            const hasBeenNotified = localStorage.getItem(storageKey);
+            
+            if (!hasBeenNotified) {
+                notifyOpened({ 
+                    reportId, 
+                    studentName: report.childName,
+                    parentEmail: user?.email 
+                });
+                localStorage.setItem(storageKey, 'true');
+            }
+        }
+    }, [report, reportId, isClient, notifyOpened, user?.email]);
 
     const { trigger: downloadPdf, isLoading: isDownloading } = useWebhook<{ reportId: string }, { fileContent: string }>({
         eventName: 'REPORT_DOWNLOAD_PDF',
@@ -63,8 +94,6 @@ export default function ParentReportPage() {
         },
         errorMessage: "Failed to download PDF."
     });
-
-    const report = data?.report;
 
   return (
     <div>

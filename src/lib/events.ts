@@ -53,6 +53,7 @@ export type EventName =
   | 'PARENT_CHILDREN_LIST'
   | 'PARENT_REPORTS_LIST'
   | 'PARENT_REPORT_GET'
+  | 'PARENT_REPORT_OPENED'
 
   // Other
   | 'HEALTH_CHECK';
@@ -513,6 +514,14 @@ export interface ParentReportGetResponse {
   correlationId: string;
 }
 
+export interface ParentReportOpenedRequest {
+  eventName: 'PARENT_REPORT_OPENED';
+  requestId: string;
+  timestamp: string;
+  actor: { role: UserRole; userId: string };
+  payload: { reportId: string; studentName: string; parentEmail?: string };
+}
+
 // === OTHER EVENTS ===
 
 export interface HealthCheckRequest {
@@ -560,6 +569,7 @@ export type WebhookRequestUnion =
   | ParentChildrenListRequest
   | ParentReportsListRequest
   | ParentReportGetRequest
+  | ParentReportOpenedRequest
   | HealthCheckRequest;
 
 export type WebhookResponseUnion =
