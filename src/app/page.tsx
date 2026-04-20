@@ -257,12 +257,16 @@ export default function AthenaLandingPage() {
                           </p>
                         )}
 
+                        <p className="text-sm text-muted-foreground text-center font-medium">
+                          Your AI-assisted grading workspace
+                        </p>
+
                         <Button 
                           type="submit" 
                           disabled={isLoading}
                           className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm mt-2"
                         >
-                          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Continue to Sign In"}
+                          {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
                         </Button>
 
                         <div className="relative py-2">
