@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWebhook } from "@/lib/hooks";
 import type { HealthCheckData, UserSettings } from "@/lib/events";
-import { CheckCircle2, AlertCircle, RefreshCw, Server, Database, Lock, User, Bell, ShieldCheck, Globe, Clock, BookOpen, GraduationCap, Calendar, ExternalLink, Camera, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, RefreshCw, Server, Database, Lock, User, Bell, ShieldCheck, Globe, Clock, BookOpen, GraduationCap, Calendar, Camera, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -45,27 +45,28 @@ export default function SettingsPage() {
     const isAdmin = user?.role === 'admin';
     const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
     const [localName, setLocalName] = useState(user?.name ?? '');
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [isSavingLocal, setIsSavingLocal] = useState(false);
 
-    // Persistence Layer: Fetch existing settings
-    const { isLoading: isFetchingSettings } = useWebhook<{}, { settings: UserSettings }>({
-        eventName: 'USER_SETTINGS_GET',
-        onSuccess: (data) => {
-            if (data?.settings) {
-                setSettings(data.settings);
-                // Apply theme immediately to document
-                applyTheme(data.settings.theme);
+    // Persistence Layer: Load from LocalStorage keyed by User ID
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const storageKey = `athena_settings_${user.id}`;
+        const saved = localStorage.getItem(storageKey);
+        
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+                // Note: Theme is applied via layout script for speed, 
+                // but we sync it here for the UI state.
+            } catch (e) {
+                console.warn("Failed to parse settings", e);
             }
-        },
-        suppressErrorToast: true
-    });
-
-    const { trigger: saveSettings, isLoading: isSaving } = useWebhook<{ settings: UserSettings }, { success: boolean }>({
-        eventName: 'USER_SETTINGS_SAVE',
-        manual: true,
-        onSuccess: () => {
-            toast({ title: "Settings Synchronized", description: "Your preferences are now saved to your profile and across devices." });
-        },
-    });
+        }
+        setIsInitialLoad(false);
+    }, [user?.id]);
 
     const applyTheme = (theme: 'light' | 'dark') => {
         const root = window.document.documentElement;
@@ -75,8 +76,35 @@ export default function SettingsPage() {
     };
 
     const handleSave = () => {
-        saveSettings({ settings });
+        if (!user?.id) return;
+        
+        setIsSavingLocal(true);
+        const storageKey = `athena_settings_${user.id}`;
+        
+        // Save to browser tied to user email/id
+        localStorage.setItem(storageKey, JSON.stringify(settings));
+        
+        // Sync Global Theme (device-wide setting)
+        applyTheme(settings.theme);
+
+        // Simulated delay for premium feel
+        setTimeout(() => {
+            setIsSavingLocal(false);
+            toast({ 
+                title: "Profile Synchronized", 
+                description: "Your preferences have been saved to your local profile." 
+            });
+        }, 600);
+
+        // OPTIONAL: Keep webhooks ready for when n8n is connected
+        // saveSettingsWebhook({ settings });
     };
+
+    // Webhooks are kept for future use but made manual to avoid errors
+    const { trigger: saveSettingsWebhook } = useWebhook<{ settings: UserSettings }, { success: boolean }>({
+        eventName: 'USER_SETTINGS_SAVE',
+        manual: true,
+    });
 
     const updateNestedSetting = (path: string, value: any) => {
         setSettings(prev => {
@@ -91,7 +119,7 @@ export default function SettingsPage() {
         });
     };
 
-    if (isFetchingSettings) {
+    if (isInitialLoad) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary opacity-20" />
@@ -183,7 +211,7 @@ export default function SettingsPage() {
                                         </div>
                                         <div className="space-y-3">
                                             <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">Interface Theme</Label>
-                                            <Select value={settings.theme} onValueChange={(v: 'light' | 'dark') => { updateNestedSetting('theme', v); applyTheme(v); }}>
+                                            <Select value={settings.theme} onValueChange={(v: 'light' | 'dark') => { updateNestedSetting('theme', v); }}>
                                                 <SelectTrigger className="h-12 bg-secondary/20 rounded-xl border-border/50">
                                                     <SelectValue />
                                                 </SelectTrigger>
@@ -211,8 +239,8 @@ export default function SettingsPage() {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="bg-secondary/5 p-8 border-t border-border/50 flex justify-end">
-                                    <Button onClick={handleSave} disabled={isSaving} className="font-bold rounded-xl h-12 px-10 shadow-lg shadow-primary/20">
-                                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Button onClick={handleSave} disabled={isSavingLocal} className="font-bold rounded-xl h-12 px-10 shadow-lg shadow-primary/20">
+                                        {isSavingLocal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         Save Changes
                                     </Button>
                                 </CardFooter>
@@ -294,8 +322,8 @@ export default function SettingsPage() {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="bg-secondary/5 p-8 border-t border-border/50 flex justify-end">
-                                    <Button onClick={handleSave} disabled={isSaving} className="font-bold rounded-xl h-12 px-10">
-                                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Button onClick={handleSave} disabled={isSavingLocal} className="font-bold rounded-xl h-12 px-10">
+                                        {isSavingLocal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         Update Preferences
                                     </Button>
                                 </CardFooter>
@@ -377,8 +405,8 @@ export default function SettingsPage() {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="bg-secondary/5 p-8 border-t border-border/50 flex justify-end">
-                                    <Button onClick={handleSave} disabled={isSaving} className="font-bold rounded-xl h-12 px-10">
-                                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Button onClick={handleSave} disabled={isSavingLocal} className="font-bold rounded-xl h-12 px-10">
+                                        {isSavingLocal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         Update Classroom Standards
                                     </Button>
                                 </CardFooter>
