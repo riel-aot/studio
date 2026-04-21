@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWebhook } from "@/lib/hooks";
 import type { ParentChildrenListResponse, ParentChild } from "@/lib/events";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, User, ChevronRight } from "lucide-react";
+import { AlertCircle, User, ChevronRight, Activity } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -77,8 +77,8 @@ export default function ParentDashboard() {
       )
   }
 
-  // If there's a legitimate connection error (and it's not a "no data" success-fallback)
-  if (error && data === null) {
+  // If there's a sync error and no cached data
+  if (error && (!data || !data.children)) {
       return (
           <div className="space-y-6">
             <PageHeader
@@ -86,16 +86,14 @@ export default function ParentDashboard() {
                 description="Connection notice."
                 hideBack
             />
-            <Alert variant="destructive" className="max-w-2xl mx-auto rounded-[2rem] p-8 border-2 border-primary/20 bg-card">
-                <AlertCircle className="h-6 w-6 text-primary" />
-                <AlertTitle className="text-lg font-bold uppercase tracking-widest text-primary mb-2">Service Temporarily Unavailable</AlertTitle>
-                <AlertDescription className="text-sm font-medium text-muted-foreground mb-6">
-                    Athena was unable to sync with the academic records. Please try refreshing your view or contact the school office if this persists.
-                    <div className="mt-6">
-                            <Button variant="outline" className="font-bold rounded-xl px-8 h-11 border-primary/20 hover:bg-primary/5" onClick={() => trigger()}>Retry Connection</Button>
-                        </div>
-                </AlertDescription>
-            </Alert>
+            <div className="max-w-2xl mx-auto p-12 text-center bg-card rounded-[2.5rem] border border-border shadow-sm">
+                <div className="h-16 w-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Activity className="h-8 w-8 text-muted-foreground animate-pulse" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Sync Notice</h3>
+                <p className="text-sm font-medium text-muted-foreground mb-8 max-w-md mx-auto">We encountered a temporary connection issue while retrieving your child's records. Please try again or contact your administrator.</p>
+                <Button onClick={() => trigger()} variant="outline" className="h-12 px-10 font-bold rounded-xl border-border">Retry Sync</Button>
+            </div>
           </div>
       )
   }
