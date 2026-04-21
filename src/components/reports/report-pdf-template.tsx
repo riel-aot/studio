@@ -5,10 +5,11 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
 
 /**
  * Register the Kenao font for the signature 'A' logo.
+ * Using a relative URL to ensure compatibility across development and production environments.
  */
 Font.register({
   family: 'Kenao',
-  src: 'https://athena.test-master.click/api/font', // Using absolute URL for server-side stability
+  src: '/api/font',
 });
 
 const styles = StyleSheet.create({
