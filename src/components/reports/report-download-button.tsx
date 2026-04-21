@@ -11,6 +11,7 @@ interface ReportDownloadButtonProps {
     student_name: string;
     assignment_title: string;
     teacher_feedback?: string;
+    ai_output?: string;
   };
   rubricGrades: Array<{
     criterionName: string;
@@ -22,7 +23,10 @@ interface ReportDownloadButtonProps {
 }
 
 export default function ReportDownloadButton({ report, rubricGrades, formattedDate, documentId }: ReportDownloadButtonProps) {
-  // Ensure we have a deterministic ID for the PDF filename and content
+  // Enforce the specific filename format: Athena_[Student Name].pdf
+  const filename = `Athena_${report.student_name.replace(/\s+/g, '_')}.pdf`;
+  
+  // Ensure we have a deterministic ID for the PDF content
   const displayId = documentId || `ATH-${report.student_name.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
   return (
@@ -34,10 +38,11 @@ export default function ReportDownloadButton({ report, rubricGrades, formattedDa
           date={formattedDate}
           rubricGrades={rubricGrades}
           teacherFeedback={report.teacher_feedback || ''}
+          aiOutput={report.ai_output}
           documentId={displayId}
         />
       }
-      fileName={`Athena_${report.student_name.replace(/\s+/g, '_')}.pdf`}
+      fileName={filename}
     >
       {({ loading, error }) => {
         if (error) {

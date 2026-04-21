@@ -8,7 +8,7 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
  */
 Font.register({
   family: 'Kenao',
-  src: '/api/font', 
+  src: 'https://athena.test-master.click/api/font', // Using absolute URL for server-side stability
 });
 
 const styles = StyleSheet.create({
@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
     letterSpacing: 1.8,
-    marginTop: 50,
-    marginBottom: 25,
+    marginTop: 40,
+    marginBottom: 20,
   },
   gradesGrid: {
     flexDirection: 'row',
@@ -115,8 +115,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
   },
+  briefContainer: {
+    padding: 20,
+    backgroundColor: 'rgba(255, 118, 77, 0.03)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 118, 77, 0.1)',
+    marginBottom: 20,
+  },
+  briefText: {
+    fontSize: 11,
+    lineHeight: 1.6,
+    color: '#64748b',
+    fontStyle: 'italic',
+  },
   narrativeContainer: {
-    padding: 30,
+    padding: 25,
     backgroundColor: '#f8fafc',
     borderRadius: 18,
     borderWidth: 1,
@@ -156,6 +170,7 @@ interface ReportPDFTemplateProps {
     maxScore: number;
   }>;
   teacherFeedback: string;
+  aiOutput?: string;
   documentId: string;
 }
 
@@ -181,9 +196,11 @@ const normalizeScore = (score: number, maxScore?: number): number => {
 
 export function ReportPDFTemplate({ 
   studentName, 
+  assignmentTitle,
   date, 
   rubricGrades, 
   teacherFeedback,
+  aiOutput,
   documentId
 }: ReportPDFTemplateProps) {
   return (
@@ -202,6 +219,10 @@ export function ReportPDFTemplate({
           <Text style={styles.studentName}>{studentName}</Text>
           
           <View style={styles.metaGrid}>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>Assignment</Text>
+              <Text style={styles.metaValue}>{assignmentTitle}</Text>
+            </View>
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Date Issued</Text>
               <Text style={styles.metaValue}>{date}</Text>
@@ -225,6 +246,16 @@ export function ReportPDFTemplate({
             ))}
           </View>
         </View>
+
+        {/* AI Original Analysis (Document Background) */}
+        {aiOutput && (
+            <View>
+                <Text style={styles.sectionHeader}>AI Intelligence Brief</Text>
+                <View style={styles.briefContainer}>
+                    <Text style={styles.briefText}>{aiOutput}</Text>
+                </View>
+            </View>
+        )}
 
         {/* Qualitative Commentary */}
         <View>
