@@ -68,6 +68,7 @@ const READ_EVENT_NAMES = new Set<EventName>([
   'PARENT_REPORT_GET',
   'GET_DASHBOARD_SUMMARY',
   'HEALTH_CHECK',
+  'USER_SETTINGS_GET'
 ]);
 
 export function useWebhook<P, R>({
@@ -85,7 +86,7 @@ export function useWebhook<P, R>({
   cacheStorage = 'local',
   forceRefreshOnMount = false,
   fallbackToCacheOnError = true,
-  suppressErrorToast = false,
+  suppressErrorToast, // Default will be computed based on eventName
 }: UseWebhookOptions<P>) {
   const { user, token } = useAuth();
   const payload = useMemo(() => initialPayload, [JSON.stringify(initialPayload)]);
@@ -129,6 +130,12 @@ export function useWebhook<P, R>({
   const [error, setError] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(!manual);
   const { toast } = useToast();
+
+  // Compute suppression: default to true for READ events to avoid "No Data" popups for new users
+  const shouldSuppressToast = useMemo(() => {
+    if (suppressErrorToast !== undefined) return suppressErrorToast;
+    return READ_EVENT_NAMES.has(eventName);
+  }, [suppressErrorToast, eventName]);
 
   const callWebhook = useCallback(async (triggerPayload?: P): Promise<WebhookResponse<R> | void> => {
     if (!user || !token) {
@@ -347,7 +354,7 @@ export function useWebhook<P, R>({
           onError(error);
         }
         
-        if (!suppressErrorToast) {
+        if (!shouldSuppressToast) {
           toast({
             variant: 'destructive',
             title: 'System Notice',
@@ -421,7 +428,7 @@ export function useWebhook<P, R>({
       if (onError) {
         onError(err);
       }
-      if (!suppressErrorToast) {
+      if (!shouldSuppressToast) {
         toast({
           variant: 'destructive',
           title: 'Connection Notice',
@@ -444,7 +451,7 @@ export function useWebhook<P, R>({
     allowEchoResponse, 
     allowRawResponse, 
     fallbackToCacheOnError, 
-    suppressErrorToast,
+    shouldSuppressToast,
     readCache, 
     isCacheFresh, 
     resolvedCacheKey, 
