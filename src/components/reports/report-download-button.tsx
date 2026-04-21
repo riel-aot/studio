@@ -32,7 +32,7 @@ export default function ReportDownloadButton({ report, rubricGrades, formattedDa
           teacherFeedback={report.teacher_feedback || ''}
         />
       }
-      fileName={`Report_${report.student_name.replace(/\s+/g, '_')}.pdf`}
+      fileName={`Athena_${report.student_name}.pdf`}
     >
       {({ loading, error }) => {
         if (error) {
@@ -47,12 +47,12 @@ export default function ReportDownloadButton({ report, rubricGrades, formattedDa
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Preparing...
+                Preparing PDF...
               </>
             ) : (
               <>
                 <Download className="mr-2 h-4 w-4" />
-                Download PDF Copy
+                Download PDF
               </>
             )}
           </Button>

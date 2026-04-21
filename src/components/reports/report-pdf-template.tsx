@@ -3,8 +3,9 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
-// Register the Kenao font for use in the PDF signature logo.
-// We use our dedicated API route to fetch the font binary safely.
+/**
+ * Register the Kenao font for the signature 'A' logo.
+ */
 Font.register({
   family: 'Kenao',
   src: '/api/font', 
@@ -12,7 +13,7 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: {
-    padding: 60,
+    padding: 70,
     backgroundColor: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
@@ -23,89 +24,81 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   logoMark: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     backgroundColor: '#FF764D',
-    borderRadius: 10,
+    borderRadius: 12,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoLetter: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: 'Kenao',
     textTransform: 'uppercase',
-    marginTop: 4, // Visual alignment for the Kenao 'A'
+    marginTop: 4,
   },
   recordType: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#94a3b8',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 2.5,
   },
   studentSection: {
-    marginBottom: 45,
+    marginBottom: 50,
   },
   studentName: {
-    fontSize: 38,
+    fontSize: 42,
     fontFamily: 'Helvetica-Bold',
     color: '#111827',
-    marginBottom: 6,
-    letterSpacing: -1,
-  },
-  assignmentTitle: {
-    fontSize: 13,
-    color: '#64748b',
-    fontFamily: 'Helvetica-Bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 25,
+    marginBottom: 8,
+    letterSpacing: -1.2,
   },
   metaGrid: {
     flexDirection: 'row',
-    marginTop: 10,
-    paddingTop: 20,
+    marginTop: 15,
+    paddingTop: 25,
     borderTop: 1,
     borderColor: '#f1f5f9',
-    gap: 40,
+    gap: 50,
   },
   metaItem: {
     flexDirection: 'column',
   },
   metaLabel: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#94a3b8',
     textTransform: 'uppercase',
     fontFamily: 'Helvetica-Bold',
-    marginBottom: 5,
-    letterSpacing: 0.5,
+    marginBottom: 6,
+    letterSpacing: 0.8,
   },
   metaValue: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#111827',
     fontFamily: 'Helvetica-Bold',
   },
   sectionHeader: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#FF764D',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginTop: 45,
-    marginBottom: 20,
+    letterSpacing: 1.8,
+    marginTop: 50,
+    marginBottom: 25,
   },
   gradesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 14,
+    gap: 16,
   },
   gradeCard: {
     width: '48.5%',
-    padding: 18,
+    padding: 20,
     backgroundColor: '#f8fafc',
-    borderRadius: 14,
+    borderRadius: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -113,24 +106,24 @@ const styles = StyleSheet.create({
     borderColor: '#f1f5f9',
   },
   criterionText: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Helvetica-Bold',
     color: '#334155',
   },
   levelText: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
   },
   narrativeContainer: {
-    padding: 25,
+    padding: 30,
     backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#f1f5f9',
   },
   narrativeText: {
-    fontSize: 12,
+    fontSize: 13,
     lineHeight: 1.7,
     color: '#475569',
     fontStyle: 'italic',
@@ -138,17 +131,18 @@ const styles = StyleSheet.create({
   footer: {
     position: 'absolute',
     bottom: 40,
-    left: 60,
-    right: 60,
+    left: 70,
+    right: 70,
     textAlign: 'center',
     borderTop: 1,
     borderColor: '#f1f5f9',
-    paddingTop: 20,
+    paddingTop: 25,
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 8.5,
     color: '#cbd5e1',
-    letterSpacing: 0.5,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 0.8,
   }
 });
 
@@ -186,7 +180,6 @@ const normalizeScore = (score: number, maxScore?: number): number => {
 
 export function ReportPDFTemplate({ 
   studentName, 
-  assignmentTitle, 
   date, 
   rubricGrades, 
   teacherFeedback 
@@ -194,6 +187,7 @@ export function ReportPDFTemplate({
   return (
     <Document title={`Academic Report - ${studentName}`}>
       <Page size="A4" style={styles.page}>
+        {/* Modern Brand Header */}
         <View style={styles.header}>
           <View style={styles.logoMark}>
             <Text style={styles.logoLetter}>A</Text>
@@ -201,9 +195,9 @@ export function ReportPDFTemplate({
           <Text style={styles.recordType}>Academic Report</Text>
         </View>
 
+        {/* Student Record Identification */}
         <View style={styles.studentSection}>
           <Text style={styles.studentName}>{studentName}</Text>
-          <Text style={styles.assignmentTitle}>{assignmentTitle}</Text>
           
           <View style={styles.metaGrid}>
             <View style={styles.metaItem}>
@@ -212,11 +206,12 @@ export function ReportPDFTemplate({
             </View>
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Document ID</Text>
-              <Text style={styles.metaValue}>OFFICIAL-RECORD</Text>
+              <Text style={styles.metaValue}>00000000</Text>
             </View>
           </View>
         </View>
 
+        {/* Evaluation Summary */}
         <View>
           <Text style={styles.sectionHeader}>Proficiency Breakdown</Text>
           <View style={styles.gradesGrid}>
@@ -229,6 +224,7 @@ export function ReportPDFTemplate({
           </View>
         </View>
 
+        {/* Qualitative Commentary */}
         <View>
           <Text style={styles.sectionHeader}>Teacher Narrative</Text>
           <View style={styles.narrativeContainer}>
@@ -238,6 +234,7 @@ export function ReportPDFTemplate({
           </View>
         </View>
 
+        {/* Official Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Generated via Athena Assessment Systems • Official Student Progress Record

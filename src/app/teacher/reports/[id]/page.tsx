@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import { Separator } from '@/components/ui/separator';
 import dynamic from 'next/dynamic';
@@ -56,6 +56,7 @@ interface FinalizedReport {
   assignment_title: string;
   rubric_name: string;
   teacher_feedback?: string;
+  ai_output?: string;
     rubric_grades?: Array<{
         score: number;
         maxScore: number;
@@ -377,12 +378,28 @@ export default function ReportDetailPage() {
                             </div>
                            
                             <Separator className="bg-border/50" />
+
+                            {/* AI Original Analysis Section */}
+                            {report.ai_output && (
+                              <div className="p-4 rounded-xl border border-primary/10 bg-primary/5 space-y-3">
+                                  <div className="flex items-center gap-2">
+                                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest">AI Intelligence Brief</p>
+                                  </div>
+                                  <p className="text-xs italic text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                      {report.ai_output}
+                                  </p>
+                              </div>
+                            )}
                            
-                            <div className="p-4 rounded-xl border border-primary/10 bg-primary/5">
-                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">Academic Note</p>
-                                <p className="text-xs leading-relaxed text-muted-foreground font-medium">
-                                    This record is finalized and synced with the parent portal. Proficiency levels are calculated based on the global academic scale.
-                                </p>
+                            <div className="p-4 rounded-xl border border-primary/10 bg-primary/5 flex items-start gap-3">
+                                <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Academic Note</p>
+                                    <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
+                                        This record is finalized and synced with the parent portal.
+                                    </p>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
