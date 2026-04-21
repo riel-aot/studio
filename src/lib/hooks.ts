@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -368,28 +369,28 @@ export function useWebhook<P, R>({
       const mutationEvents: Record<string, (p: any) => { type: any, title: string, subtitle: string }> = {
         'STUDENT_CREATE': (p) => ({ 
           type: 'student_added', 
-          title: 'New Student Added', 
-          subtitle: `${p.name} enrolled` 
+          title: `${p.name || 'New student'} enrolled in roster`, 
+          subtitle: 'Academic profile created' 
         }),
         'ASSESSMENT_FINALIZE': (p) => ({ 
           type: 'assessment_finalized', 
-          title: 'Grading Successful', 
-          subtitle: `${p.student_name || 'Student'} · ${p.assignment_title || 'Assessment'}` 
+          title: `${p.student_name || 'Student'}, ${p.assignment_title || 'Assessment'}, grading successful`, 
+          subtitle: `Finalized by ${userName || 'Teacher'}` 
         }),
         'REPORT_GENERATE': (p) => ({ 
           type: 'report_generated', 
-          title: 'Report Compiled', 
-          subtitle: `Summary for student ${p.studentId}` 
+          title: `Academic report compiled for ${p.studentId}`, 
+          subtitle: 'Synchronized with portal' 
         }),
         'ASSESSMENT_CREATE_DRAFT': (p) => ({ 
           type: 'assessment_created', 
-          title: 'New Assignment Created', 
-          subtitle: `${p.title}` 
+          title: `New assignment draft: ${p.title}`, 
+          subtitle: 'Ready for classroom use' 
         }),
         'PARENT_REPORT_OPENED': (p) => ({
             type: 'report_generated',
-            title: 'Parent Viewed Report',
-            subtitle: `${p.studentName || 'Student'}'s record opened`
+            title: `Parent viewed ${p.studentName || 'Student'}'s report`,
+            subtitle: 'Read confirmation received'
         })
       };
 
