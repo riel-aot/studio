@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,7 @@ export default function AthenaLandingPage() {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { login, skipLogin } = useAuth();
+  const vantaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Show splash for 2.2 seconds then reveal page
@@ -85,6 +86,53 @@ export default function AthenaLandingPage() {
     
     return () => clearTimeout(timer);
   }, []);
+
+  // Vanta Topology Effect
+  useEffect(() => {
+    if (!isIntroComplete) return;
+
+    let vantaEffect: any;
+    const loadVantaScripts = async () => {
+      // Inject p5.js
+      if (!(window as any).p5) {
+        const p5Script = document.createElement('script');
+        p5Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js';
+        p5Script.async = true;
+        document.body.appendChild(p5Script);
+        await new Promise((resolve) => p5Script.onload = resolve);
+      }
+
+      // Inject Vanta Topology
+      if (!(window as any).VANTA || !(window as any).VANTA.TOPOLOGY) {
+        const vantaScript = document.createElement('script');
+        vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.topology.min.js';
+        vantaScript.async = true;
+        document.body.appendChild(vantaScript);
+        await new Promise((resolve) => vantaScript.onload = resolve);
+      }
+
+      if (vantaRef.current && (window as any).VANTA?.TOPOLOGY) {
+        vantaEffect = (window as any).VANTA.TOPOLOGY({
+          el: vantaRef.current,
+          mouseControls: true,
+          touchControls: true,
+          gyroControls: false,
+          minHeight: 200.00,
+          minWidth: 200.00,
+          scale: 1.00,
+          scaleMobile: 1.00,
+          backgroundColor: 0x222222,
+          color: 0x89964e
+        });
+      }
+    };
+
+    loadVantaScripts();
+
+    return () => {
+      if (vantaEffect) vantaEffect.destroy();
+    };
+  }, [isIntroComplete]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -192,7 +240,7 @@ export default function AthenaLandingPage() {
                 </div>
               </div>
 
-              {/* Image Container - Stabilized with fixed aspect ratio to prevent repositioning on resize */}
+              {/* Image Container - Stabilized with fixed aspect ratio */}
               <div className="relative aspect-[16/8] w-full mt-8 overflow-hidden rounded-2xl">
                 <Image
                   src="/images/athena-classroom.png"
@@ -205,7 +253,10 @@ export default function AthenaLandingPage() {
             </div>
 
             {/* Right Column: Login Card Area */}
-            <div className="bg-secondary dark:bg-[#0F172A] p-8 md:p-12 flex flex-col items-center justify-center relative">
+            <div className="bg-secondary dark:bg-[#0F172A] p-8 md:p-12 flex flex-col items-center justify-center relative overflow-hidden">
+              
+              {/* Vanta Topology Background Layer */}
+              <div ref={vantaRef} className="absolute inset-0 z-0 opacity-100 dark:opacity-80" />
               
               {/* Role Switcher Pill */}
               <div className="absolute top-12 flex bg-white dark:bg-[#111827] p-1 rounded-full shadow-sm border border-border z-10">
@@ -232,7 +283,7 @@ export default function AthenaLandingPage() {
               <motion.div 
                 variants={cardVariants}
                 animate={isError ? "error" : "idle"}
-                className="w-full max-w-[380px] space-y-4 mt-12"
+                className="w-full max-w-[380px] space-y-4 mt-12 relative z-10"
               >
                 <div className="bg-white dark:bg-[#111827] p-6 rounded-[2rem] shadow-lg border border-border flex flex-col h-fit">
                   <AnimatePresence mode="wait">
@@ -244,20 +295,20 @@ export default function AthenaLandingPage() {
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       className="flex-1 flex flex-col"
                     >
-                      <div className="text-center mb-4">
+                      <div className="text-center mb-3">
                         <h2 className="text-xl font-bold text-foreground tracking-tight uppercase">
                           Sign In
                         </h2>
                       </div>
 
-                      <form onSubmit={handleLogin} className="space-y-4 flex-1 flex flex-col">
+                      <form onSubmit={handleLogin} className="space-y-3 flex-1 flex flex-col">
                         {isError && (
-                          <p className="text-xs font-medium text-destructive text-center">
+                          <p className="text-[10px] font-medium text-destructive text-center">
                             Could not start secure sign-in. Please check Cognito configuration.
                           </p>
                         )}
 
-                        <p className="text-xs text-muted-foreground text-center font-medium">
+                        <p className="text-[11px] text-muted-foreground text-center font-bold uppercase tracking-wider">
                           Your AI-assisted grading workspace
                         </p>
 
@@ -267,7 +318,7 @@ export default function AthenaLandingPage() {
                           className="w-full bg-primary hover:opacity-90 h-12 text-base font-bold rounded-xl transition-all shadow-sm relative overflow-hidden group"
                         >
                           {/* Shimmer Wave Animation */}
-                          <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none" />
+                          <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-2000 ease-in-out pointer-events-none" />
                           
                           <span className="relative z-10 flex items-center justify-center gap-2">
                             {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "Sign In"}
