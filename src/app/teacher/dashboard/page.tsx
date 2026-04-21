@@ -19,7 +19,7 @@ import type { DashboardKpis, ReportListItem, StudentListItem, StudentListRespons
 import { decodeMaybeEncodedParam, normalizeAssessmentIdentifier } from '@/lib/utils';
 import { activityTracker } from '@/lib/activity-tracker';
 import { isWebhookConfigured } from '@/lib/webhook-config';
-import { FilePlus, PenSquare, AlertCircle, Activity, FileCheck2, UserPlus, Sparkles, TrendingUp, ShieldCheck, Lightbulb, Loader2 } from 'lucide-react';
+import { FilePlus, PenSquare, Activity, FileCheck2, UserPlus, Sparkles, TrendingUp, ShieldCheck, Lightbulb, Loader2 } from 'lucide-react';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, LineChart, Line, CartesianGrid, Legend } from 'recharts';
 import Image from 'next/image';
@@ -472,8 +472,6 @@ export default function TeacherDashboard() {
 
   if ((hasDashboardSummaryEndpoint && kpiLoading) || reviewQueueLoading || reportsListLoading) return <DashboardLoadingSkeleton />;
   
-  // If there's an error fetching KPIs but it's not a "no data" case, show error. 
-  // Otherwise, we gracefully handle the empty state in the render logic.
   if (hasDashboardSummaryEndpoint && kpiError && kpiData === null) return <ErrorState onRetry={() => { if (hasDashboardSummaryEndpoint && kpiError) refetchKpis(); }} />;
 
   const insightData = classPerformance?.criteriaBreakdown.length ? {
@@ -695,11 +693,13 @@ function DashboardLoadingSkeleton() {
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
-    <Alert variant="destructive" className="max-w-2xl mx-auto mt-20 p-8 rounded-[2rem] border-2">
-      <AlertCircle className="h-6 w-6" />
-      <AlertTitle className="text-lg font-black uppercase tracking-widest mb-2">Sync Notice</AlertTitle>
-      <AlertDescription className="text-sm font-medium mb-6 opacity-80">We encountered a temporary connection issue while retrieving your workspace data. Please try again or contact your administrator.</AlertDescription>
-      <Button variant="destructive" onClick={onRetry} className="h-12 px-8 font-black rounded-xl">Retry Connection</Button>
-    </Alert>
+    <div className="max-w-2xl mx-auto mt-20 p-12 text-center bg-card rounded-[2.5rem] border border-border shadow-sm">
+      <div className="h-16 w-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Activity className="h-8 w-8 text-muted-foreground animate-pulse" />
+      </div>
+      <h3 className="text-xl font-bold text-foreground">Sync Notice</h3>
+      <p className="text-sm font-medium text-muted-foreground mb-8 max-w-md mx-auto">We encountered a temporary connection issue while retrieving your workspace data. Please try again or contact your administrator.</p>
+      <Button onClick={onRetry} variant="outline" className="h-12 px-10 font-bold rounded-xl border-border">Retry Connection</Button>
+    </div>
   );
 }

@@ -334,6 +334,8 @@ export function useWebhook<P, R>({
         const errMessage = responseData.error?.message || `Backend returned error ${response.status}`;
         const errCode = responseData.error?.code;
         const backendStatus = parseBackendStatusCode(errMessage);
+        
+        // INTERCEPT NO DATA AS SUCCESS
         if (READ_EVENT_NAMES.has(eventName) && isNoDataFailure(response.status, backendStatus, errCode, errMessage)) {
           return completeWithEmptyResult();
         }
@@ -400,9 +402,12 @@ export function useWebhook<P, R>({
       return responseData;
     } catch (err: any) {
       const message = String(err?.message ?? '').toLowerCase();
+      
+      // INTERCEPT NO DATA IN CATCH BLOCK
       if (READ_EVENT_NAMES.has(eventName) && /no items|no data|not found|empty|no rows|not configured/.test(message)) {
         return completeWithEmptyResult();
       }
+      
       if (fallbackToCacheOnError) {
         const latestCache = readCache();
         if (latestCache && isCacheFresh(latestCache)) {
