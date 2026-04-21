@@ -297,6 +297,7 @@ export default function ReportDetailPage() {
                     {isClient && (
                         <ReportDownloadButton
                             report={report}
+                            rubricGrades={rubricGrades}
                             formattedDate={formattedDate}
                         />
                     )}
@@ -390,5 +391,3 @@ export default function ReportDetailPage() {
         </div>
     );
 }
- 
- 

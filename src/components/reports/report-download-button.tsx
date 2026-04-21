@@ -11,17 +11,16 @@ interface ReportDownloadButtonProps {
     student_name: string;
     assignment_title: string;
     teacher_feedback?: string;
-    rubric_grades?: Array<{
-      score: number;
-      maxScore: number;
-      criterionId: string;
-      criterionName: string;
-    }>;
   };
+  rubricGrades: Array<{
+    criterionName: string;
+    score: number;
+    maxScore: number;
+  }>;
   formattedDate: string;
 }
 
-export default function ReportDownloadButton({ report, formattedDate }: ReportDownloadButtonProps) {
+export default function ReportDownloadButton({ report, rubricGrades, formattedDate }: ReportDownloadButtonProps) {
   return (
     <PDFDownloadLink
       document={
@@ -29,31 +28,36 @@ export default function ReportDownloadButton({ report, formattedDate }: ReportDo
           studentName={report.student_name}
           assignmentTitle={report.assignment_title}
           date={formattedDate}
-          rubricGrades={report.rubric_grades || []}
+          rubricGrades={rubricGrades}
           teacherFeedback={report.teacher_feedback || ''}
         />
       }
       fileName={`Report_${report.student_name.replace(/\s+/g, '_')}.pdf`}
     >
-      {({ loading }) => (
-        <Button 
-          variant="outline" 
-          disabled={loading}
-          className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Preparing...
-            </>
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF Copy
-            </>
-          )}
-        </Button>
-      )}
+      {({ loading, error }) => {
+        if (error) {
+          console.error('[PDF Gen] Critical failure:', error);
+        }
+        return (
+          <Button 
+            variant="outline" 
+            disabled={loading}
+            className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Preparing...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF Copy
+              </>
+            )}
+          </Button>
+        );
+      }}
     </PDFDownloadLink>
   );
 }
