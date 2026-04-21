@@ -198,11 +198,11 @@ export function useWebhook<P, R>({
         return true;
       }
 
-      if (code === 'NOT_FOUND' || code === 'NO_DATA' || code === 'EMPTY_RESULT') {
+      if (code === 'NOT_FOUND' || code === 'NO_DATA' || code === 'EMPTY_RESULT' || code === 'NOT_CONFIGURED') {
         return true;
       }
 
-      return /no items|no data|not found|empty|no rows/.test(message);
+      return /no items|no data|not found|empty|no rows|not configured/.test(message);
     };
 
     const completeWithEmptyResult = () => {
@@ -400,7 +400,7 @@ export function useWebhook<P, R>({
       return responseData;
     } catch (err: any) {
       const message = String(err?.message ?? '').toLowerCase();
-      if (READ_EVENT_NAMES.has(eventName) && /no items|no data|not found|empty|no rows/.test(message)) {
+      if (READ_EVENT_NAMES.has(eventName) && /no items|no data|not found|empty|no rows|not configured/.test(message)) {
         return completeWithEmptyResult();
       }
       if (fallbackToCacheOnError) {

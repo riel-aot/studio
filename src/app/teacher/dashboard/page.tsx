@@ -166,11 +166,32 @@ export default function TeacherDashboard() {
   const [reviewQueueLoading, setReviewQueueLoading] = useState(false);
   const [toReviewCount, setToReviewCount] = useState(0);
 
-  const { data: kpiData, isLoading: kpiLoading, error: kpiError, trigger: refetchKpis } = useWebhook<{}, { kpis: DashboardKpis }>({ eventName: 'GET_DASHBOARD_SUMMARY', manual: !hasDashboardSummaryEndpoint, suppressErrorToast: !hasDashboardSummaryEndpoint });
-  const { data: studentsData } = useWebhook<{}, StudentListResponse | StudentListItem[]>({ eventName: 'STUDENT_LIST', allowRawResponse: true });
-  const { data: reportsListData, isLoading: reportsListLoading } = useWebhook<{}, any>({ eventName: 'REPORTS_LIST', payload: {}, suppressErrorToast: true });
-  const { trigger: fetchStudentAssessments } = useWebhook<{ studentId: string }, any>({ eventName: 'ASSESSMENT_LIST', manual: true, allowRawResponse: true, suppressErrorToast: true });
-  const { trigger: fetchReportDetails } = useWebhook<{ reportId?: string }, FinalizedReport | { report: FinalizedReport }>({ eventName: 'REPORT_GET', manual: true, suppressErrorToast: true });
+  const { data: kpiData, isLoading: kpiLoading, error: kpiError, trigger: refetchKpis } = useWebhook<{}, { kpis: DashboardKpis }>({ 
+    eventName: 'GET_DASHBOARD_SUMMARY', 
+    manual: !hasDashboardSummaryEndpoint, 
+    suppressErrorToast: true 
+  });
+  const { data: studentsData } = useWebhook<{}, StudentListResponse | StudentListItem[]>({ 
+    eventName: 'STUDENT_LIST', 
+    allowRawResponse: true,
+    suppressErrorToast: true
+  });
+  const { data: reportsListData, isLoading: reportsListLoading } = useWebhook<{}, any>({ 
+    eventName: 'REPORTS_LIST', 
+    payload: {}, 
+    suppressErrorToast: true 
+  });
+  const { trigger: fetchStudentAssessments } = useWebhook<{ studentId: string }, any>({ 
+    eventName: 'ASSESSMENT_LIST', 
+    manual: true, 
+    allowRawResponse: true, 
+    suppressErrorToast: true 
+  });
+  const { trigger: fetchReportDetails } = useWebhook<{ reportId?: string }, FinalizedReport | { report: FinalizedReport }>({ 
+    eventName: 'REPORT_GET', 
+    manual: true, 
+    suppressErrorToast: true 
+  });
 
   const fetchReportDetailsRef = useRef(fetchReportDetails);
   useEffect(() => { fetchReportDetailsRef.current = fetchReportDetails; });
@@ -450,7 +471,10 @@ export default function TeacherDashboard() {
   };
 
   if ((hasDashboardSummaryEndpoint && kpiLoading) || reviewQueueLoading || reportsListLoading) return <DashboardLoadingSkeleton />;
-  if (hasDashboardSummaryEndpoint && kpiError) return <ErrorState onRetry={() => { if (hasDashboardSummaryEndpoint && kpiError) refetchKpis(); }} />;
+  
+  // If there's an error fetching KPIs but it's not a "no data" case, show error. 
+  // Otherwise, we gracefully handle the empty state in the render logic.
+  if (hasDashboardSummaryEndpoint && kpiError && kpiData === null) return <ErrorState onRetry={() => { if (hasDashboardSummaryEndpoint && kpiError) refetchKpis(); }} />;
 
   const insightData = classPerformance?.criteriaBreakdown.length ? {
     strongest: [...classPerformance.criteriaBreakdown].sort((a, b) => b.averageScore - a.averageScore)[0].criterion,
@@ -568,10 +592,10 @@ export default function TeacherDashboard() {
                               {payload.map((e: any) => <div key={e.name} className="flex items-center justify-between gap-6"><div className="flex items-center gap-2"><div className="h-2 w-2 rounded-full" style={{ backgroundColor: e.color }} /><span className="text-[10px] font-bold opacity-70">{e.name}</span></div><span className="text-xs font-black">L{formatProficiencyLevel(e.value)}</span></div>)}
                             </div>
                           ) : null} />
-                          <Line type="monotone" dataKey="Listening" stroke="#8b5cf6" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
-                          <Line type="monotone" dataKey="Speaking" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
-                          <Line type="monotone" dataKey="Reading" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
-                          <Line type="monotone" dataKey="Writing" stroke="#f59e0b" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
+                          <Line type="monotone" stroke="#8b5cf6" dataKey="Listening" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
+                          <Line type="monotone" stroke="#3b82f6" dataKey="Speaking" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
+                          <Line type="monotone" stroke="#10b981" dataKey="Reading" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
+                          <Line type="monotone" stroke="#f59e0b" dataKey="Writing" strokeWidth={4} dot={{ r: 6, fill: 'white', strokeWidth: 3 }} activeDot={{ r: 8 }} />
                           <Legend verticalAlign="top" align="right" content={({ payload }) => <div className="flex gap-5 mb-8 justify-end">{payload?.map((e: any) => <div key={e.value} className="flex items-center gap-2"><div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: e.color }} /><span className="text-[10px] font-black uppercase text-muted-foreground">{e.value}</span></div>)}</div>} />
                         </LineChart>
                       )}

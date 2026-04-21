@@ -61,6 +61,7 @@ function DashboardSkeleton() {
 export default function ParentDashboard() {
   const { data, isLoading, error, trigger } = useWebhook<{}, ParentChildrenListResponse>({
       eventName: 'PARENT_CHILDREN_LIST',
+      suppressErrorToast: true
   });
 
   if (isLoading) {
@@ -76,7 +77,8 @@ export default function ParentDashboard() {
       )
   }
 
-  if (error) {
+  // If there's a legitimate connection error (and it's not a "no data" success-fallback)
+  if (error && data === null) {
       return (
           <div className="space-y-6">
             <PageHeader
