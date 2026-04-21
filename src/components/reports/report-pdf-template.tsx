@@ -156,6 +156,7 @@ interface ReportPDFTemplateProps {
     maxScore: number;
   }>;
   teacherFeedback: string;
+  documentId: string;
 }
 
 const formatProficiencyLevel = (score: number): string => {
@@ -182,7 +183,8 @@ export function ReportPDFTemplate({
   studentName, 
   date, 
   rubricGrades, 
-  teacherFeedback 
+  teacherFeedback,
+  documentId
 }: ReportPDFTemplateProps) {
   return (
     <Document title={`Academic Report - ${studentName}`}>
@@ -206,7 +208,7 @@ export function ReportPDFTemplate({
             </View>
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Document ID</Text>
-              <Text style={styles.metaValue}>00000000</Text>
+              <Text style={styles.metaValue}>{documentId}</Text>
             </View>
           </View>
         </View>

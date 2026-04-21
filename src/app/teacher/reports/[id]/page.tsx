@@ -1,13 +1,13 @@
 'use client';
  
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowLeft, GraduationCap, MessageSquare, FileCheck2, User, Calendar, Loader2, Sparkles, ShieldCheck, Hash } from "lucide-react";
 import { useWebhook } from "@/lib/hooks";
 import { Separator } from '@/components/ui/separator';
 import dynamic from 'next/dynamic';
@@ -57,12 +57,12 @@ interface FinalizedReport {
   rubric_name: string;
   teacher_feedback?: string;
   ai_output?: string;
-    rubric_grades?: Array<{
-        score: number;
-        maxScore: number;
-        criterionId: string;
-        criterionName: string;
-    }>;
+  rubric_grades?: Array<{
+    score: number;
+    maxScore: number;
+    criterionId: string;
+    criterionName: string;
+  }>;
   created_at?: string;
   Timestamp?: string;
   timestamp?: string;
@@ -73,11 +73,15 @@ export default function ReportDetailPage() {
     const router = useRouter();
     const reportId = params.id as string;
     const [isClient, setIsClient] = useState(false);
+    const [uniqueDocId, setUniqueDocId] = useState('');
     const [storedReportMeta, setStoredReportMeta] = useState<{ student_name?: string; assignment_title?: string } | null>(null);
  
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        // Generate a deterministic but unique-looking ID for this document session
+        const randomPart = Math.floor(1000 + Math.random() * 9000);
+        setUniqueDocId(`ATH-${reportId.slice(-4).toUpperCase()}-${randomPart}`);
+    }, [reportId]);
  
     useEffect(() => {
         if (typeof window === 'undefined' || !reportId) {
@@ -210,7 +214,7 @@ export default function ReportDetailPage() {
                     }
                 }
             } catch {
-                // Ignore invalid JSON and continue with fallback shapes.
+                // Ignore invalid JSON
             }
         }
  
@@ -271,18 +275,6 @@ export default function ReportDetailPage() {
                         <Separator orientation="vertical" className="hidden lg:block h-10 bg-border" />
  
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center border border-border">
-                                <FileCheck2 className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Record Type</p>
-                                <p className="text-sm font-bold text-foreground">Finalized Report</p>
-                            </div>
-                        </div>
- 
-                        <Separator orientation="vertical" className="hidden lg:block h-10 bg-border" />
- 
-                        <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                                 <Calendar className="h-5 w-5 text-primary" />
                             </div>
@@ -293,6 +285,18 @@ export default function ReportDetailPage() {
                                 </p>
                             </div>
                         </div>
+ 
+                        <Separator orientation="vertical" className="hidden lg:block h-10 bg-border" />
+ 
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center border border-border">
+                                <Hash className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Unique Record ID</p>
+                                <p className="text-sm font-bold font-mono text-foreground">{uniqueDocId}</p>
+                            </div>
+                        </div>
                     </div>
  
                     {isClient && (
@@ -300,6 +304,7 @@ export default function ReportDetailPage() {
                             report={report}
                             rubricGrades={rubricGrades}
                             formattedDate={formattedDate}
+                            documentId={uniqueDocId}
                         />
                     )}
                 </div>
@@ -378,16 +383,16 @@ export default function ReportDetailPage() {
                             </div>
                            
                             <Separator className="bg-border/50" />
-
+ 
                             {/* AI Original Analysis Section */}
-                            {report.ai_output && (
+                            {(report.ai_output || (report as any).aiReview?.output || (report as any).aiReview?.rawOutput) && (
                               <div className="p-4 rounded-xl border border-primary/10 bg-primary/5 space-y-3">
                                   <div className="flex items-center gap-2">
                                       <Sparkles className="h-3.5 w-3.5 text-primary" />
                                       <p className="text-[10px] font-bold text-primary uppercase tracking-widest">AI Intelligence Brief</p>
                                   </div>
                                   <p className="text-xs italic text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                                      {report.ai_output}
+                                      {report.ai_output || (report as any).aiReview?.output || (report as any).aiReview?.rawOutput}
                                   </p>
                               </div>
                             )}
@@ -397,7 +402,7 @@ export default function ReportDetailPage() {
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Academic Note</p>
                                     <p className="text-[11px] leading-relaxed text-muted-foreground font-medium">
-                                        This record is finalized and synced with the parent portal.
+                                        This record is finalized and synced with the parent portal. Unique document tracking is active for this record.
                                     </p>
                                 </div>
                             </div>

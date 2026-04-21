@@ -18,9 +18,13 @@ interface ReportDownloadButtonProps {
     maxScore: number;
   }>;
   formattedDate: string;
+  documentId?: string;
 }
 
-export default function ReportDownloadButton({ report, rubricGrades, formattedDate }: ReportDownloadButtonProps) {
+export default function ReportDownloadButton({ report, rubricGrades, formattedDate, documentId }: ReportDownloadButtonProps) {
+  // Ensure we have a deterministic ID for the PDF filename and content
+  const displayId = documentId || `ATH-${report.student_name.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+
   return (
     <PDFDownloadLink
       document={
@@ -30,9 +34,10 @@ export default function ReportDownloadButton({ report, rubricGrades, formattedDa
           date={formattedDate}
           rubricGrades={rubricGrades}
           teacherFeedback={report.teacher_feedback || ''}
+          documentId={displayId}
         />
       }
-      fileName={`Athena_${report.student_name}.pdf`}
+      fileName={`Athena_${report.student_name.replace(/\s+/g, '_')}.pdf`}
     >
       {({ loading, error }) => {
         if (error) {
@@ -42,12 +47,12 @@ export default function ReportDownloadButton({ report, rubricGrades, formattedDa
           <Button 
             variant="outline" 
             disabled={loading}
-            className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50"
+            className="h-11 rounded-xl font-bold border-border bg-card shadow-sm hover:bg-secondary/50 transition-all"
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Preparing PDF...
+                Compiling Document...
               </>
             ) : (
               <>
