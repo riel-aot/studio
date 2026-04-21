@@ -5,101 +5,120 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
 
 /**
  * Register the Kenao font for the signature 'A' logo.
- * Using a relative URL to ensure compatibility across development and production environments.
  */
 Font.register({
   family: 'Kenao',
-  src: '/api/font',
+  src: 'https://6000-firebase-studio-1770603697692.cluster-dcua5e7jvjesmwvkamxwtt7yac.cloudworkstations.dev/api/font',
 });
 
 const styles = StyleSheet.create({
   page: {
-    padding: 70,
+    padding: 60,
     backgroundColor: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
+  // --- Header ---
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 60,
+    marginBottom: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: 20,
+  },
+  logoGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   logoMark: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     backgroundColor: '#FF764D',
-    borderRadius: 12,
+    borderRadius: 10,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoLetter: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 28,
     fontFamily: 'Kenao',
+    marginTop: 2,
+  },
+  brandName: {
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    color: '#FF764D',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginTop: 4,
   },
   recordType: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#94a3b8',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
-    letterSpacing: 2.5,
+    letterSpacing: 2,
   },
+  // --- Hero Section ---
   studentSection: {
-    marginBottom: 50,
+    marginBottom: 35,
+    marginTop: 10,
   },
   studentName: {
-    fontSize: 42,
+    fontSize: 32,
     fontFamily: 'Helvetica-Bold',
     color: '#111827',
-    marginBottom: 8,
-    letterSpacing: -1.2,
+    marginBottom: 15,
+    letterSpacing: -0.5,
   },
   metaGrid: {
     flexDirection: 'row',
-    marginTop: 15,
-    paddingTop: 25,
-    borderTop: 1,
-    borderColor: '#f1f5f9',
-    gap: 50,
+    gap: 30,
   },
   metaItem: {
     flexDirection: 'column',
+    gap: 4,
   },
   metaLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#94a3b8',
     textTransform: 'uppercase',
     fontFamily: 'Helvetica-Bold',
-    marginBottom: 6,
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
   metaValue: {
-    fontSize: 12,
-    color: '#111827',
+    fontSize: 10,
+    color: '#334155',
     fontFamily: 'Helvetica-Bold',
   },
+  // --- Sections ---
+  section: {
+    marginBottom: 25,
+  },
   sectionHeader: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#FF764D',
     fontFamily: 'Helvetica-Bold',
     textTransform: 'uppercase',
-    letterSpacing: 1.8,
-    marginTop: 40,
-    marginBottom: 20,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 118, 77, 0.1)',
   },
+  // --- Proficiency Grid ---
   gradesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: 10,
   },
   gradeCard: {
     width: '48.5%',
-    padding: 20,
+    padding: 12,
     backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -107,57 +126,62 @@ const styles = StyleSheet.create({
     borderColor: '#f1f5f9',
   },
   criterionText: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Helvetica-Bold',
-    color: '#334155',
+    color: '#475569',
+  },
+  levelBadge: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   levelText: {
-    fontSize: 12,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
     color: '#FF764D',
   },
-  briefContainer: {
-    padding: 20,
-    backgroundColor: 'rgba(255, 118, 77, 0.03)',
-    borderRadius: 18,
+  // --- Text Containers ---
+  contentBox: {
+    padding: 18,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 118, 77, 0.1)',
-    marginBottom: 20,
   },
-  briefText: {
-    fontSize: 11,
-    lineHeight: 1.6,
-    color: '#64748b',
-    fontStyle: 'italic',
+  briefBox: {
+    backgroundColor: 'rgba(255, 118, 77, 0.02)',
+    borderColor: 'rgba(255, 118, 77, 0.08)',
   },
-  narrativeContainer: {
-    padding: 25,
+  narrativeBox: {
     backgroundColor: '#f8fafc',
-    borderRadius: 18,
-    borderWidth: 1,
     borderColor: '#f1f5f9',
   },
-  narrativeText: {
-    fontSize: 13,
-    lineHeight: 1.7,
-    color: '#475569',
-    fontStyle: 'italic',
+  bodyText: {
+    fontSize: 11,
+    lineHeight: 1.6,
+    color: '#334155',
   },
+  italicText: {
+    fontStyle: 'italic',
+    color: '#475569',
+  },
+  // --- Footer ---
   footer: {
     position: 'absolute',
     bottom: 40,
-    left: 70,
-    right: 70,
+    left: 60,
+    right: 60,
     textAlign: 'center',
-    borderTop: 1,
-    borderColor: '#f1f5f9',
-    paddingTop: 25,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    paddingTop: 15,
   },
   footerText: {
-    fontSize: 8.5,
+    fontSize: 8,
     color: '#cbd5e1',
     fontFamily: 'Helvetica-Bold',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
   }
 });
 
@@ -175,7 +199,7 @@ interface ReportPDFTemplateProps {
   documentId: string;
 }
 
-const formatProficiencyLevel = (score: number): string => {
+const formatLevel = (score: number): string => {
   const rounded = Math.max(1, Math.min(8, Math.round(Number(score))));
   switch (rounded) {
     case 1: return 'A';
@@ -190,10 +214,7 @@ const formatProficiencyLevel = (score: number): string => {
   }
 };
 
-const normalizeScore = (score: number, maxScore?: number): number => {
-    if (maxScore === 6) return score + 2;
-    return score;
-};
+const normalize = (score: number, max: number) => (max === 6 ? score + 2 : score);
 
 export function ReportPDFTemplate({ 
   studentName, 
@@ -207,18 +228,20 @@ export function ReportPDFTemplate({
   return (
     <Document title={`Academic Report - ${studentName}`}>
       <Page size="A4" style={styles.page}>
-        {/* Modern Brand Header */}
+        {/* Clean Brand Header */}
         <View style={styles.header}>
-          <View style={styles.logoMark}>
-            <Text style={styles.logoLetter}>A</Text>
+          <View style={styles.logoGroup}>
+            <View style={styles.logoMark}>
+              <Text style={styles.logoLetter}>A</Text>
+            </View>
+            <Text style={styles.brandName}>Athena</Text>
           </View>
-          <Text style={styles.recordType}>Academic Report</Text>
+          <Text style={styles.recordType}>Official Academic Record</Text>
         </View>
 
-        {/* Student Record Identification */}
+        {/* Hero Meta Section */}
         <View style={styles.studentSection}>
           <Text style={styles.studentName}>{studentName}</Text>
-          
           <View style={styles.metaGrid}>
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Assignment</Text>
@@ -229,49 +252,51 @@ export function ReportPDFTemplate({
               <Text style={styles.metaValue}>{date}</Text>
             </View>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Document ID</Text>
+              <Text style={styles.metaLabel}>Record ID</Text>
               <Text style={styles.metaValue}>{documentId}</Text>
             </View>
           </View>
         </View>
 
-        {/* Evaluation Summary */}
-        <View>
-          <Text style={styles.sectionHeader}>Proficiency Breakdown</Text>
+        {/* Proficiency Breakdown */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>Academic Achievement</Text>
           <View style={styles.gradesGrid}>
-            {rubricGrades.map((grade, index) => (
-              <View key={index} style={styles.gradeCard}>
+            {rubricGrades.map((grade, idx) => (
+              <View key={idx} style={styles.gradeCard}>
                 <Text style={styles.criterionText}>{grade.criterionName}</Text>
-                <Text style={styles.levelText}>Level {formatProficiencyLevel(normalizeScore(grade.score, grade.maxScore))}</Text>
+                <View style={styles.levelBadge}>
+                  <Text style={styles.levelText}>LVL {formatLevel(normalize(grade.score, grade.maxScore))}</Text>
+                </View>
               </View>
             ))}
           </View>
         </View>
 
-        {/* AI Original Analysis (Document Background) */}
+        {/* AI Original Analysis */}
         {aiOutput && (
-            <View>
-                <Text style={styles.sectionHeader}>AI Intelligence Brief</Text>
-                <View style={styles.briefContainer}>
-                    <Text style={styles.briefText}>{aiOutput}</Text>
-                </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>AI Intelligence Brief</Text>
+            <View style={[styles.contentBox, styles.briefBox]}>
+              <Text style={[styles.bodyText, styles.italicText]}>{aiOutput}</Text>
             </View>
+          </View>
         )}
 
-        {/* Qualitative Commentary */}
-        <View>
-          <Text style={styles.sectionHeader}>Teacher Narrative</Text>
-          <View style={styles.narrativeContainer}>
-            <Text style={styles.narrativeText}>
-              {teacherFeedback ? `"${teacherFeedback}"` : 'No additional narrative provided for this academic record.'}
+        {/* Teacher Commentary */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>Final Teacher Narrative</Text>
+          <View style={[styles.contentBox, styles.narrativeBox]}>
+            <Text style={[styles.bodyText, styles.italicText]}>
+              {teacherFeedback ? `"${teacherFeedback}"` : 'No additional narrative provided.'}
             </Text>
           </View>
         </View>
 
-        {/* Official Footer */}
+        {/* Professional Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Generated via Athena Assessment Systems • Official Student Progress Record
+            This document was generated via Athena Assessment Systems and is synchronized with the student's official portal.
           </Text>
         </View>
       </Page>
