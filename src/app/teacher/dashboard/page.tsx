@@ -673,8 +673,8 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <Alert variant="destructive" className="max-w-2xl mx-auto mt-20 p-8 rounded-[2rem] border-2">
       <AlertCircle className="h-6 w-6" />
-      <AlertTitle className="text-lg font-black uppercase tracking-widest mb-2">Sync Interrupted</AlertTitle>
-      <AlertDescription className="text-sm font-medium mb-6 opacity-80"> we encountered a connection error while retrieving your academic data.</AlertDescription>
+      <AlertTitle className="text-lg font-black uppercase tracking-widest mb-2">Sync Notice</AlertTitle>
+      <AlertDescription className="text-sm font-medium mb-6 opacity-80">We encountered a temporary connection issue while retrieving your workspace data. Please try again or contact your administrator.</AlertDescription>
       <Button variant="destructive" onClick={onRetry} className="h-12 px-8 font-black rounded-xl">Retry Connection</Button>
     </Alert>
   );

@@ -94,9 +94,9 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
             <PageHeader title="Academic Reports" description="Manage records." hideBack />
             <div className="p-12 text-center bg-card rounded-[2rem] border border-destructive/20 shadow-sm">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4 opacity-20" />
-                <p className="text-destructive font-bold text-lg">Synchronization Offline</p>
-                <p className="text-muted-foreground mb-6">Failed to load reports history.</p>
-                <Button onClick={() => onRetry()} variant="outline" className="font-bold">Retry Sync</Button>
+                <p className="text-destructive font-bold text-lg">Unable to load records</p>
+                <p className="text-muted-foreground mb-6">Please try again later or contact your system administrator.</p>
+                <Button onClick={() => onRetry()} variant="outline" className="font-bold rounded-xl px-8 h-11">Retry Sync</Button>
             </div>
         </div>
     );
@@ -340,5 +340,3 @@ export default function ReportsPage() {
         </div>
     );
 }
- 
- 

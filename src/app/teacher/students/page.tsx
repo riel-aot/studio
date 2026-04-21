@@ -178,11 +178,11 @@ export default function StudentsPage() {
             <PageHeader title="Student Roster" description="Manage enrollment." hideBack />
             <div className="p-12 text-center bg-card rounded-[2rem] border border-destructive/20 shadow-sm">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4 opacity-20" />
-                <p className="text-destructive font-bold text-lg">Synchronization Offline</p>
-                <p className="text-muted-foreground mb-6">{error?.message || 'Failed to load students'}</p>
+                <p className="text-destructive font-bold text-lg">Unable to load roster</p>
+                <p className="text-muted-foreground mb-6">We encountered an issue retrieving the student list. Please contact your administrator if this persists.</p>
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                    <Button onClick={() => refetch()} variant="outline" className="font-bold">Retry Sync</Button>
-                    <Button onClick={() => setIsDrawerOpen(true)} className="font-bold">
+                    <Button onClick={() => refetch()} variant="outline" className="font-bold rounded-xl px-8 h-11">Retry Sync</Button>
+                    <Button onClick={() => setIsDrawerOpen(true)} className="font-bold rounded-xl px-8 h-11">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add Student
                     </Button>

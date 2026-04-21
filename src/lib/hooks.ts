@@ -8,6 +8,8 @@ import { devLogger } from './logger';
 import { activityTracker } from './activity-tracker';
 import { normalizeWebhookActorRole } from './auth';
 
+const FRIENDLY_ERROR_MESSAGE = 'Unable to complete request. Please contact your administrator if this persists.';
+
 interface UseWebhookOptions<P> {
   eventName: EventName;
   payload?: P;
@@ -223,7 +225,6 @@ export function useWebhook<P, R>({
     };
     
     try {
-      console.log(`[useWebhook] ${eventName} - Sending request:`, requestBody);
       const response = await fetch('/api/webhook', {
         method: 'POST',
         headers: {
@@ -234,7 +235,6 @@ export function useWebhook<P, R>({
       });
 
       const rawResponse = await response.text();
-      console.log(`[useWebhook] ${eventName} - Raw response status=${response.status}`);
       
       let responseData: WebhookResponse<R>;
 
@@ -294,7 +294,6 @@ export function useWebhook<P, R>({
               responseData = parsedResponse as WebhookResponse<R>;
             }
           } catch (parseError) {
-            console.error(`[useWebhook] ${eventName} - JSON parse error:`, parseError);
             if (allowEmptyResponse && response.ok) {
               responseData = {
                 success: true,
@@ -338,11 +337,6 @@ export function useWebhook<P, R>({
         if (READ_EVENT_NAMES.has(eventName) && isNoDataFailure(response.status, backendStatus, errCode, errMessage)) {
           return completeWithEmptyResult();
         }
-        console.error(`[useWebhook] ${eventName} - Webhook failure:`, { 
-          status: response.status, 
-          success: responseData.success, 
-          error: responseData.error 
-        });
         
         const error = new Error(errMessage);
         setError(error);
@@ -354,8 +348,8 @@ export function useWebhook<P, R>({
         if (!suppressErrorToast) {
           toast({
             variant: 'destructive',
-            title: 'Sync Error',
-            description: errorMessage || errMessage,
+            title: 'System Notice',
+            description: errorMessage || FRIENDLY_ERROR_MESSAGE,
           });
         }
         return responseData;
@@ -395,7 +389,6 @@ export function useWebhook<P, R>({
         activityTracker.add(info.type, info.title, info.subtitle);
       }
 
-      console.log(`[useWebhook] ${eventName} - Success`);
       setData(responseData.data as R);
       if (resolvedCacheKey && typeof window !== 'undefined') {
         const storage = cacheStorage === 'local' ? window.localStorage : window.sessionStorage;
@@ -406,7 +399,6 @@ export function useWebhook<P, R>({
       }
       return responseData;
     } catch (err: any) {
-      console.error(`[useWebhook] ${eventName} - Exception:`, err);
       const message = String(err?.message ?? '').toLowerCase();
       if (READ_EVENT_NAMES.has(eventName) && /no items|no data|not found|empty|no rows/.test(message)) {
         return completeWithEmptyResult();
@@ -414,7 +406,6 @@ export function useWebhook<P, R>({
       if (fallbackToCacheOnError) {
         const latestCache = readCache();
         if (latestCache && isCacheFresh(latestCache)) {
-          console.log(`[useWebhook] ${eventName} - Using cached data as fallback`);
           setData(latestCache.data);
           setError(null);
           setIsLoading(false);
@@ -428,8 +419,8 @@ export function useWebhook<P, R>({
       if (!suppressErrorToast) {
         toast({
           variant: 'destructive',
-          title: 'Connection Error',
-          description: errorMessage || err.message || 'Could not connect to the server.',
+          title: 'Connection Notice',
+          description: errorMessage || FRIENDLY_ERROR_MESSAGE,
         });
       }
     } finally {
